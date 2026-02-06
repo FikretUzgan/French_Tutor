@@ -39,12 +39,14 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 * Seviyeler: A1.1, A1.2, A2.1, A2.2, B1.1, B1.2, B2.1, B2.2  
 * Her seviye: 4-5 hafta  
 * Toplam süre: \~36 hafta (9 ay)
+* Tempo: A1 hizli ilerler, A2/B1 dengeli, B2 daha yavas ve daha fazla tekrar
 
 **FR-002: Study Schedule**
 
 * Hafta içi: 5 gün × 30 dakika \= 150 dk/hafta  
 * Hafta sonu: 2 gün × 2 ders × 30 dk \= 120 dk/hafta  
 * **Toplam:** 270 dakika/hafta (\~4.5 saat)
+* Hafta sonu oturumlari: 1 oturum review + SRS, 1 oturum 45 dk sinav
 
 **FR-003: User Preferences**
 
@@ -80,10 +82,14 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 │    \- Anlık feedback                     │  
 └─────────────────────────────────────────┘
 
+* Hedef: 27 kelime/hafta (3 kelime x 9 oturum)
+
 **FR-011: Homework System**
 
 * Her ders sonunda 1 ödev verilir  
 * Türler: Çeviri, kompozisyon, gramer alıştırması  
+* Teslim formatı: text + audio zorunlu  
+* Deadline: bir sonraki dersten önce  
 * **Zorunlu:** Teslim etmeden yeni derse geçilemez  
 * AI otomatik değerlendirir \+ detaylı feedback
 
@@ -95,6 +101,7 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 
 * Her hafta sonu seviye sınavı  
 * Süre: 45 dakika  
+* Sinav hafta sonu oturumlarindan birini degistirir (30 dk yerine 45 dk)
 * Soru tipleri:  
   * Çoktan seçmeli (gramer) \- %30  
   * Boşluk doldurma (kelime) \- %20  
@@ -110,7 +117,8 @@ PASS\_CONDITIONS \= {
     "critical\_topics": {  
         "conjugation": \>= 70%,  
         "vocabulary\_retention": \>= 70%,  
-        "reading\_comprehension": \>= 70%  
+        "reading_comprehension": \>= 70%,  
+        "speaking": \>= 70%  
     }  
 }  
 \`\`\`  
@@ -122,6 +130,7 @@ PASS\_CONDITIONS \= {
 \- Zayıf konular belirlenir  
 \- Özel çalışma planı oluşturulur  
 \- 3\-5 ek ders \+ mini sınav  
+\- Ek dersler takvimi uzatir (hafta kaydirma)  
 \- Tekrar sınav (farklı sorularla)
 
 \*\*FR-023: Dynamic Question Generation\*\*  
@@ -161,6 +170,8 @@ PASS\_CONDITIONS \= {
 **FR-040: Spaced Repetition System (SRS)**
 
 * Anki algoritması (SM-2)  
+* Varsayilan SM-2 parametreleri: grade 0-5, ease factor baslangic 2.5, min 1.3  
+* Gunluk review limiti: 50 kart  
 * Kelimeler otomatik tekrar edilir  
 * Başarı durumuna göre interval artar:  
   * İlk tekrar: 1 gün sonra  
@@ -184,6 +195,7 @@ vocabulary (
 
 \*\*FR-050: Podcast/Video Suggestions\*\*  
 \- Her seviyeye uygun içerik önerileri  
+\- İsteğe bağlı, ilerleme için zorunlu değil  
 \- A1: "InnerFrench" (beginner-friendly)  
 \- A2: "Coffee Break French"  
 \- B1: "News in Slow French"  
