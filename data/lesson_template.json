@@ -1,0 +1,41 @@
+{
+  "level": "A2.1",
+  "theme": "<theme>",
+  "grammar": {
+    "explanation": "<short explanation>",
+    "examples": [
+      "<example 1>",
+      "<example 2>",
+      "<example 3>",
+      "<example 4>",
+      "<example 5>"
+    ],
+    "conjugation": [
+      "<conjugation line 1>",
+      "<conjugation line 2>"
+    ]
+  },
+  "vocabulary": [
+    "<word 1 (translation)>",
+    "<word 2 (translation)>",
+    "<word 3 (translation)>"
+  ],
+  "speaking": {
+    "prompt": "<speaking prompt>",
+    "targets": [
+      "<target 1>",
+      "<target 2>",
+      "<target 3>"
+    ]
+  },
+  "quiz": {
+    "questions": [
+      "<question 1>",
+      "<question 2>",
+      "<question 3>",
+      "<question 4>",
+      "<question 5>"
+    ]
+  },
+  "homework": "<homework instructions>"
+}
