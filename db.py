@@ -155,6 +155,19 @@ def init_db() -> None:
         )
     """)
 
+    # Initialize default settings if they don't exist
+    cursor.execute("SELECT COUNT(*) as count FROM app_settings WHERE key = 'homework_blocking_enabled'")
+    if cursor.fetchone()["count"] == 0:
+        cursor.execute(
+            "INSERT INTO app_settings (key, value) VALUES ('homework_blocking_enabled', 'false')"
+        )
+    
+    cursor.execute("SELECT COUNT(*) as count FROM app_settings WHERE key = 'dev_mode'")
+    if cursor.fetchone()["count"] == 0:
+        cursor.execute(
+            "INSERT INTO app_settings (key, value) VALUES ('dev_mode', 'true')"
+        )
+
     conn.commit()
     conn.close()
 
@@ -215,6 +228,27 @@ def update_homework_status(submission_id: int, status: str) -> None:
         "UPDATE homework_submissions SET status = ? WHERE submission_id = ?",
         (status, submission_id)
     )
+    conn.commit()
+    conn.close()
+
+
+def update_lesson_homework_progress(lesson_id: str, homework_passed: bool) -> None:
+    """Update lesson progress after homework submission.
+    
+    Args:
+        lesson_id: The lesson ID
+        homework_passed: Whether the homework passed or not
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        UPDATE lesson_progress
+        SET homework_submitted = TRUE,
+            homework_passed = ?
+        WHERE lesson_id = ?
+    """, (homework_passed, lesson_id))
+    
     conn.commit()
     conn.close()
 
@@ -290,21 +324,60 @@ def mark_lesson_complete(lesson_id: str, homework_passed: bool = True) -> None:
     conn.close()
 
 
-def is_lesson_blocked(lesson_id: str) -> bool:
-    """Check if lesson is blocked (homework not submitted)."""
+def is_lesson_blocked(lesson_id: str, user_id: int = 1) -> bool:
+    """Check if lesson is blocked (homework not submitted for previous lesson).
+    
+    Args:
+        lesson_id: The lesson to check
+        user_id: User ID (for future multi-user support)
+    
+    Returns:
+        True if blocked (previous lesson homework not submitted/passed), False otherwise
+    """
+    # Check if homework blocking is enabled
+    blocking_enabled = get_app_setting("homework_blocking_enabled", "true") == "true"
+    if not blocking_enabled:
+        return False  # Blocking disabled, all lessons available
+    
     conn = get_connection()
     cursor = conn.cursor()
     
+    # Get the current lesson's position
     cursor.execute(
-        "SELECT homework_submitted FROM lesson_progress WHERE lesson_id = ?",
+        """SELECT level, week_number, lesson_id 
+           FROM lessons 
+           WHERE lesson_id = ?""",
         (lesson_id,)
     )
-    row = cursor.fetchone()
+    current_lesson = cursor.fetchone()
+    
+    if not current_lesson:
+        conn.close()
+        return False  # Lesson doesn't exist, not blocked
+    
+    # Get all previous lessons (same level, earlier in sequence)
+    cursor.execute(
+        """SELECT l.lesson_id, lp.homework_submitted, lp.homework_passed
+           FROM lessons l
+           LEFT JOIN lesson_progress lp ON l.lesson_id = lp.lesson_id
+           WHERE l.level = ? AND l.lesson_id < ?
+           ORDER BY l.lesson_id DESC
+           LIMIT 1""",
+        (current_lesson["level"], lesson_id)
+    )
+    
+    previous_lesson = cursor.fetchone()
     conn.close()
     
-    if row:
-        return not row[0]  # Blocked if homework not submitted
-    return False  # New lesson not blocked
+    # If there's a previous lesson and homework not submitted/passed, block current
+    if previous_lesson:
+        homework_submitted = previous_lesson["homework_submitted"] == 1
+        homework_passed = previous_lesson["homework_passed"] == 1 if previous_lesson["homework_passed"] is not None else False
+        
+        # Lesson is blocked if previous homework not submitted OR not passed
+        return not (homework_submitted and homework_passed)
+    
+    return False  # No previous lesson, first lesson is never blocked
 
 
 def get_lesson_by_id(lesson_id: str) -> Optional[dict]:

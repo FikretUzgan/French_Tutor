@@ -1157,10 +1157,12 @@ async def get_app_mode():
     dev_mode = get_dev_mode()
     starting_level = db.get_app_setting("starting_level")
     current_level = db.get_app_setting("current_level")
+    homework_blocking = db.get_app_setting("homework_blocking_enabled", "true") == "true"
     return {
         "mode": "dev" if dev_mode else "production",
         "starting_level": starting_level,
-        "current_level": current_level
+        "current_level": current_level,
+        "homework_blocking_enabled": homework_blocking
     }
 
 
@@ -1171,6 +1173,24 @@ async def toggle_app_mode(request: ModeToggleRequest):
     return {
         "status": "success",
         "mode": "dev" if request.dev_mode else "production"
+    }
+
+
+@app.post("/api/settings/homework-blocking")
+async def toggle_homework_blocking(enabled: bool = True):
+    """Toggle homework blocking on or off.
+    
+    Args:
+        enabled: True to enable blocking (production mode), False to disable (dev mode)
+    
+    When disabled, all lessons are accessible regardless of homework completion.
+    When enabled, next lesson is blocked until current homework is submitted and passed.
+    """
+    db.set_app_setting("homework_blocking_enabled", "true" if enabled else "false")
+    return {
+        "status": "success",
+        "homework_blocking_enabled": enabled,
+        "message": "Homework blocking " + ("enabled" if enabled else "disabled")
     }
 
 
@@ -1206,12 +1226,25 @@ async def get_available_lessons():
     """Get lessons available for the current mode and user level."""
     try:
         lessons_raw = db.get_all_lessons()
-        if get_dev_mode():
-            return [build_lesson_response(lesson) for lesson in lessons_raw]
-
+        dev_mode = get_dev_mode()
         current_level = get_current_level()
-        filtered = [lesson for lesson in lessons_raw if lesson.get("level") == current_level]
-        return [build_lesson_response(lesson) for lesson in filtered]
+        
+        # Filter by level unless in dev mode
+        if not dev_mode:
+            lessons_raw = [lesson for lesson in lessons_raw if lesson.get("level") == current_level]
+        
+        # Filter out blocked lessons (unless blocking is disabled)
+        blocking_enabled = db.get_app_setting("homework_blocking_enabled", "true") == "true"
+        
+        if blocking_enabled:
+            available_lessons = []
+            for lesson in lessons_raw:
+                if not db.is_lesson_blocked(lesson["lesson_id"]):
+                    available_lessons.append(lesson)
+        else:
+            available_lessons = lessons_raw
+        
+        return [build_lesson_response(lesson) for lesson in available_lessons]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch available lessons: {str(e)}")
 
@@ -1231,6 +1264,15 @@ async def get_lesson(lesson_id: str):
         lesson = db.get_lesson_by_id(lesson_id)
         if not lesson:
             raise HTTPException(status_code=404, detail="Lesson not found")
+        
+        # Check if lesson is blocked
+        blocking_enabled = db.get_app_setting("homework_blocking_enabled", "true") == "true"
+        if blocking_enabled and db.is_lesson_blocked(lesson_id):
+            raise HTTPException(
+                status_code=403, 
+                detail="This lesson is blocked. Complete the previous lesson's homework first."
+            )
+        
         return build_lesson_response(lesson)
     except HTTPException:
         raise
@@ -1239,7 +1281,7 @@ async def get_lesson(lesson_id: str):
 
 @app.post("/api/homework/submit")
 async def submit_homework(
-    lesson_id: int = Form(...),
+    lesson_id: str = Form(...),
     homework_text: str = Form(...),
     audio_file: Optional[UploadFile] = File(None),
     user_id: int = Form(1)
@@ -1283,6 +1325,9 @@ async def submit_homework(
         
         # Update submission status
         db.update_homework_status(submission_id, "completed")
+        
+        # Update lesson progress with homework result
+        db.update_lesson_homework_progress(lesson_id, evaluation["passed"])
         
         # Track weaknesses from homework
         if not evaluation["passed"]:

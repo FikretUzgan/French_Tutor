@@ -1,6 +1,10 @@
 {
     "chat.tools.terminal.autoApprove": {
         "gh": true,
-        "py": true
+        "py": true,
+        "/^git add db\\.py french_tutor\\.db main\\.py static/ templates/ French_Course_Weekly_Plan\\.md French_Tutor_SRS\\.md Implementation_Plan\\.md NEXT_DAY_NOTES\\.md$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }
