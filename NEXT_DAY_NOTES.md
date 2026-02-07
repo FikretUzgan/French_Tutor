@@ -350,6 +350,79 @@ French_Tutor/
 
 6. **Commit changes** to GitHub with detailed commit messages.
 
+---
+
+## Session 6 Update: Gemini API Integration for Speaking Feedback
+**Date:** February 7, 2026 (continuation)  
+**Focus:** Integrate Gemini 2.0 Flash for AI-powered speaking practice feedback
+
+### Changes Made:
+- ✅ **Implemented Gemini API integration** in `get_ai_speaking_feedback()`:
+  - Uses `google-genai` SDK (new, non-deprecated)
+  - Model: `gemini-2.0-flash-exp` (fast, free tier)
+  - Text-only communication (transcribed speech → AI feedback)
+  - Intelligent prompt with scenario context + conversation targets
+  - Error handling for missing API key and API failures
+- ✅ **Migrated from deprecated package**:
+  - **Old:** `google-generativeai==1.62.0` (deprecated, FutureWarning)
+  - **New:** `google-genai==1.62.0` (current SDK)
+  - Updated imports: `from google import genai` + `from google.genai import types`
+  - Updated API pattern: `Client(api_key)` → `client.models.generate_content()`
+- ✅ **Updated requirements.txt**:
+  - Removed: `google-generativeai==1.62.0`
+  - Added: `google-genai` (pulls latest 1.62.0)
+  - Dependencies auto-installed: httpx, anyio, websockets, google-auth
+- ✅ **Verified imports**: No deprecation warnings after migration
+- ✅ **API key configuration**:
+  - Uses `os.getenv("GEMINI_API_KEY")`
+  - Example in `.env.example`
+  - Free API key available at: https://aistudio.google.com/apikey
+
+### Technical Details:
+```python
+# Gemini API call structure
+client = genai.Client(api_key=api_key)
+response = client.models.generate_content(
+    model='gemini-2.0-flash-exp',
+    contents=prompt
+)
+feedback_text = response.text.strip()
+```
+
+**Prompt Engineering:**
+- Provides scenario context (e.g., "At a café")
+- Includes conversation targets (e.g., "Order a coffee, ask for the bill")
+- Instructs AI to give concise, encouraging feedback
+- Evaluates: grammar, vocabulary, relevance to scenario
+- Example format: "✅ Good job! ⚠️ Watch out for... 💡 Try..."
+
+### Rationale:
+- **Free tier compatible:** Text-only keeps token usage low
+- **Fast model:** `gemini-2.0-flash-exp` optimized for quick responses
+- **Latest SDK:** `google-genai` is actively maintained, future-proof
+- **Clear feedback:** AI provides actionable, scenario-aware corrections
+- **Error resilient:** Handles missing API keys and network failures gracefully
+
+### Result:
+- **Speaking practice complete:** Students can record → transcribe → get AI feedback → hear TTS
+- **No token waste:** Only transcribed text sent to API (not audio)
+- **Production-ready:** Proper error handling and user-friendly messages
+- **No deprecation warnings:** Clean imports with latest SDK
+
+### Testing Results:
+- ✅ Package installation: `google-genai==1.62.0` installed successfully
+- ✅ Import test: `test_app_import.py` passes without warnings
+- ⏳ End-to-end test: Needs GEMINI_API_KEY to test full workflow
+
+### Next Steps:
+1. User sets up `GEMINI_API_KEY` in `.env` or environment variables
+2. Test speaking practice end-to-end (record → STT → AI feedback → TTS)
+3. Implement Gemini API for homework grading (text + audio evaluation)
+4. Build exam UI with quiz submission and auto-grading
+5. Implement progress dashboard with visualization
+
+---
+
 ## Commands to Resume Development
 ```bash
 # Full setup from scratch

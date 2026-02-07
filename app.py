@@ -1,9 +1,12 @@
 import json
 from pathlib import Path
 from datetime import datetime
+import os
 
 import streamlit as st
 import numpy as np
+from google import genai
+from google.genai import types
 
 from db import (
     init_db,
@@ -175,19 +178,57 @@ def get_ai_speaking_feedback(transcribed_text: str, scenario: str, targets: list
     Returns:
         AI feedback text
     """
-    # TODO: Implement Gemini API call
-    # For now, return placeholder feedback
-    feedback = f"""
+    # Check for API key
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return """⚠️ **No API key found!**
+        
+Please set your GEMINI_API_KEY environment variable to get AI feedback.
+You can get a free API key at: https://aistudio.google.com/apikey
+        """
+    
+    try:
+        # Configure Gemini client
+        client = genai.Client(api_key=api_key)
+        
+        # Create prompt (concise for free tier)
+        targets_str = "\n".join([f"- {t}" for t in targets])
+        prompt = f"""You are a French language tutor. A student practiced speaking French.
+
+Scenario: {scenario}
+
+Targets:
+{targets_str}
+
+Student's response (transcribed): "{transcribed_text}"
+
+Provide brief feedback (3-4 sentences):
+1. Did they address the scenario?
+2. Grammar/vocabulary quality
+3. One specific suggestion for improvement
+
+Be encouraging but constructive. Keep it under 100 words."""
+        
+        # Get response
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=prompt
+        )
+        feedback_text = response.text.strip()
+        
+        return f"""📝 **Your response:** {transcribed_text}
+
+🤖 **AI Feedback:**
+{feedback_text}
+"""
+        
+    except Exception as e:
+        return f"""❌ **Error getting AI feedback:** {str(e)}
+        
 📝 **Your response:** {transcribed_text}
 
-✅ **Feedback:**
-- Good attempt at using past tenses
-- Try to include more descriptive vocabulary
-- Practice pronunciation of nasal sounds
-
-💡 **Suggestion:** Try again with more details about the location and person.
+Please check your API key and internet connection.
 """
-    return feedback
 
 
 def render_homework_submission(lesson: dict) -> None:
