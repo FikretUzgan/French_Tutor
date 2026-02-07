@@ -140,16 +140,18 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
   2. **Push-to-talk recording:** Student holds button to speak (sounddevice)
   3. **STT conversion:** Whisper.cpp converts speech → text locally
   4. **Text-based AI evaluation:** Send transcribed text to Gemini API (not audio)
-  5. **AI response:** Text feedback + suggestions
-  6. **TTS playback:** Piper reads AI response aloud
+  5. **AI response:** Text feedback + suggestions in **French only**
+  6. **TTS playback:** gTTS reads AI response aloud (symbols/emoji stripped)
   7. **Retry allowed:** Student can attempt again with new scenario or same
   
 * **Key Design Decisions:**
   * **No audio sent to AI:** Only STT transcription sent (saves tokens on free tier)
-  * **Local STT/TTS:** Whisper.cpp + Piper run locally (no API costs)
+  * **Local STT + cloud TTS:** Whisper runs locally, gTTS used for TTS
   * **Interactive, not evaluative:** Not stored in database, just practice
   * **Immediate feedback:** Real-time text + voice response
   * **Multiple attempts:** Students can retry scenarios until satisfied
+  * **French-only feedback:** Prevent mixed-language TTS output
+  * **TTS sanitization:** Remove emoji/symbols so TTS reads only text
   
 * **Difference from Homework Audio:**
   * Speaking practice: STT → text → AI (text-based conversation)
@@ -296,10 +298,10 @@ vocabulary (
 \#\#\# 3.1 Performance  
 \- \*\*NFR-001:\*\* Ders yükleme süresi \< 2 saniye  
 \- \*\*NFR-002:\*\* STT (Whisper) yanıt süresi \< 3 saniye  
-\- \*\*NFR-003:\*\* TTS (Piper) ses üretimi \< 1 saniye
+\- \*\*NFR-003:\*\* TTS (gTTS) ses üretimi \< 2 saniye
 
 \#\#\# 3.2 Usability  
-\- \*\*NFR-010:\*\* Streamlit web arayüzü  
+\- \*\*NFR-010:\*\* FastAPI tabanli web arayuzu (HTML/CSS/JS)  
 \- \*\*NFR-011:\*\* Responsive tasarım (1280×720 minimum)  
 \- \*\*NFR-012:\*\* Push-to-talk mikrofon butonu
 
@@ -319,16 +321,16 @@ vocabulary (
 \#\#\# 4.1 System Overview  
 \`\`\`  
 ┌─────────────────────────────────────────────────────┐  
-│              FRONTEND (Streamlit)                   │  
+│      FRONTEND (HTML/CSS/JS via FastAPI)             │  
 │  ┌─────────────┬─────────────┬──────────────┐      │  
 │  │ Ders Ekranı │ Sınav Ekranı│ Rapor Ekranı │      │  
 │  └─────────────┴─────────────┴──────────────┘      │  
 └───────────────────┬─────────────────────────────────┘  
                     │  
 ┌───────────────────▼─────────────────────────────────┐  
-│           BUSINESS LOGIC (Python)                   │  
+│           BUSINESS LOGIC (FastAPI)                  │  
 │  ┌──────────────────────────────────────────┐      │  
-│  │   LessonPlanner (LangGraph Agent)        │      │  
+│  │   LessonPlanner (Prompt-based)           │      │  
 │  │   ExamGenerator (Dynamic Questions)      │      │  
 │  │   PerformanceAnalyzer (Weakness Tracker) │      │  
 │  │   HomeworkManager (Mandatory Checks)     │      │  
@@ -338,19 +340,19 @@ vocabulary (
     ┌───────────────┼───────────────┬────────────────┐  
     │               │               │                │  
 ┌───▼────┐    ┌────▼─────┐   ┌────▼────┐    ┌──────▼──────┐  
-│ Gemini │    │ Whisper  │   │  Piper  │    │   SQLite    │  
+│ Gemini │    │ Whisper  │   │  gTTS   │    │   SQLite    │  
 │  API   │    │   STT    │   │   TTS   │    │  \+ChromaDB  │  
-│ (Free) │    │ (Lokal)  │   │ (Lokal) │    │   (Lokal)   │  
+│ (Free) │    │ (Lokal)  │   │ (Cloud)│    │   (Lokal)   │  
 └────────┘    └──────────┘   └─────────┘    └─────────────┘
 
 ### **4.2 Technology Stack**
 
 | Component | Technology | Justification |
 | ----- | ----- | ----- |
-| Frontend | Streamlit | Hızlı prototip, Python entegrasyonu |
-| AI Agent | LangGraph \+ Gemini 2.0 Flash | Multi-agent orchestration |
-| STT | Whisper.cpp (medium model) | Lokal, hızlı, Fransızca destekli |
-| TTS | Piper (fr\_FR-siwis-medium) | Doğal ses, hızlı |
+| Frontend | FastAPI + HTML/CSS/JS (Vanilla) | Hızli, hafif, REST API tabanli |
+| AI Agent | Gemini 2.5 Flash | Hizli, ucuz, free-tier uyumlu |
+| STT | Whisper (base model) | Lokal, hızlı, Fransızca destekli |
+| TTS | gTTS | Basit, stabil, Fransizca icin yeterli |
 | Database | SQLite | Basit, lokal, yeterli |
 | Vector DB | ChromaDB | Semantic search (SRS için) |
 | Audio Recording | sounddevice | Lokal Python tabanlı ses kaydı, güvenilir |
@@ -497,34 +499,50 @@ class LessonPlannerAgent:
     Generates personalized lessons based on:  
     \- Current CEFR level  
     \- Past performance  
-    \- Weak topics  
-    \- Already learned vocabulary  
-    """  
+    ### **3.1 Performance  
+    - **NFR-001:** Ders yükleme süresi < 2 saniye  
+    - **NFR-002:** STT (Whisper) yanıt süresi < 3 saniye  
+    - **NFR-003:** TTS (gTTS) ses üretimi < 2 saniye
       
-    def generate\_lesson(self, user\_id, level):  
-        \# 1\. Get user's weak topics  
-        weak\_topics \= self.db.get\_weak\_topics(user\_id)  
+    ### **3.2 Usability  
+    - **NFR-010:** FastAPI tabanli web arayuzu (HTML/CSS/JS)  
+    - **NFR-011:** Responsive tasarım (1280×720 minimum)  
+    - **NFR-012:** Push-to-talk mikrofon butonu
+    │      FRONTEND (HTML/CSS/JS via FastAPI)             │  
           
+    │           BUSINESS LOGIC (FastAPI)                  │  
         \# 2\. Get learned vocabulary  
+    │  │   LessonPlanner (Prompt-based)           │      │  
         learned\_vocab \= self.db.get\_vocabulary(user\_id)  
+    │ Gemini │    │ Whisper  │   │  gTTS   │    │   SQLite    │  
           
+    │ (Free) │    │ (Lokal)  │   │ (Cloud)│    │   (Lokal)   │  
         \# 3\. Get curriculum for this level  
         curriculum \= self.load\_curriculum(level)  
           
+    | Component | Technology | Justification |
+    | ----- | ----- | ----- |
+    | Frontend | FastAPI + HTML/CSS/JS (Vanilla) | Hızli, hafif, REST API tabanli |
+    | AI Agent | Gemini 2.5 Flash | Hizli, ucuz, free-tier uyumlu |
+    | STT | Whisper (base model) | Lokal, hızlı, Fransızca destekli |
+    | TTS | gTTS | Basit, stabil, Fransizca icin yeterli |
         \# 4\. Generate lesson with Gemini  
         prompt \= f"""  
-        You are a strict French teacher.  
-        Student level: {level}  
-        Weak topics: {weak\_topics}  
-        Learned words: {len(learned\_vocab)}  
-          
-        Create today's lesson:  
+    * Dependencies yükle:
+
+    bash  
+     pip install fastapi uvicorn[standard] python-multipart python-dotenv google-genai  
+      pip install openai-whisper gTTS  
+      pip install chromadb sqlalchemy sounddevice scipy
+    * Whisper base model indir (auto-download)  
+    * gTTS icin local model gerekmez  
+    * Frontend CSS tema özelleştirme  
         1\. Grammar topic (compare with English)  
-        2\. 3 new vocabulary words (not in: {learned\_vocab})  
-        3\. Speaking scenario (daily life or role-play)  
-        4\. 1 homework assignment  
-          
-        Return JSON format.  
+    # Run app  
+    uvicorn main:app --reload
+    GEMINI\_API\_KEY\=your\_api\_key\_here  
+    DATABASE\_PATH\=./data/student.db  
+    WHISPER\_MODEL\_PATH\=./models/ggml-medium.bin  
         """  
           
         response \= self.llm.invoke(prompt)  
@@ -600,8 +618,8 @@ TEACHER\_PROMPTS \= {
 * Dependencies yükle:
 
 bash  
- pip install streamlit langchain langgraph google-generativeai  
-  pip install whisper-cpp-python piper-tts  
+ pip install fastapi uvicorn[standard] python-multipart python-dotenv google-genai  
+  pip install openai-whisper gTTS  
   pip install chromadb sqlalchemy sounddevice scipy
 
 * Proje klasör yapısı oluştur  
@@ -609,8 +627,8 @@ bash
 
 **Week 2: STT/TTS Integration**
 
-* Whisper.cpp medium model indir  
-* Piper fr\_FR model indir  
+* Whisper base model indir (auto-download)  
+* gTTS icin local model gerekmez  
 * Basit test arayüzü (record → transcribe → speak)  
 * Ses kalitesi optimizasyonu
 
@@ -705,7 +723,7 @@ bash
 
 **Week 23: UI/UX Improvements**
 
-* Streamlit tema özelleştirme  
+* Frontend CSS tema özelleştirme  
 * Progress visualization  
 * Gamification elements
 
@@ -830,7 +848,7 @@ pip install \-r requirements.txt
 python scripts/download\_models.py
 
 \# Run app  
-streamlit run app.py
+uvicorn main:app --reload
 
 ### **11.2 Environment Variables**
 
@@ -839,7 +857,6 @@ bash
 GEMINI\_API\_KEY\=your\_api\_key\_here  
 DATABASE\_PATH\=./data/student.db  
 WHISPER\_MODEL\_PATH\=./models/ggml-medium.bin  
-PIPER\_MODEL\_PATH\=./models/fr\_FR-siwis-medium  
 ---
 
 ## **12\. SIGN-OFF**

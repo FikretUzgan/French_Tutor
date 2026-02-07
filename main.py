@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 import json
+import re
+import unicodedata
 
 # Import our existing modules
 import db
@@ -102,7 +104,7 @@ def get_ai_speaking_feedback(transcribed_text: str, scenario: str, targets: List
         return "⚠️ No API key configured. Please set GEMINI_API_KEY in .env file."
     
     try:
-        targets_list = "\\n".join(f"- {t}" for t in targets)
+        targets_list = "\n".join(f"- {t}" for t in targets)
         prompt = f"""You are a French language tutor. Evaluate this student's response in a conversation scenario.
 
 Scenario: {scenario}
@@ -111,23 +113,36 @@ Conversation goals:
 
 Student said: "{transcribed_text}"
 
-Provide concise, encouraging feedback in this format:
-✅ What was good (grammar, vocabulary, relevance)
-⚠️ What could be improved
-💡 Suggestion for next response
+    Provide concise, encouraging feedback in French only, in this format:
+    ✅ Points positifs (grammaire, vocabulaire, pertinence)
+    ⚠️ Ce qui peut etre ameliore
+    💡 Proposition pour la prochaine reponse
 
-Keep it under 100 words, be supportive."""
+    Keep it under 100 words, be supportive. Do not use any English words."""
         
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-2.5-flash',
             contents=prompt
         )
         feedback_text = response.text.strip()
-        return f"📝 Your response: {transcribed_text}\\n\\n🤖 AI Feedback:\\n{feedback_text}"
+        return f"📝 Ta reponse: {transcribed_text}\n\n🤖 Retour du tuteur:\n{feedback_text}"
     
     except Exception as e:
         return f"❌ Error getting AI feedback: {str(e)}"
+
+
+def sanitize_tts_text(text: str) -> str:
+    """Remove emoji/symbols that TTS reads aloud."""
+    if not text:
+        return ""
+    cleaned = "".join(
+        ch
+        for ch in text
+        if unicodedata.category(ch) not in ("So", "Sk", "Cf")
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 # Static files (will serve HTML/CSS/JS)
 static_dir = Path(__file__).parent / "static"
@@ -324,10 +339,14 @@ async def text_to_speech(request: TTSRequest):
     try:
         if not request.text or not request.text.strip():
             raise HTTPException(status_code=400, detail="Text cannot be empty")
+
+        cleaned_text = sanitize_tts_text(request.text)
+        if not cleaned_text:
+            raise HTTPException(status_code=400, detail="Text contains no speakable content")
         
         # Generate TTS
-        tts = gTTS(text=request.text, lang=request.lang, slow=False)
-        tts_path = tts_dir / f"tts_{hash(request.text)}_{request.lang}.mp3"
+        tts = gTTS(text=cleaned_text, lang=request.lang, slow=False)
+        tts_path = tts_dir / f"tts_{hash(cleaned_text)}_{request.lang}.mp3"
         tts.save(str(tts_path))
         
         return FileResponse(

@@ -17,14 +17,14 @@ Duration: 36 weeks
 - Progress tracking and weakness analysis are recorded in SQLite
 - SRS scheduling works with review reminders
 - AI agents generate lessons, exams, and feedback reliably
-- Streamlit UI covers lessons, exams, reports
+- FastAPI web UI (HTML/CSS/JS) covers lessons, exams, reports
 - Basic content coverage from A1 to B2 with weekly themes
 
 ## Dependencies
-- Python 3.11+, Streamlit, LangChain/LangGraph
+- Python 3.11+, FastAPI, uvicorn, python-multipart, python-dotenv
 - Gemini API key
 - Whisper.cpp model (fr)
-- Piper TTS model (fr)
+- gTTS (fr)
 - SQLite + ChromaDB
 - GitHub repo and CI (optional)
 
@@ -39,7 +39,7 @@ Duration: 36 weeks
 ### Phase 1: Foundation (Weeks 1-4)
 Deliverables:
 - Local environment setup and project skeleton
-- Basic Streamlit UI shell (Lesson/Exam/Report tabs)
+- Basic FastAPI SPA shell (Lesson/Exam/Report tabs)
 - STT/TTS minimal pipeline test
 - SQLite schema and initial data seeding
 - Gemini API integration with prompt templates
