@@ -89,9 +89,14 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 * Her ders sonunda 1 ödev verilir  
 * Türler: Çeviri, kompozisyon, gramer alıştırması  
 * Teslim formatı: text + audio zorunlu  
+  * **Audio Options:**
+    * **Record:** Tarayıcıda gerçek zamanlı ses kaydı (WebRTC)
+    * **Upload:** MP3, WAV, OGG, FLAC, M4A formatlarında dosya yükleme
+  * Min text length: 50 karakter
+  * Max audio: 25 MB
 * Deadline: bir sonraki dersten önce  
 * **Zorunlu:** Teslim etmeden yeni derse geçilemez  
-* AI otomatik değerlendirir \+ detaylı feedback
+* AI otomatik değerlendirir \+ detaylı feedback (gramer, kelime, telaffuz)
 
 ---
 
@@ -285,7 +290,8 @@ vocabulary (
 | TTS | Piper (fr\_FR-siwis-medium) | Doğal ses, hızlı |
 | Database | SQLite | Basit, lokal, yeterli |
 | Vector DB | ChromaDB | Semantic search (SRS için) |
-| Audio | sounddevice \+ scipy | Ses kayıt/oynatma |
+| Audio Recording | streamlit-webrtc | Tarayıcı tabanlı ses kaydı, kross-platform |
+| Audio File I/O | scipy + soundfile | Ses dosyası işleme ve dönüştürme |
 
 ---
 

@@ -122,3 +122,6 @@ Acceptance criteria:
 - Week 22: SRS and review cadence integrated
 - Week 26: UX and testing complete
 - Week 36: Beta closed and launch stabilized
+
+## Later Improvements
+- Polished UI (visual design, animations, richer layouts)

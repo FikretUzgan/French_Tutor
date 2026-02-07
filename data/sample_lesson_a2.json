@@ -1,0 +1,41 @@
+{
+  "level": "A2.1",
+  "theme": "Imparfait vs Passe Compose (Childhood Memory)",
+  "grammar": {
+    "explanation": "We use the imparfait for background, habits, and ongoing states in the past, and passe compose for completed actions. Compare: 'Je regardais la tele' (background) vs 'J'ai allume la tele' (completed action).",
+    "examples": [
+      "Quand j'etais enfant, je jouais dehors chaque soir.",
+      "Hier, j'ai retrouve un vieux cahier d'ecole.",
+      "Il pleuvait, alors nous sommes restes a la maison.",
+      "Je lisais un livre quand tu as telefone.",
+      "Nous allions souvent au parc, puis un jour nous avons demenage."
+    ],
+    "conjugation": [
+      "Imparfait: je regardais, tu regardais, il/elle regardait, nous regardions, vous regardiez, ils/elles regardaient",
+      "Passe compose (avoir): j'ai regarde, tu as regarde, il/elle a regarde, nous avons regarde, vous avez regarde, ils/elles ont regarde"
+    ]
+  },
+  "vocabulary": [
+    "un cahier (notebook)",
+    "un quartier (neighborhood)",
+    "se souvenir de (to remember)"
+  ],
+  "speaking": {
+    "prompt": "Tell a short childhood memory: describe the background with imparfait and the main actions with passe compose.",
+    "targets": [
+      "Use at least 3 imparfait verbs",
+      "Use at least 2 passe compose verbs",
+      "Mention a place and a person"
+    ]
+  },
+  "quiz": {
+    "questions": [
+      "Choose the correct form: Quand j'etais petit, je (jouer) ___ au foot tous les jours.",
+      "Choose the correct form: Hier soir, nous (regarder) ___ un film.",
+      "Complete: Il (pleuvoir) ___, alors on est reste a la maison.",
+      "Choose the correct form: Je (lire) ___ quand tu as arrive.",
+      "Complete: Nous (aller) ___ souvent au marche, puis un jour nous avons arrete."
+    ]
+  },
+  "homework": "Write 10 sentences about a childhood memory. Use at least 5 imparfait and 3 passe compose verbs. Record yourself reading the text aloud and submit both the text and the audio file."
+}
