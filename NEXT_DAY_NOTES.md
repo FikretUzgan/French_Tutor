@@ -34,6 +34,32 @@ Date: 2026-02-07
 - **Same functionality:** Users can still record audio locally
 
 ### Requirements.txt is now:
+- ✅ Refactored render_homework_submission() to fix Streamlit form constraint:
+   - Moved recording buttons outside st.form() context
+   - Recording interface now independent from text submission form
+   - Uses session state to persist audio between button clicks and form submission
+   - Proper separation of concerns: record → preview → fill form → submit
+- ✅ Tested app import: ✅ "App imports successful"
+- ✅ Started Streamlit app: Running at http://localhost:8501 ✅
+- ✅ Committed to GitHub: "fix: Remove WebRTC, use local Python audio recording only"
+- ✅ Pushed to GitHub: Commit da3b6e0
+
+### Rationale:
+- WebRTC adds unnecessary complexity and network dependencies
+- Browser recording requires microphone API permissions and STUN/TURN servers
+- Local Python recording (sounddevice) is 100% reliable, no network needed
+- Users can always upload pre-recorded files as fallback
+- Simpler codebase = easier maintenance and debugging
+- Proper Streamlit form/widget patterns = no weird workarounds needed
+
+### Result:
+- **Cleaner UI:** One-tab recording (no method selection) + one-tab upload
+- **Better UX:** No confusing error messages or connection timeouts
+- **Reduced dependencies:** 2 fewer packages to install and maintain
+- **Same functionality:** Users can still record audio locally
+- **Proper architecture:** Separation of recording and submission flows
+
+### Dependencies Updated:
 ```
 streamlit==1.54.0
 sounddevice==0.5.5
@@ -44,6 +70,7 @@ langchain-google-genai==4.2.0
 pydantic==2.12.5
 google-generativeai==1.62.0
 ```
+(Removed: streamlit-webrtc==0.64.5, av==16.1.0)
 
 ---
 
