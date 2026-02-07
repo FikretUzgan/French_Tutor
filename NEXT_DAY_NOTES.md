@@ -2,6 +2,49 @@
 
 Date: 2026-02-07
 
+## Session 4 Update: Homework Evaluation Logic + Recording Improvements
+**Date:** February 7, 2026 (continuation)  
+**Focus:** Define clear homework evaluation logic in SRS + improve recording UX
+
+### Changes Made:
+- ✅ Added **FR-012: Homework Evaluation Logic** to SRS
+  - Text evaluation: AI checks grammar, vocabulary, content correctness (min 70%)
+  - Audio evaluation: AI checks pronunciation of submitted text via STT + phonetic analysis (min 60%)
+  - Pass criteria: text_score >= 70% AND audio_score >= 60%
+  - Detailed feedback structure: grammar, vocabulary, pronunciation, overall
+- ✅ Updated database schema in db.py:
+  - Changed homework_feedback table: `score` → `text_score` + `audio_score`
+  - Updated save_homework_feedback() function signature
+  - Updated test_db.py to test new dual-score system
+- ✅ Updated SRS database schema documentation to match implementation
+- ✅ Added peak normalization to recorded audio (-3 dBFS target)
+  - Ensures consistent volume for AI analysis
+  - Reduces clipping and low-volume issues
+- ✅ Changed recording duration UI:
+  - Removed user input seconds field
+  - Added preset minutes: 1/2/4/6/8/10 minutes (radio buttons)
+  - Added custom duration input (1-30 minutes)
+  - Checkbox to switch between preset and custom
+- ✅ Improved recording confirmation:
+  - Shows saved filename + duration after recording
+  - Audio preview player displays immediately
+  - File written to disk in submissions/audio/
+
+### Rationale:
+- **Separate text/audio scores:** Allows AI to grade content and pronunciation independently
+- **Clear pass criteria:** Students know exactly what's expected (70% content, 60% pronunciation)
+- **Normalization:** Prevents "too quiet" or "too loud" recordings from affecting AI evaluation
+- **Minute-based UI:** More intuitive for users than seconds for longer recordings
+- **Preset options:** Common durations (1-10 min) + custom for flexibility
+
+### Result:
+- **Clearer grading:** Students get separate feedback on content vs pronunciation
+- **Better AI input:** Normalized audio improves STT accuracy
+- **Improved UX:** Preset minute buttons + custom field more intuitive than seconds input
+- **Database ready:** Schema supports dual-score evaluation for future AI integration
+
+---
+
 ## Session 3 Update: WebRTC Removed, Local Python Recording Only
 **Date:** February 7, 2026 (continuation)  
 **Issue:** WebRTC connection timeout persisted even after triple-redundancy STUN server setup
@@ -39,6 +82,8 @@ Date: 2026-02-07
    - Recording interface now independent from text submission form
    - Uses session state to persist audio between button clicks and form submission
    - Proper separation of concerns: record → preview → fill form → submit
+- ✅ Replaced fixed 30s/60s buttons with user-set duration (5–600s)
+- ✅ Save local recordings to disk immediately; submit reuses local file
 - ✅ Tested app import: ✅ "App imports successful"
 - ✅ Started Streamlit app: Running at http://localhost:8501 ✅
 - ✅ Committed to GitHub: "fix: Remove WebRTC, use local Python audio recording only"

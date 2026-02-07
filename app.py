@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 from datetime import datetime
-import io
 
 import streamlit as st
 import numpy as np
@@ -53,15 +52,20 @@ def validate_homework_audio(audio_file) -> tuple[bool, str]:
     return True, "Audio validation passed."
 
 
-def record_audio_with_sounddevice(duration: int = 30, sample_rate: int = 16000) -> tuple[bytes, int]:
-    """Record audio using sounddevice (Python-based, no WebRTC needed).
+def record_audio_with_sounddevice(
+    duration: int,
+    sample_rate: int = 16000,
+    output_dir: Path | None = None,
+) -> tuple[Path | None, int]:
+    """Record audio using sounddevice and save to disk.
     
     Args:
         duration: Recording duration in seconds
         sample_rate: Audio sample rate in Hz
+        output_dir: Directory where the WAV file should be saved
     
     Returns:
-        Tuple of (audio_bytes, actual_duration_recorded)
+        Tuple of (audio_file_path, actual_duration_recorded)
     """
     try:
         import sounddevice as sd
@@ -78,17 +82,32 @@ def record_audio_with_sounddevice(duration: int = 30, sample_rate: int = 16000) 
         )
         sd.wait()  # Wait for recording to finish
         
-        # Convert to WAV format
-        wav_buffer = io.BytesIO()
-        sf.write(wav_buffer, recording, sample_rate)
-        wav_buffer.seek(0)
+        # Normalize audio to a target peak to improve consistency
+        recording = normalize_audio_peak(recording, target_dbfs=-3.0)
+
+        # Save to WAV on disk
+        output_dir = output_dir or (Path("submissions") / "audio")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"recording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        file_path = output_dir / filename
+        sf.write(file_path, recording, sample_rate)
         
         st.success(f"✅ Recording complete! ({duration}s)")
-        return wav_buffer.getvalue(), duration
+        return file_path, duration
         
     except Exception as e:
         st.error(f"Recording failed: {str(e)}")
         return None, 0
+
+
+def normalize_audio_peak(audio: np.ndarray, target_dbfs: float = -3.0) -> np.ndarray:
+    """Normalize audio peak to a target dBFS value."""
+    peak = float(np.max(np.abs(audio)))
+    if peak <= 0.0:
+        return audio
+    target_linear = 10 ** (target_dbfs / 20.0)
+    gain = target_linear / peak
+    return np.clip(audio * gain, -1.0, 1.0)
 
 
 def render_homework_submission(lesson: dict) -> None:
@@ -107,40 +126,44 @@ def render_homework_submission(lesson: dict) -> None:
         st.write("**Record your reading directly on your computer:**")
         st.info("""
         ℹ️ **Recording Instructions:**
-        1. Click the **Record 30 seconds** or **Record 60 seconds** button
-        2. Start speaking immediately after you click
-        3. Speak clearly and at natural pace
+        1. Choose a duration in minutes (preset or custom)
+        2. Click **Record now**
+        3. Start speaking immediately
         4. Recording will stop automatically
         5. Preview the audio below
         6. Then fill out the form and submit
         """)
         
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🎙️ Record 30 seconds", use_container_width=True):
-                st.session_state.recording = True
+        preset_minutes = st.radio(
+            "Preset durations (minutes)",
+            [1, 2, 4, 6, 8, 10],
+            horizontal=True,
+        )
+        custom_minutes = st.number_input(
+            "Custom duration (minutes)",
+            min_value=1,
+            max_value=30,
+            value=1,
+            step=1,
+        )
+        use_custom = st.checkbox("Use custom duration", value=False)
+        duration_minutes = int(custom_minutes) if use_custom else int(preset_minutes)
         
-        with col2:
-            if st.button("🎙️ Record 60 seconds", use_container_width=True):
-                st.session_state.recording_long = True
+        if st.button("🎙️ Record now", use_container_width=True):
+            st.session_state.recording = True
         
-        # Handle 30-second recording
-        if st.session_state.get('recording'):
-            audio_data, duration = record_audio_with_sounddevice(duration=30)
-            if audio_data:
-                st.audio(audio_data, format="audio/wav")
-                st.session_state.current_audio = audio_data
+        if st.session_state.get("recording"):
+            audio_path, duration = record_audio_with_sounddevice(
+                duration=duration_minutes * 60
+            )
+            if audio_path:
+                st.audio(str(audio_path), format="audio/wav")
+                st.caption(
+                    f"✅ Saved: {Path(audio_path).name} ({duration_minutes} min)"
+                )
+                st.session_state.current_audio_path = str(audio_path)
                 st.session_state.current_audio_duration = duration
             st.session_state.recording = False
-        
-        # Handle 60-second recording
-        if st.session_state.get('recording_long'):
-            audio_data, duration = record_audio_with_sounddevice(duration=60)
-            if audio_data:
-                st.audio(audio_data, format="audio/wav")
-                st.session_state.current_audio = audio_data
-                st.session_state.current_audio_duration = duration
-            st.session_state.recording_long = False
     
     with upload_tab:
         st.write("**Upload a pre-recorded audio file:**")
@@ -174,9 +197,9 @@ def render_homework_submission(lesson: dict) -> None:
             text_valid, text_msg = validate_homework_text(homework_text)
             
             # Check for audio from either recording or upload
-            recorded_audio = st.session_state.get('current_audio')
-            uploaded_audio = st.session_state.get('uploaded_audio')
-            has_audio = recorded_audio is not None or uploaded_audio is not None
+            recorded_audio_path = st.session_state.get("current_audio_path")
+            uploaded_audio = st.session_state.get("uploaded_audio")
+            has_audio = recorded_audio_path is not None or uploaded_audio is not None
             
             if not text_valid:
                 st.error(f"❌ Text Error: {text_msg}")
@@ -184,16 +207,17 @@ def render_homework_submission(lesson: dict) -> None:
                 st.error("❌ Audio Error: Please record or upload an audio file.")
             else:
                 # Determine which audio to use (prefer recorded over uploaded)
-                if recorded_audio is not None:
-                    audio_to_submit = recorded_audio
-                    audio_size_kb = len(recorded_audio) / 1024
-                    ext = "wav"
-                    audio_file_name = f"recording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+                if recorded_audio_path is not None:
+                    audio_to_submit = None
+                    audio_file_path = Path(recorded_audio_path)
+                    audio_size_kb = audio_file_path.stat().st_size / 1024
+                    ext = audio_file_path.suffix.lstrip(".") or "wav"
+                    audio_file_name = audio_file_path.name
                 else:
                     audio_to_submit = uploaded_audio
                     audio_size_kb = uploaded_audio.size / 1024
-                    if hasattr(uploaded_audio, 'type'):
-                        ext = uploaded_audio.type.split('/')[-1] if '/' in uploaded_audio.type else uploaded_audio.type
+                    if hasattr(uploaded_audio, "type"):
+                        ext = uploaded_audio.type.split("/")[-1] if "/" in uploaded_audio.type else uploaded_audio.type
                     else:
                         ext = "wav"
                     audio_file_name = uploaded_audio.name
@@ -205,26 +229,29 @@ def render_homework_submission(lesson: dict) -> None:
                 audio_dir = Path("submissions") / "audio"
                 audio_dir.mkdir(parents=True, exist_ok=True)
                 
-                audio_file_path = str(audio_dir / f"{lesson_id}.{ext}")
+                final_audio_path = audio_dir / f"{lesson_id}.{ext}"
                 
                 # Write audio to file
                 try:
-                    with open(audio_file_path, "wb") as f:
-                        if isinstance(audio_to_submit, bytes):
-                            f.write(audio_to_submit)
-                        elif hasattr(audio_to_submit, 'read'):
-                            audio_to_submit.seek(0)
-                            f.write(audio_to_submit.read())
-                        elif hasattr(audio_to_submit, 'getbuffer'):
-                            f.write(audio_to_submit.getbuffer())
-                        else:
-                            f.write(audio_to_submit)
+                    if audio_to_submit is None:
+                        Path(recorded_audio_path).replace(final_audio_path)
+                    else:
+                        with open(final_audio_path, "wb") as f:
+                            if isinstance(audio_to_submit, bytes):
+                                f.write(audio_to_submit)
+                            elif hasattr(audio_to_submit, "read"):
+                                audio_to_submit.seek(0)
+                                f.write(audio_to_submit.read())
+                            elif hasattr(audio_to_submit, "getbuffer"):
+                                f.write(audio_to_submit.getbuffer())
+                            else:
+                                f.write(audio_to_submit)
                     
                     # Save to database
                     submission_id = save_homework_submission(
                         lesson_id=lesson_id,
                         text_content=homework_text,
-                        audio_file_path=audio_file_path,
+                        audio_file_path=str(final_audio_path),
                         character_count=len(homework_text),
                         audio_size_kb=audio_size_kb
                     )
@@ -238,7 +265,7 @@ def render_homework_submission(lesson: dict) -> None:
                     st.info("📋 Your submission has been recorded. Awaiting AI feedback...")
                     
                     # Clear session state after successful submission
-                    st.session_state.current_audio = None
+                    st.session_state.current_audio_path = None
                     st.session_state.uploaded_audio = None
                     
                 except Exception as e:

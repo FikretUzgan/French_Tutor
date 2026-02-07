@@ -78,7 +78,8 @@ def init_db() -> None:
         CREATE TABLE IF NOT EXISTS homework_feedback (
             feedback_id INTEGER PRIMARY KEY AUTOINCREMENT,
             submission_id INTEGER NOT NULL UNIQUE,
-            score REAL,
+            text_score REAL,
+            audio_score REAL,
             passed BOOLEAN,
             grammar_feedback TEXT,
             vocabulary_feedback TEXT,
@@ -195,7 +196,8 @@ def update_homework_status(submission_id: int, status: str) -> None:
 
 def save_homework_feedback(
     submission_id: int,
-    score: float,
+    text_score: float,
+    audio_score: float,
     passed: bool,
     grammar_feedback: Optional[str] = None,
     vocabulary_feedback: Optional[str] = None,
@@ -206,8 +208,9 @@ def save_homework_feedback(
     
     Args:
         submission_id: ID of the homework submission
-        score: Numeric score (0-100)
-        passed: Whether submission passed requirement
+        text_score: Text evaluation score (0-100)
+        audio_score: Pronunciation evaluation score (0-100)
+        passed: Whether submission passed (text_score >= 70 AND audio_score >= 60)
         grammar_feedback: Feedback on grammar
         vocabulary_feedback: Feedback on vocabulary usage
         pronunciation_feedback: Feedback on pronunciation (from audio)
@@ -221,10 +224,10 @@ def save_homework_feedback(
     
     cursor.execute("""
         INSERT INTO homework_feedback
-        (submission_id, score, passed, grammar_feedback, vocabulary_feedback,
+        (submission_id, text_score, audio_score, passed, grammar_feedback, vocabulary_feedback,
          pronunciation_feedback, overall_feedback)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (submission_id, score, passed, grammar_feedback, vocabulary_feedback,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (submission_id, text_score, audio_score, passed, grammar_feedback, vocabulary_feedback,
           pronunciation_feedback, overall_feedback))
     
     feedback_id = cursor.lastrowid

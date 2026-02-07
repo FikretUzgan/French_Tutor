@@ -40,7 +40,8 @@ def test_homework_flow():
     # Save AI feedback
     feedback_id = save_homework_feedback(
         submission_id=submission_id,
-        score=82.5,
+        text_score=82.5,
+        audio_score=75.0,
         passed=True,
         grammar_feedback="Good use of imparfait and passe compose. Minor: 'pres du parc' -> 'pres de notre parc'",
         vocabulary_feedback="Excellent vocabulary. You used 'cahier', 'souvenirl', 'autrefois' correctly.",
@@ -53,7 +54,8 @@ def test_homework_flow():
     feedback = get_homework_feedback(submission_id)
     if feedback:
         print(f"✓ Feedback retrieved")
-        print(f"  - Score: {feedback['score']}/100")
+        print(f"  - Text Score: {feedback['text_score']}/100")
+        print(f"  - Audio Score: {feedback['audio_score']}/100")
         print(f"  - Passed: {feedback['passed']}")
     
     # Update status

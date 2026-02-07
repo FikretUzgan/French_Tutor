@@ -90,13 +90,46 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 * Türler: Çeviri, kompozisyon, gramer alıştırması  
 * Teslim formatı: text + audio zorunlu  
   * **Audio Options:**
-    * **Record:** Yerel Python tabanlı ses kaydı (sounddevice) - 30s veya 60s
+        * **Record:** Yerel Python tabanlı ses kaydı (sounddevice) - 1/2/4/6/8/10 dk preset + custom (dakika)
     * **Upload:** MP3, WAV, OGG, FLAC, M4A formatlarında dosya yükleme
   * Min text length: 50 karakter
   * Max audio: 25 MB
 * Deadline: bir sonraki dersten önce  
 * **Zorunlu:** Teslim etmeden yeni derse geçilemez  
 * AI otomatik değerlendirir \+ detaylı feedback (gramer, kelime, telaffuz)
+
+**FR-012: Homework Evaluation Logic**
+
+* **Text Evaluation (İçerik Değerlendirmesi):**
+  * AI verilen ödevi doğru yanıtlayıp yanıtlamadığını kontrol eder
+  * Gramer doğruluğu (conjugation, gender agreement, syntax)
+  * Kelime seçimi ve kullanımı (uygun kelimeler, context)
+  * İçerik kalitesi (ödev talimatlarına uygunluk)
+  * **Min passing score:** 70%
+  
+* **Audio Evaluation (Telaffuz Değerlendirmesi):**
+  * AI kullanıcının teslim ettiği metni okuyup okumadığını kontrol eder
+  * Metne karşı STT (Speech-to-Text) transkript karşılaştırması
+  * Telaffuz kalitesi (aksanlar, ses tonları, akıcılık)
+  * Ritim ve vurgu (prosody)
+  * **Min passing score:** 60%
+  
+* **Pass Criteria:**
+  * Text score >= 70% AND Audio score >= 60% → **Geçti**
+  * Aksi halde → **Tekrar gerekli** (ödev tekrarlanmalı)
+  
+* **Feedback Structure:**
+  ```python
+  feedback = {
+      "grammar_feedback": "Conjugation errors in passé composé...",
+      "vocabulary_feedback": "Good word choices, but 'travail' should be...",
+      "pronunciation_feedback": "Rhythm is good, but 'r' sounds need work...",
+      "overall_feedback": "Strong attempt. Focus on verb conjugation.",
+      "text_score": 75,
+      "audio_score": 65,
+      "passed": True
+  }
+  ```
 
 ---
 
@@ -328,8 +361,10 @@ CREATE TABLE homework (
     lesson\_id INTEGER,  
     submission\_text TEXT,  
     audio\_path TEXT,  
-    ai\_feedback TEXT,  
-    score FLOAT,  
+    ai\_feedback TEXT,  -- JSON: {grammar_feedback, vocabulary_feedback, pronunciation_feedback, overall_feedback}  
+    text\_score FLOAT,   -- Text evaluation (0-100)  
+    audio\_score FLOAT,  -- Pronunciation evaluation (0-100)  
+    passed BOOLEAN,      -- True if text_score >= 70 AND audio_score >= 60  
     submitted\_date DATE,  
     FOREIGN KEY (lesson\_id) REFERENCES lessons(id)  
 );
