@@ -90,7 +90,7 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 * Türler: Çeviri, kompozisyon, gramer alıştırması  
 * Teslim formatı: text + audio zorunlu  
   * **Audio Options:**
-    * **Record:** Tarayıcıda gerçek zamanlı ses kaydı (WebRTC)
+    * **Record:** Yerel Python tabanlı ses kaydı (sounddevice) - 30s veya 60s
     * **Upload:** MP3, WAV, OGG, FLAC, M4A formatlarında dosya yükleme
   * Min text length: 50 karakter
   * Max audio: 25 MB
@@ -290,8 +290,8 @@ vocabulary (
 | TTS | Piper (fr\_FR-siwis-medium) | Doğal ses, hızlı |
 | Database | SQLite | Basit, lokal, yeterli |
 | Vector DB | ChromaDB | Semantic search (SRS için) |
-| Audio Recording | streamlit-webrtc | Tarayıcı tabanlı ses kaydı, kross-platform |
-| Audio File I/O | scipy + soundfile | Ses dosyası işleme ve dönüştürme |
+| Audio Recording | sounddevice | Lokal Python tabanlı ses kaydı, güvenilir |
+| Audio File I/O | soundfile | WAV format, ses dosyası işleme |
 
 ---
 

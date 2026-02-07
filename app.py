@@ -5,7 +5,6 @@ import io
 
 import streamlit as st
 import numpy as np
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration
 
 from db import (
     init_db,
@@ -93,10 +92,72 @@ def record_audio_with_sounddevice(duration: int = 30, sample_rate: int = 16000) 
 
 
 def render_homework_submission(lesson: dict) -> None:
-    """Render homework submission section with recording and upload options."""
+    """Render homework submission section with local Python audio recording and upload options."""
     st.markdown("## Homework Submission")
     st.markdown(f"**Assignment:** {lesson['homework']}")
     
+    # Audio recording section (outside form)
+    st.markdown("### 🎙️ Audio Submission")
+    st.caption("Record your audio directly or upload a pre-recorded file")
+    
+    # Create tabs for recording vs upload
+    record_tab, upload_tab = st.tabs(["🎙️ Record Audio", "📤 Upload File"])
+    
+    with record_tab:
+        st.write("**Record your reading directly on your computer:**")
+        st.info("""
+        ℹ️ **Recording Instructions:**
+        1. Click the **Record 30 seconds** or **Record 60 seconds** button
+        2. Start speaking immediately after you click
+        3. Speak clearly and at natural pace
+        4. Recording will stop automatically
+        5. Preview the audio below
+        6. Then fill out the form and submit
+        """)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🎙️ Record 30 seconds", use_container_width=True):
+                st.session_state.recording = True
+        
+        with col2:
+            if st.button("🎙️ Record 60 seconds", use_container_width=True):
+                st.session_state.recording_long = True
+        
+        # Handle 30-second recording
+        if st.session_state.get('recording'):
+            audio_data, duration = record_audio_with_sounddevice(duration=30)
+            if audio_data:
+                st.audio(audio_data, format="audio/wav")
+                st.session_state.current_audio = audio_data
+                st.session_state.current_audio_duration = duration
+            st.session_state.recording = False
+        
+        # Handle 60-second recording
+        if st.session_state.get('recording_long'):
+            audio_data, duration = record_audio_with_sounddevice(duration=60)
+            if audio_data:
+                st.audio(audio_data, format="audio/wav")
+                st.session_state.current_audio = audio_data
+                st.session_state.current_audio_duration = duration
+            st.session_state.recording_long = False
+    
+    with upload_tab:
+        st.write("**Upload a pre-recorded audio file:**")
+        st.caption("Supported formats: MP3, WAV, OGG, FLAC, M4A (Max 25 MB)")
+        
+        uploaded_audio = st.file_uploader(
+            "Choose audio file:",
+            type=["mp3", "wav", "ogg", "flac", "m4a"],
+            key="homework_audio_upload"
+        )
+        
+        if uploaded_audio is not None:
+            st.session_state.uploaded_audio = uploaded_audio
+            st.audio(uploaded_audio, format=f"audio/{uploaded_audio.type}")
+            st.caption(f"✅ File selected: {uploaded_audio.name} ({uploaded_audio.size / 1024:.1f} KB)")
+    
+    # Text submission form (separate from recording)
     with st.form("homework_form", clear_on_submit=False):
         st.markdown("### 📝 Text Submission")
         homework_text = st.text_area(
@@ -106,122 +167,6 @@ def render_homework_submission(lesson: dict) -> None:
             key="homework_text"
         )
         
-        st.markdown("### 🎙️ Audio Submission")
-        st.caption("Choose how to submit your audio: Record with your browser or upload a file")
-        
-        # Create tabs for audio submission methods
-        audio_tab1, audio_tab2 = st.tabs(["🎙️ Record Audio (Browser)", "📤 Upload File"])
-        
-        selected_audio = None
-        audio_size_kb = 0.0
-        audio_file_name = None
-        
-        with audio_tab1:
-            st.write("**Record your reading directly using your browser or computer:**")
-            
-            # Sub-tabs for different recording methods
-            record_method = st.radio(
-                "Select recording method:",
-                ["🌐 Browser Recording (WebRTC)", "🎙️ Simple Recording (Python)"],
-                horizontal=True
-            )
-            
-            if record_method == "🌐 Browser Recording (WebRTC)":
-                st.info("""
-                ℹ️ **Browser Recording Instructions:**
-                1. Allow microphone access when prompted
-                2. Click **Start recording** button
-                3. Speak clearly at a natural pace
-                4. Click **Stop recording** when done
-                5. Preview and submit
-                
-                **Note:** If you see "Connection taking longer..." error, 
-                switch to **Simple Recording** below instead.
-                """)
-                
-                try:
-                    # Configure WebRTC with multiple STUN servers for reliability
-                    rtc_configuration = RTCConfiguration(
-                        {
-                            "iceServers": [
-                                {"urls": ["stun:stun.l.google.com:19302"]},
-                                {"urls": ["stun:stun1.l.google.com:19302"]},
-                                {"urls": ["stun:stun2.l.google.com:19302"]},
-                                {"urls": ["stun:stun3.l.google.com:19302"]},
-                                {"urls": ["stun:stun4.l.google.com:19302"]},
-                            ]
-                        }
-                    )
-                    
-                    webrtc_ctx = webrtc_streamer(
-                        key="homework-audio-recorder",
-                        mode=WebRtcMode.SENDRECV,
-                        rtc_configuration=rtc_configuration,
-                        media_stream_constraints={"audio": True, "video": False},
-                        async_processing=True,
-                    )
-                    
-                    if webrtc_ctx.state.playing:
-                        st.info("🔴 Recording in progress... Speak naturally and clearly.")
-                    
-                except Exception as e:
-                    st.warning(f"⚠️ Browser recording issue: {str(e)}")
-                    st.error("**Try this:** Switch to **Simple Recording** below for a more reliable recording option.")
-            
-            else:  # Simple Recording (Python)
-                st.info("""
-                ℹ️ **Simple Recording Instructions:**
-                1. Click the **Record 30 seconds** button
-                2. Start speaking immediately after you click
-                3. Speak clearly and at natural pace
-                4. Recording will stop automatically
-                5. Preview and submit
-                """)
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("🎙️ Record 30 seconds", use_container_width=True):
-                        st.session_state.recording = True
-                
-                with col2:
-                    if st.button("🎙️ Record 60 seconds", use_container_width=True):
-                        st.session_state.recording_long = True
-                
-                # Handle 30-second recording
-                if st.session_state.get('recording'):
-                    audio_data, duration = record_audio_with_sounddevice(duration=30)
-                    if audio_data:
-                        st.audio(audio_data, format="audio/wav")
-                        st.session_state.current_audio = audio_data
-                        st.session_state.current_audio_duration = duration
-                    st.session_state.recording = False
-                
-                # Handle 60-second recording
-                if st.session_state.get('recording_long'):
-                    audio_data, duration = record_audio_with_sounddevice(duration=60)
-                    if audio_data:
-                        st.audio(audio_data, format="audio/wav")
-                        st.session_state.current_audio = audio_data
-                        st.session_state.current_audio_duration = duration
-                    st.session_state.recording_long = False
-        
-        with audio_tab2:
-            st.write("**Upload a pre-recorded audio file:**")
-            st.caption("Supported formats: MP3, WAV, OGG, FLAC, M4A (Max 25 MB)")
-            
-            uploaded_audio = st.file_uploader(
-                "Choose audio file:",
-                type=["mp3", "wav", "ogg", "flac", "m4a"],
-                key="homework_audio_upload"
-            )
-            
-            if uploaded_audio is not None:
-                selected_audio = uploaded_audio
-                audio_file_name = uploaded_audio.name
-                audio_size_kb = uploaded_audio.size / 1024
-                st.audio(uploaded_audio, format=f"audio/{uploaded_audio.type}")
-                st.caption(f"✅ File selected: {audio_file_name} ({audio_size_kb:.1f} KB)")
-        
         submitted = st.form_submit_button("📤 Submit Homework", use_container_width=True)
         
         if submitted:
@@ -230,7 +175,8 @@ def render_homework_submission(lesson: dict) -> None:
             
             # Check for audio from either recording or upload
             recorded_audio = st.session_state.get('current_audio')
-            has_audio = recorded_audio is not None or selected_audio is not None
+            uploaded_audio = st.session_state.get('uploaded_audio')
+            has_audio = recorded_audio is not None or uploaded_audio is not None
             
             if not text_valid:
                 st.error(f"❌ Text Error: {text_msg}")
@@ -244,12 +190,13 @@ def render_homework_submission(lesson: dict) -> None:
                     ext = "wav"
                     audio_file_name = f"recording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
                 else:
-                    audio_to_submit = selected_audio
-                    audio_size_kb = audio_size_kb
-                    if hasattr(selected_audio, 'type'):
-                        ext = selected_audio.type.split('/')[-1] if '/' in selected_audio.type else selected_audio.type
+                    audio_to_submit = uploaded_audio
+                    audio_size_kb = uploaded_audio.size / 1024
+                    if hasattr(uploaded_audio, 'type'):
+                        ext = uploaded_audio.type.split('/')[-1] if '/' in uploaded_audio.type else uploaded_audio.type
                     else:
                         ext = "wav"
+                    audio_file_name = uploaded_audio.name
                 
                 # Save submission to database
                 lesson_id = f"lesson_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -292,6 +239,7 @@ def render_homework_submission(lesson: dict) -> None:
                     
                     # Clear session state after successful submission
                     st.session_state.current_audio = None
+                    st.session_state.uploaded_audio = None
                     
                 except Exception as e:
                     st.error(f"❌ Error saving submission: {str(e)}")
