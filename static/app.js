@@ -114,9 +114,9 @@ async function loadLessons() {
 function setupSpeaking() {
     const scenarioSelect = document.getElementById('scenario-select');
     const targetsList = document.getElementById('targets-list');
-    const recordBtn = document.getElementById('record-btn');
-    const stopBtn = document.getElementById('stop-btn');
+    const pttBtn = document.getElementById('ptt-btn');
     const recordingStatus = document.getElementById('recording-status');
+    let audioStream = null;
     
     // Update targets when scenario changes
     scenarioSelect.addEventListener('change', () => {
@@ -124,14 +124,31 @@ function setupSpeaking() {
         targetsList.innerHTML = targets.map(t => `<li>${t}</li>`).join('');
     });
     
-    // Recording
-    recordBtn.addEventListener('click', startRecording);
-    stopBtn.addEventListener('click', stopRecording);
+    // Push-to-Talk: Mouse events
+    pttBtn.addEventListener('mousedown', startRecording);
+    document.addEventListener('mouseup', stopRecording);
+    
+    // Push-to-Talk: Keyboard events (spacebar)
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !AppState.isRecording) {
+            e.preventDefault();
+            startRecording();
+        }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        if (e.code === 'Space' && AppState.isRecording) {
+            e.preventDefault();
+            stopRecording();
+        }
+    });
     
     async function startRecording() {
+        if (AppState.isRecording) return; // Prevent multiple simultaneous recordings
+        
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            AppState.mediaRecorder = new MediaRecorder(stream);
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            AppState.mediaRecorder = new MediaRecorder(audioStream);
             AppState.audioChunks = [];
             
             AppState.mediaRecorder.ondataavailable = (event) => {
@@ -141,18 +158,20 @@ function setupSpeaking() {
             AppState.mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(AppState.audioChunks, { type: 'audio/wav' });
                 await processAudio(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
             };
             
             AppState.mediaRecorder.start();
             AppState.isRecording = true;
-            recordBtn.disabled = true;
-            stopBtn.disabled = false;
+            pttBtn.classList.add('active');
             recordingStatus.textContent = '🎤 Recording... speak now!';
+            recordingStatus.style.display = 'block';
             
         } catch (error) {
             alert('Microphone access denied');
             console.error('Recording error:', error);
+            AppState.isRecording = false;
         }
     }
     
@@ -160,8 +179,7 @@ function setupSpeaking() {
         if (AppState.mediaRecorder && AppState.isRecording) {
             AppState.mediaRecorder.stop();
             AppState.isRecording = false;
-            recordBtn.disabled = false;
-            stopBtn.disabled = true;
+            pttBtn.classList.remove('active');
             recordingStatus.textContent = '⏳ Processing...';
         }
     }

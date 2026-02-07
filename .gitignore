@@ -50,3 +50,5 @@ Thumbs.db
 
 # Audio files (temporary recordings)
 submissions/audio/
+submissions/tts/
+submissions/speaking_temp/

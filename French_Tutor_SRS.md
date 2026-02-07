@@ -157,11 +157,17 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
   * Speaking practice: STT → text → AI (text-based conversation)
   * Homework audio: Raw audio stored + STT comparison for pronunciation scoring
   
-* **UI Pattern:**
-  * Push-to-talk button (hold to record, release to stop)
-  * Transcription displayed in real-time
+* **UI Pattern - Push-to-Talk (Walkie-Talkie Style):**
+  * Single prominent "Push to Talk" button (microphone icon)
+  * **Two input methods:**
+    * **Mouse:** Click and hold button to record, release to stop
+    * **Keyboard:** Press and hold SPACE to record, release to stop
+  * Visual feedback: Button becomes highlighted/pressed when active
+  * Recording status indicator: "🎤 Recording... speak now!"
+  * Transcription displayed after recording completes
   * AI response shown as text + spoken via TTS
-  * "Try again" button for retry
+  * "Try again" button for retry with new scenario
+  * No manual "Stop" button—purely press/hold activation
 
 ---
 
