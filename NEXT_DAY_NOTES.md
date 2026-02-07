@@ -2,6 +2,71 @@
 
 Date: 2026-02-07
 
+## Session 6 Update: Vocabulary Practice & Lesson Review with Fresh Examples
+**Date:** February 7, 2026 (latest)  
+**Focus:** Add vocabulary practice system with 3 modes + lesson review with AI-generated fresh examples
+
+### Changes Made:
+- ✅ **Frontend Vocabulary Practice UI:**
+  - Added "Vocabulary" tab between Lessons and Speaking tabs
+  - 3 practice modes: Daily Review (SRS), Weak Areas, All Vocabulary
+  - Flashcard-style interface with multiple choice questions
+  - Real-time feedback with correct/incorrect indicators
+  - Progress tracker showing X/Y questions completed
+  - Session statistics display (total reviewed, correct answers)
+- ✅ **Frontend Lesson Review UI:**
+  - Added "Review" button to each lesson card
+  - "Review" button calls lesson review endpoint for fresh examples
+  - Review lessons displayed with same UI as regular lessons
+- ✅ **Backend Helper Functions in main.py:**
+  - `extract_vocabulary_from_lesson()`: Parses "French (English)" format from lesson vocabulary
+  - `generate_vocab_question()`: Creates MCQ questions with 3 options, randomizes question type (FR→EN or EN→FR)
+- ✅ **Backend API Endpoints:**
+  - `GET /api/vocabulary/practice?mode=daily|weak|all&limit=10`
+    - Daily mode: Uses SRS due items from srs_schedule table
+    - Weak mode: Loads lessons related to topics in weakness_tracking
+    - All mode: Loads vocabulary from all completed lessons
+    - Returns list of MCQ questions with question_id, options, correct_answer
+  - `POST /api/vocabulary/check`
+    - Validates user answer against correct answer
+    - Returns feedback with correct/incorrect + explanation
+    - Tracks incorrect answers in weakness_tracking for adaptive learning
+  - `POST /api/lessons/{lesson_id}/review`
+    - Fetches original lesson to extract theme and level
+    - Calls generate_lesson_ai() with same topic but requests NEW examples
+    - Returns fresh lesson with is_review flag, no homework/exam
+- ✅ **Updated SRS Documentation:**
+  - Added FR-042: Vocabulary Practice Modes (daily/weak/all)
+  - Added FR-043: Lesson Review with Fresh Examples
+  - Documents MCQ format, question types, and tracking logic
+- ✅ **Updated Implementation_Plan.md:**
+  - Added vocabulary practice and lesson review to Phase 3 deliverables
+  - Added acceptance criteria for new features
+
+### Rationale:
+- **Multiple Practice Modes:** Students can focus on SRS reviews, target weak areas, or do comprehensive practice
+- **MCQ Format:** Faster practice with immediate validation (vs open-ended text input)
+- **Fresh Examples:** Avoids static content repetition by regenerating lessons with AI
+- **Weakness Tracking:** Incorrect vocab answers feed into adaptive system for targeted practice
+- **No Exam for Review:** Review lessons are for practice only, removing pressure
+- **Leverages Existing SRS:** Daily mode uses existing SM-2 scheduler for optimal spacing
+
+### Result:
+- **Comprehensive Practice:** 3 distinct modes serve different learning needs
+- **Adaptive Learning:** Weak areas mode targets student-specific difficulties
+- **Dynamic Content:** Lesson review prevents memorization of static examples
+- **Token Efficient:** Vocabulary practice uses local data, only lesson review calls AI
+- **Integrated System:** Vocabulary practice and review both feed into weakness tracking
+
+### Next Steps:
+1. Test vocabulary practice with all 3 modes (daily/weak/all)
+2. Verify lesson review generates fresh examples correctly
+3. Improve MCQ distractor generation (currently uses placeholders)
+4. Add more sophisticated question types (fill-in-blank, listening comprehension)
+5. Test weakness tracking integration with vocabulary practice
+
+---
+
 ## Session 5 Update: Interactive Speaking Practice with STT/TTS
 **Date:** February 7, 2026 (continuation)  
 **Focus:** Implement push-to-talk speaking practice with local STT/TTS for token efficiency

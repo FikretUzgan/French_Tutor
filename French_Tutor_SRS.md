@@ -257,17 +257,119 @@ PASS\_CONDITIONS \= {
 
 **FR-041: Vocabulary Database**
 
-sql  
-vocabulary (  
-    id, word, translation, example\_sentence,  
-    level, learned\_date, last\_review\_date,  
-    review\_count, success\_rate, next\_review\_date  
-)  
-\`\`\`
+```sql
+vocabulary (
+    id, word, translation, example_sentence,
+    level, learned_date, last_review_date,
+    review_count, success_rate, next_review_date
+)
+```
 
-\---
+**FR-042: Vocabulary Practice Modes**
 
-\#\#\# 2.6 Content Recommendations
+The system provides three modes for vocabulary practice:
+
+1. **Daily Review (SRS-Based)**
+   - Automatically loads vocabulary items due for review based on SM-2 algorithm
+   - Maximum 50 items per day (daily cap)
+   - Items come from lessons in srs_schedule table with next_review_date <= today
+   - Focuses on spaced repetition for long-term retention
+
+2. **Weak Areas Practice**
+   - Loads vocabulary from lessons related to topics in weakness_tracking table
+   - Targets topics where student has low accuracy (error_count > success_count)
+   - Helps student strengthen specific weak points
+   - Configurable limit (default: 10 questions)
+
+3. **Comprehensive Review (All Vocabulary)**
+   - Loads vocabulary from all completed lessons
+   - Useful for general practice and preparation before exams
+   - No filtering by SRS schedule or weaknesses
+   - Configurable limit (default: 10 questions)
+
+**Practice Format:**
+- Multiple choice questions (3 options per question)
+- Two question types randomized:
+  - French → English: "What does 'un cahier' mean in English?"
+  - English → French: "How do you say 'notebook' in French?"
+- Incorrect answers tracked in weakness_tracking for adaptive learning
+- Real-time feedback with correct answer shown
+
+**FR-043: Lesson Review with Fresh Examples**
+
+Students can review previously completed lessons with AI-generated fresh content:
+
+- **Review Trigger:** Student clicks "Review" button on lesson card
+- **AI Generation:** System calls generate_lesson_ai() with same topic but requests NEW examples
+- **Content Changes:**
+  - Same grammar topic and explanation
+  - NEW example sentences (different from original lesson)
+  - NEW vocabulary items (3 fresh words)
+  - NEW speaking practice prompt
+- **No Requirements:** Review lessons have NO homework and NO exam sections
+- **Use Case:** Re-learning grammar concepts without static repetition
+- **Tracking:** Review lessons marked with is_review=true flag and original_lesson_id reference
+
+**API Endpoints:**
+- GET /api/vocabulary/practice?mode=daily|weak|all&limit=10
+- POST /api/vocabulary/check (validates answer, returns feedback)
+- POST /api/lessons/{lesson_id}/review (generates fresh review lesson)
+
+**FR-044: Enhanced MCQ Distractors (Future Enhancement)**
+
+Improve multiple choice question quality by using real vocabulary as distractors:
+
+- **Current State:** Placeholder distractors ("option A", "mot B", "option C")
+- **Target State:** Real French words from other lessons as distractors
+- **Implementation:**
+  - Query vocabulary from lessons at similar CEFR level
+  - Select semantically unrelated words (avoid synonyms or related concepts)
+  - Ensure distractors are plausible but clearly incorrect
+  - Maintain 3-option format (1 correct + 2 realistic distractors)
+- **Benefit:** More realistic practice, prevents students from eliminating obviously fake options
+
+**FR-045: Fill-in-Blank Question Type (Future Enhancement)**
+
+Add cloze exercises to vocabulary practice for variety:
+
+- **Question Format:** "Elle lit un ____ dans la bibliothèque." → Options: [livre, cahier, stylo]
+- **Generation:**
+  - Extract sentences from lesson examples
+  - Blank out target vocabulary word
+  - Provide 3 options (correct word + 2 distractors from same word class)
+- **Mixing:** Alternate between MCQ translation and fill-in-blank within practice sessions
+- **Benefit:** Tests vocabulary in context, not just isolated translation
+
+**FR-046: Vocabulary Statistics Dashboard (Future Enhancement)**
+
+Provide comprehensive vocabulary mastery overview:
+
+- **Metrics to Display:**
+  - Total vocabulary learned (by CEFR level)
+  - Mastery percentage (words with ease_factor >= 2.5)
+  - Words due for review today/this week
+  - Weak words list (low success rate in weakness_tracking)
+  - SRS schedule calendar (heatmap of upcoming reviews)
+  - Learning velocity (words learned per week)
+- **Visualizations:**
+  - Progress bars by level (A1/A2/B1/B2)
+  - Pie chart: Mastered vs In Progress vs Struggling
+  - Line graph: Vocabulary growth over time
+- **Actionable Insights:** Highlight specific words needing attention
+
+**FR-047: Audio Pronunciation in Vocabulary Practice (Future Enhancement)**
+
+Add TTS playback to help students hear correct pronunciation:
+
+- **Trigger:** Speaker icon next to French word in flashcard
+- **Implementation:** Call existing sanitize_tts_text() + gTTS pipeline
+- **Caching:** Store generated MP3 files to avoid regenerating on each practice; reuse cached file if already generated
+- **Format:** Small inline audio player beneath the question for quick replay
+- **Benefit:** Reinforces listening skills and correct pronunciation during vocab review
+
+---
+
+### 2.6 Content Recommendations
 
 \*\*FR-050: Podcast/Video Suggestions\*\*  
 \- Her seviyeye uygun içerik önerileri  
@@ -823,9 +925,48 @@ bash
 | Content repetition | Medium | High | Dynamic generation, large content pool |
 | Exam cheating (memorization) | Medium | Medium | Always generate new questions |
 
+
+## **10\. CURRICULUM INTEGRATION & MODES**
+
+### **10.1 Complete 9-Block Curriculum**
+
+The system includes a full 9-block curriculum from A1.1 to B2.2 Final:
+
+- 9 blocks x 4 weeks = 36 weeks total
+- 60 vocabulary words per block = 540 total words
+- 20 lessons per week (5 daily + weekend sessions)
+- Curriculum source: French_Course_Weekly_Plan.md (updated with all 9 blocks)
+
+### **10.2 Development Mode vs End-User Mode**
+
+**Development Mode** (enabled via `?dev=true`):
+- Access ANY lesson from ANY block
+- Skip homework requirements
+- All content unlocked for testing
+- DEV MODE badge visible in header
+
+**End-User Mode** (production default):
+- Lessons unlock sequentially
+- Homework is a mandatory blocker
+- First-time use modal asks starting level (A1.1 through B2.2)
+- Progression enforced by level and week
+
+### **10.3 Curriculum UI Updates**
+
+- SRS tab renamed to Curriculum
+- Curriculum tab moved to the leftmost position
+- Curriculum dashboard replaces SRS dashboard as top-level curriculum view
+
+### **10.4 First-Time Use Flow**
+
+1. On first launch, user is prompted to select a starting level
+2. System saves starting level in settings
+3. Lessons unlock from that level in end-user mode
+4. Development mode bypasses the lock for testing
+
 ---
 
-## **10\. FUTURE ENHANCEMENTS (Post-MVP)**
+## **11\. FUTURE ENHANCEMENTS (Post-MVP)**
 
 * Mobile app (React Native)  
 * Multiplayer mode (leaderboard)  
@@ -834,11 +975,10 @@ bash
 * Other languages (Spanish, German)  
 * Premium features (live tutoring)
 
----
 
-## **11\. APPENDIX**
+## **12\. APPENDIX**
 
-### **11.1 Quick Start Commands**
+### **12.1 Quick Start Commands**
 
 bash  
 \# Clone project  
@@ -856,7 +996,7 @@ python scripts/download\_models.py
 \# Run app  
 uvicorn main:app --reload
 
-### **11.2 Environment Variables**
+### **12.2 Environment Variables**
 
 bash  
 \# .env  
@@ -865,9 +1005,9 @@ DATABASE\_PATH\=./data/student.db
 WHISPER\_MODEL\_PATH\=./models/ggml-medium.bin  
 ---
 
-## **12\. SIGN-OFF**
+## **13\. SIGN-OFF**
 
 **Project Owner:** \[Fikret Uzgan\]  
  **Start Date:** 06.02.2026  
  **Target Completion:** 06.11.2026 (9 months)
-
+ **Status Update:** Curriculum integrated, Curriculum tab added, dev/end-user modes defined

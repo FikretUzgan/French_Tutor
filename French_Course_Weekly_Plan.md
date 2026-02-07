@@ -1,8 +1,19 @@
 # French Course Weekly Plan (9 Months)
 
-Duration: 36 weeks (A1.1 to B2.2)
+Duration: 36 weeks (A1.1 to B2.2 Final)
 Schedule: Mon-Fri 30 minutes, Sat 30 minutes review + SRS, Sun 45 minutes exam
 Lesson format: Grammar (10), Vocab (5), Speaking (10), Quiz (5)
+
+Block map (9 blocks, 4 weeks each):
+- Block 1: Weeks 1-4 (A1.1)
+- Block 2: Weeks 5-8 (A1.2)
+- Block 3: Weeks 9-12 (A2.1)
+- Block 4: Weeks 13-16 (A2.2)
+- Block 5: Weeks 17-20 (B1.1)
+- Block 6: Weeks 21-24 (B1.2)
+- Block 7: Weeks 25-28 (B2.1)
+- Block 8: Weeks 29-32 (B2.2)
+- Block 9: Weeks 33-36 (B2.2 Final)
 
 Session map by level:
 - A1: 5 new-lesson weekdays, faster coverage
@@ -10,7 +21,7 @@ Session map by level:
 - B2: 3-4 new-lesson weekdays + 1-2 weekday review/weakness focus
 
 Homework rule: text + audio required before the next lesson (hard blocker)
-Vocabulary target: 27 words/week (3 words x 9 sessions)
+Vocabulary target: 15 words/week (3 words x 5 sessions)
 
 | Week | Level | Grammar Focus | Vocabulary Theme | Speaking Scenario | Homework Focus |
 | --- | --- | --- | --- | --- | --- |

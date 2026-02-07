@@ -8,6 +8,7 @@ Handles SQLite schema initialization and CRUD operations for:
 """
 
 import sqlite3
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Any
@@ -142,6 +143,15 @@ def init_db() -> None:
             answers TEXT,
             feedback TEXT,
             FOREIGN KEY (exam_id) REFERENCES exams(exam_id)
+        )
+    """)
+
+    # App settings table (dev mode, starting level, etc.)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -676,6 +686,41 @@ def get_srs_due(user_id: int = 1, limit: int = 10) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def get_srs_items(user_id: int = 1, limit: int | None = None) -> list[dict]:
+    """Get all SRS items with lesson metadata.
+
+    Args:
+        user_id: User ID
+        limit: Optional limit on number of items
+
+    Returns:
+        List of SRS items with lesson details
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT s.srs_id, s.lesson_id, s.next_review_date, s.interval_days,
+               s.ease_factor, s.repetitions, s.status, s.last_reviewed,
+               l.level, l.theme, l.week_number
+        FROM srs_schedule s
+        LEFT JOIN lessons l ON l.lesson_id = s.lesson_id
+        WHERE s.status != 'buried'
+        ORDER BY s.next_review_date ASC
+    """
+
+    if limit is not None:
+        query += " LIMIT ?"
+        cursor.execute(query, (limit,))
+    else:
+        cursor.execute(query)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [dict(row) for row in rows]
+
+
 def update_srs_item(srs_id: int, quality: int, user_id: int = 1) -> dict:
     """Update an SRS item after a review using the SM-2 algorithm.
     
@@ -819,6 +864,64 @@ def get_srs_stats(user_id: int = 1) -> dict:
     }
 
 
+def get_vocab_stats(user_id: int = 1) -> dict:
+    """Get vocabulary dashboard statistics.
+
+    Args:
+        user_id: User ID
+
+    Returns:
+        Dict with vocabulary stats for dashboard
+    """
+    lessons = get_all_lessons()
+    total_vocab = 0
+    lessons_with_vocab = 0
+    vocab_by_level: dict[str, int] = {}
+    vocab_by_week: dict[int, int] = {}
+
+    for lesson in lessons:
+        raw_vocab = lesson.get("vocabulary") or "[]"
+        try:
+            vocab_list = json.loads(raw_vocab) if isinstance(raw_vocab, str) else raw_vocab
+        except json.JSONDecodeError:
+            vocab_list = []
+
+        if not isinstance(vocab_list, list):
+            vocab_list = []
+
+        vocab_count = len(vocab_list)
+        if vocab_count > 0:
+            lessons_with_vocab += 1
+        total_vocab += vocab_count
+
+        level = lesson.get("level", "Unknown")
+        vocab_by_level[level] = vocab_by_level.get(level, 0) + vocab_count
+
+        week_number = lesson.get("week_number")
+        if isinstance(week_number, int):
+            vocab_by_week[week_number] = vocab_by_week.get(week_number, 0) + vocab_count
+
+    srs_stats = get_srs_stats(user_id=user_id)
+    weak_topics = get_user_weaknesses(user_id=user_id, limit=5)
+
+    weeks = sorted(vocab_by_week.keys())
+    average_per_week = round(total_vocab / len(weeks), 1) if weeks else 0
+
+    return {
+        "user_id": user_id,
+        "total_vocab": total_vocab,
+        "lessons_with_vocab": lessons_with_vocab,
+        "vocab_by_level": vocab_by_level,
+        "vocab_by_week": vocab_by_week,
+        "average_vocab_per_week": average_per_week,
+        "due_today": srs_stats.get("due_today", 0),
+        "status_breakdown": srs_stats.get("status_breakdown", {}),
+        "average_ease": srs_stats.get("average_ease", 2.5),
+        "average_interval_days": srs_stats.get("average_interval_days", 0),
+        "weak_topics": weak_topics
+    }
+
+
 def schedule_lesson_vocabulary(lesson_id: str, vocabulary_count: int = 3, user_id: int = 1) -> int:
     """Create SRS entries for vocabulary in a lesson (called when lesson is started).
     
@@ -864,6 +967,55 @@ def schedule_lesson_vocabulary(lesson_id: str, vocabulary_count: int = 3, user_i
     conn.close()
     
     return entries_created
+
+
+def get_app_setting(key: str, default: Optional[str] = None) -> Optional[str]:
+    """Get an app setting by key."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM app_settings WHERE key = ?", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        return default
+    return row["value"]
+
+
+def set_app_setting(key: str, value: str) -> None:
+    """Set or update an app setting."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO app_settings (key, value, updated_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO UPDATE SET
+            value = excluded.value,
+            updated_at = CURRENT_TIMESTAMP
+        """,
+        (key, value),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_app_settings(keys: list[str]) -> dict[str, Optional[str]]:
+    """Get multiple app settings at once."""
+    if not keys:
+        return {}
+    placeholders = ",".join("?" for _ in keys)
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        f"SELECT key, value FROM app_settings WHERE key IN ({placeholders})",
+        keys,
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    data = {key: None for key in keys}
+    for row in rows:
+        data[row["key"]] = row["value"]
+    return data
 
 
 if __name__ == "__main__":

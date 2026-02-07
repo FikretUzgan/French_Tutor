@@ -69,11 +69,22 @@ Deliverables:
 - A2.1/A2.2 full content library
 - B1/B2 skeleton and topic inventory
 - Speaking scenario pools and reading passages
+- **Vocabulary Practice System (3 modes)**
+  - Daily Review mode (SRS-based, max 50 items)
+  - Weak Areas mode (from weakness_tracking)
+  - Comprehensive Review mode (all vocabulary)
+- **Lesson Review with Fresh Examples**
+  - AI regenerates lessons with same topic but NEW examples
+  - Review lessons have no homework/exam requirements
+  - Enables repeated practice without static content
 
 Acceptance criteria:
 - Weekly themes from A1/A2 can be generated without repeats
 - Minimum vocabulary pool per level in database
 - Speaking prompts available for each week
+- **Vocabulary practice provides MCQ questions with real-time feedback**
+- **Lesson review generates fresh content for any completed lesson**
+- **Incorrect vocabulary answers tracked in weakness_tracking**
 
 ### Phase 4: Advanced Features (Weeks 19-22)
 Deliverables:

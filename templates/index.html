@@ -7,16 +7,38 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <!-- First-Time Use Modal -->
+    <div id="first-time-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Welcome to French Tutor</h2>
+            <p>What level would you like to start with?</p>
+            <div class="level-grid">
+                <button class="level-btn" data-level="A1.1">A1.1</button>
+                <button class="level-btn" data-level="A1.2">A1.2</button>
+                <button class="level-btn" data-level="A2.1">A2.1</button>
+                <button class="level-btn" data-level="A2.2">A2.2</button>
+                <button class="level-btn" data-level="B1.1">B1.1</button>
+                <button class="level-btn" data-level="B1.2">B1.2</button>
+                <button class="level-btn" data-level="B2.1">B2.1</button>
+                <button class="level-btn" data-level="B2.2">B2.2</button>
+                <button class="level-btn" data-level="B2.2">B2.2 Final</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <header>
             <h1>🇫🇷 French Tutor</h1>
             <p id="status">Loading...</p>
+              <div id="dev-badge" class="dev-badge" style="display: none;">DEV MODE</div>
         </header>
 
         <!-- Tab Navigation -->
         <nav class="tabs">
+            <button class="tab-btn" data-tab="curriculum">📚 Curriculum</button>
             <button class="tab-btn active" data-tab="lessons">📚 Lessons</button>
+            <button class="tab-btn" data-tab="vocabulary">📖 Vocabulary</button>
             <button class="tab-btn" data-tab="speaking">🎤 Speaking</button>
             <button class="tab-btn" data-tab="homework">📝 Homework</button>
             <button class="tab-btn" data-tab="progress">📊 Progress</button>
@@ -28,6 +50,68 @@
             <div id="lessons-tab" class="tab-content active">
                 <h2>Available Lessons</h2>
                 <div id="lessons-list">Loading lessons...</div>
+            </div>
+
+            <!-- Vocabulary Practice Tab -->
+            <div id="vocabulary-tab" class="tab-content">
+                <h2>Vocabulary Practice</h2>
+                <div class="vocab-container">
+                    <div class="vocab-mode-selector">
+                        <h3>Practice Mode:</h3>
+                        <button class="btn-secondary mode-btn active" data-mode="daily">📅 Daily Review (Curriculum)</button>
+                        <button class="btn-secondary mode-btn" data-mode="weak">⚠️ Weak Areas</button>
+                        <button class="btn-secondary mode-btn" data-mode="all">📚 All Vocabulary</button>
+                    </div>
+
+                    <div id="vocab-stats" class="vocab-stats">
+                        <p>Loading statistics...</p>
+                    </div>
+
+                    <div id="vocab-practice-area" class="vocab-practice-area" style="display: none;">
+                        <div class="vocab-card">
+                            <h3 id="vocab-question">Question will appear here</h3>
+                            <div id="srs-info" class="srs-info" style="display: none;"></div>
+                            <button id="vocab-tts-btn" class="btn-secondary vocab-tts-btn" style="display: none;">🔊 Listen</button>
+                            <audio id="vocab-tts-player" class="vocab-audio-player" controls style="display: none;"></audio>
+                            <div id="vocab-options"></div>
+                            <input type="text" id="vocab-answer-input" class="vocab-input" placeholder="Type your answer..." style="display:none;">
+                            <div class="button-group">
+                                <button id="vocab-submit-btn" class="btn-primary">Submit Answer</button>
+                            </div>
+                        </div>
+                        <div class="vocab-feedback" id="vocab-feedback" style="display: none;">
+                            <p id="vocab-feedback-text"></p>
+                            <div class="button-group">
+                                <button id="vocab-next-btn" class="btn-secondary">Next Question</button>
+                                <button id="vocab-end-btn" class="btn-secondary">End Practice</button>
+                            </div>
+                        </div>
+                        <div class="vocab-progress">
+                            <p id="vocab-progress-text">Question 0/0</p>
+                        </div>
+                    </div>
+
+                    <button id="start-vocab-practice" class="btn-primary">Start Practice</button>
+                </div>
+            </div>
+
+                <!-- Curriculum Tab -->
+            <div id="curriculum-tab" class="tab-content">
+                <h2>Curriculum Overview</h2>
+                <div id="curriculum-plan" class="curriculum-plan">Loading curriculum...</div>
+                <div class="srs-container">
+                    <div id="srs-summary" class="srs-summary">Loading review summary...</div>
+                    <div class="srs-grid">
+                        <div class="srs-panel">
+                            <h3>Items Due</h3>
+                            <div id="srs-due-list">Loading due items...</div>
+                        </div>
+                        <div class="srs-panel">
+                            <h3>Schedule (Next 14 Days)</h3>
+                            <div id="srs-schedule">Loading schedule...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Speaking Practice Tab -->
@@ -101,6 +185,11 @@
                 <div id="progress-content">Loading progress...</div>
             </div>
         </main>
+    </div>
+
+    <!-- Status Indicator -->
+    <div id="status-indicator" class="status-indicator">
+        ✅ Ready (API key loaded)
     </div>
 
     <script src="/static/app.js"></script>

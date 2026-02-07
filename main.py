@@ -5,6 +5,7 @@ High-performance web application for French language learning
 
 import os
 from pathlib import Path
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -94,6 +95,19 @@ class SRSReviewRequest(BaseModel):
     quality: int  # 0-5: 0=complete failure, 1=incorrect, 2=incorrect but close, 3=correct, 4=correct with effort, 5=perfect
     user_id: Optional[int] = 1
 
+class VocabularyCheckRequest(BaseModel):
+    question_id: str
+    user_answer: str
+    user_id: Optional[int] = 1
+
+
+class ModeToggleRequest(BaseModel):
+    dev_mode: bool
+
+
+class FirstTimeSetupRequest(BaseModel):
+    starting_level: str
+
 # Helper Functions
 def load_whisper_model():
     """Load Whisper model with caching"""
@@ -113,6 +127,51 @@ def normalize_audio_peak(audio: np.ndarray, target_dbfs: float = -3.0) -> np.nda
     gain = target_linear / peak
     normalized = audio * gain
     return np.clip(normalized, -1.0, 1.0)
+
+
+LEVEL_ORDER = [
+    "A1.1",
+    "A1.2",
+    "A2.1",
+    "A2.2",
+    "B1.1",
+    "B1.2",
+    "B2.1",
+    "B2.2",
+]
+
+
+def get_dev_mode() -> bool:
+    value = db.get_app_setting("dev_mode", "false")
+    return str(value).lower() == "true"
+
+
+def get_current_level() -> str:
+    level = db.get_app_setting("current_level")
+    if level in LEVEL_ORDER:
+        return level
+    starting_level = db.get_app_setting("starting_level")
+    if starting_level in LEVEL_ORDER:
+        return starting_level
+    return "A1.1"
+
+
+def build_lesson_response(lesson: dict) -> LessonResponse:
+    content = {
+        "grammar": json.loads(lesson.get("grammar_explanation", "{}")) if lesson.get("grammar_explanation") else {},
+        "vocabulary": json.loads(lesson.get("vocabulary", "[]")) if lesson.get("vocabulary") else [],
+        "speaking": json.loads(lesson.get("speaking_prompt", "{}")) if lesson.get("speaking_prompt") else {},
+        "homework": lesson.get("homework_prompt", ""),
+        "quiz": json.loads(lesson.get("quiz_questions", "{}")) if lesson.get("quiz_questions") else {},
+    }
+
+    return LessonResponse(
+        lesson_id=lesson["lesson_id"],
+        title=lesson.get("theme", "Untitled Lesson"),
+        level=lesson.get("level", "Unknown"),
+        description=f"Week {lesson.get('week_number', 'N/A')} - {lesson.get('theme', '')}",
+        content=content,
+    )
 
 def transcribe_audio(audio_path: str) -> str:
     """Transcribe audio file using Whisper"""
@@ -616,8 +675,173 @@ def sanitize_tts_text(text: str) -> str:
         for ch in text
         if unicodedata.category(ch) not in ("So", "Sk", "Cf")
     )
+    cleaned = cleaned.replace("*", " ")
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned
+
+
+def extract_vocabulary_from_lesson(lesson_data: dict) -> list[dict]:
+    """Extract vocabulary items from lesson data.
+    
+    Returns list of dicts with 'french', 'english' keys.
+    Example: {"french": "un cahier", "english": "notebook"}
+    """
+    vocab_list = []
+    raw_vocab = lesson_data.get("vocabulary", [])
+    if isinstance(raw_vocab, str):
+        try:
+            raw_vocab = json.loads(raw_vocab)
+        except json.JSONDecodeError:
+            raw_vocab = []
+    
+    for item in raw_vocab:
+        # Parse "French word (English translation)" format
+        if "(" in item and ")" in item:
+            french_part = item.split("(")[0].strip()
+            english_part = item.split("(")[1].split(")")[0].strip()
+            vocab_list.append({
+                "french": french_part,
+                "english": english_part
+            })
+    
+    return vocab_list
+
+
+def slugify_vocab(text: str) -> str:
+    """Create a URL-safe identifier for vocabulary items."""
+    return re.sub(r"\s+", "_", text.strip().lower())
+
+
+def build_vocab_pool(lessons: list[dict]) -> list[dict]:
+    """Build a vocabulary pool from lesson data for distractors and stats."""
+    vocab_pool = []
+    for lesson in lessons:
+        lesson_id = lesson.get("lesson_id")
+        lesson_level = lesson.get("level")
+        if not lesson_id:
+            continue
+        for vocab in extract_vocabulary_from_lesson(lesson):
+            vocab_pool.append({
+                "french": vocab["french"],
+                "english": vocab["english"],
+                "lesson_id": lesson_id,
+                "level": lesson_level
+            })
+    return vocab_pool
+
+
+def pick_distractors(vocab_pool: list[dict], field: str, correct_value: str, count: int = 2) -> list[str]:
+    """Pick real vocabulary distractors from the pool."""
+    import random
+
+    candidates = [
+        item[field]
+        for item in vocab_pool
+        if item.get(field) and item[field].lower() != correct_value.lower()
+    ]
+    random.shuffle(candidates)
+
+    distractors = []
+    for item in candidates:
+        if item.lower() != correct_value.lower() and item not in distractors:
+            distractors.append(item)
+        if len(distractors) >= count:
+            break
+
+    return distractors
+
+
+def generate_fill_blank_question(vocab_item: dict, lesson_id: str, vocab_pool: list[dict]) -> dict:
+    """Generate a fill-in-the-blank question for vocabulary practice."""
+    import random
+
+    templates = [
+        "Complete: Je vois ____ aujourd'hui.",
+        "Complete: Elle cherche ____.",
+        "Complete: Nous utilisons ____.",
+        "Complete: Ils parlent de ____.",
+        "Complete: Je pense a ____."
+    ]
+    sentence = random.choice(templates)
+    question_text = f"{sentence} (Hint: {vocab_item['english']})"
+    correct_answer = vocab_item["french"]
+
+    options = [correct_answer]
+    options.extend(pick_distractors(vocab_pool, "french", correct_answer, count=2))
+    if len(options) < 3:
+        options.extend([correct_answer] * (3 - len(options)))
+
+    random.shuffle(options)
+
+    return {
+        "question_id": f"{lesson_id}::{slugify_vocab(vocab_item['french'])}::fill_blank",
+        "type": "fill_blank",
+        "question": question_text,
+        "correct_answer": correct_answer,
+        "options": options,
+        "lesson_id": lesson_id,
+        "french_word": vocab_item["french"],
+        "english_word": vocab_item["english"]
+    }
+
+
+def generate_vocab_question(
+    vocab_item: dict,
+    lesson_id: str,
+    vocab_pool: list[dict],
+    question_type: Optional[str] = None
+) -> dict:
+    """Generate a vocabulary practice question with multiple choice options.
+
+    Args:
+        vocab_item: dict with 'french' and 'english' keys
+        lesson_id: ID of the lesson this vocab is from
+        vocab_pool: list of vocabulary entries for distractors
+        question_type: optional explicit type
+
+    Returns:
+        dict with question_id, type, question, correct_answer, options
+    """
+    import random
+
+    if not question_type:
+        question_type = random.choices(
+            ["french_to_english", "english_to_french", "fill_blank"],
+            weights=[0.45, 0.45, 0.10]
+        )[0]
+
+    if question_type == "fill_blank":
+        return generate_fill_blank_question(vocab_item, lesson_id, vocab_pool)
+
+    question_id = f"{lesson_id}::{slugify_vocab(vocab_item['french'])}::{question_type}"
+
+    if question_type == "french_to_english":
+        question_text = f"What does '{vocab_item['french']}' mean in English?"
+        correct_answer = vocab_item["english"]
+        options = [correct_answer]
+        options.extend(pick_distractors(vocab_pool, "english", correct_answer, count=2))
+    else:  # english_to_french
+        question_text = f"How do you say '{vocab_item['english']}' in French?"
+        correct_answer = vocab_item["french"]
+        options = [correct_answer]
+        options.extend(pick_distractors(vocab_pool, "french", correct_answer, count=2))
+
+    if len(options) < 3:
+        options.extend([correct_answer] * (3 - len(options)))
+
+    random.shuffle(options)
+
+    return {
+        "question_id": question_id,
+        "type": question_type,
+        "question": question_text,
+        "correct_answer": correct_answer,
+        "options": options,
+        "lesson_id": lesson_id,
+        "french_word": vocab_item["french"],
+        "english_word": vocab_item["english"]
+    }
+
 
 # Static files (will serve HTML/CSS/JS)
 static_dir = Path(__file__).parent / "static"
@@ -631,6 +855,271 @@ tts_dir = Path(__file__).parent / "submissions" / "tts"
 tts_dir.mkdir(parents=True, exist_ok=True)
 
 # API Endpoints
+
+# ===== Vocabulary Practice Endpoints =====
+
+@app.get("/api/vocabulary/practice")
+async def get_vocabulary_practice(mode: str = "daily", user_id: int = 1, limit: int = 10):
+    """Get vocabulary practice questions based on mode.
+    
+    Args:
+        mode: "daily" (SRS due items), "weak" (from weakness tracking), or "all" (all lessons)
+        user_id: User ID
+        limit: Maximum number of questions to return
+        
+    Returns:
+        List of vocabulary questions with multiple choice options
+    """
+    try:
+        questions = []
+        all_lessons = db.get_all_lessons()
+        vocab_pool = build_vocab_pool(all_lessons)
+        
+        if mode == "daily":
+            # Get lessons due for SRS review
+            srs_items = db.get_srs_due(user_id=user_id, limit=limit)
+            lesson_ids = [item["lesson_id"] for item in srs_items]
+            
+            # Get lesson data and extract vocabulary
+            for item in srs_items:
+                lesson_id = item["lesson_id"]
+                lesson_data = db.get_lesson_by_id(lesson_id)
+                if lesson_data:
+                    vocab_items = extract_vocabulary_from_lesson(lesson_data)
+                    for vocab in vocab_items[:2]:  # 2 questions per lesson
+                        question = generate_vocab_question(vocab, lesson_id, vocab_pool)
+                        question["srs_id"] = item["srs_id"]
+                        question["srs_meta"] = {
+                            "next_review_date": item.get("next_review_date"),
+                            "interval_days": item.get("interval_days"),
+                            "ease_factor": item.get("ease_factor"),
+                            "repetitions": item.get("repetitions"),
+                            "status": item.get("status"),
+                            "last_reviewed": item.get("last_reviewed")
+                        }
+                        questions.append(question)
+                        if len(questions) >= limit:
+                            break
+                if len(questions) >= limit:
+                    break
+                    
+        elif mode == "weak":
+            # Get weak topics
+            weaknesses = db.get_user_weaknesses(user_id=user_id, limit=limit)
+            
+            # Get lessons related to weak topics
+            for lesson in all_lessons:
+                lesson_data = db.get_lesson_by_id(lesson["lesson_id"])
+                if lesson_data:
+                    # Check if lesson matches weak topics
+                    for weakness in weaknesses:
+                        if weakness["topic"].lower() in lesson_data.get("theme", "").lower():
+                            vocab_items = extract_vocabulary_from_lesson(lesson_data)
+                            for vocab in vocab_items:
+                                questions.append(generate_vocab_question(vocab, lesson["lesson_id"], vocab_pool))
+                                if len(questions) >= limit:
+                                    break
+                if len(questions) >= limit:
+                    break
+                    
+        else:  # mode == "all"
+            # Get all lessons
+            for lesson in all_lessons:
+                lesson_data = db.get_lesson_by_id(lesson["lesson_id"])
+                if lesson_data:
+                    vocab_items = extract_vocabulary_from_lesson(lesson_data)
+                    for vocab in vocab_items:
+                        questions.append(generate_vocab_question(vocab, lesson["lesson_id"], vocab_pool))
+                        if len(questions) >= limit:
+                            break
+                if len(questions) >= limit:
+                    break
+        
+        return {
+            "mode": mode,
+            "user_id": user_id,
+            "questions_count": len(questions),
+            "questions": questions
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get vocabulary practice: {str(e)}")
+
+
+@app.post("/api/vocabulary/check")
+async def check_vocabulary_answer(request: VocabularyCheckRequest):
+    """Check a vocabulary practice answer and provide feedback.
+    
+    Args:
+        request: Contains question_id, user_answer, user_id
+        
+    Returns:
+        Feedback with correct/incorrect and explanation
+    """
+    try:
+        # Extract lesson_id from question_id (format: "lesson_id_vocab_word")
+        lesson_id = None
+        vocab_slug = None
+        question_type = None
+
+        if "::" in request.question_id:
+            parts = request.question_id.split("::", 2)
+            if len(parts) >= 3:
+                lesson_id, vocab_slug, question_type = parts[0], parts[1], parts[2]
+        else:
+            parts = request.question_id.split("_", 1)
+            if len(parts) >= 2:
+                lesson_id, vocab_slug = parts[0], parts[1]
+
+        if not lesson_id:
+            raise HTTPException(status_code=400, detail="Invalid question_id format")
+        
+        # Get lesson data
+        lesson_data = db.get_lesson_by_id(lesson_id)
+        if not lesson_data:
+            raise HTTPException(status_code=404, detail=f"Lesson {lesson_id} not found")
+        
+        # Extract vocabulary
+        vocab_items = extract_vocabulary_from_lesson(lesson_data)
+        
+        # Find the matching vocabulary item
+        correct_answer = None
+        vocab_item = None
+        for vocab in vocab_items:
+            slug = slugify_vocab(vocab["french"])
+            if vocab_slug and slug != vocab_slug:
+                continue
+            if vocab_slug is None:
+                continue
+
+            vocab_item = vocab
+            # Determine which was the correct answer based on context
+            if question_type in ("english_to_french", "fill_blank"):
+                correct_answer = vocab["french"]
+            else:
+                correct_answer = vocab["english"]
+            break
+        
+        if vocab_item is None:
+            raise HTTPException(status_code=404, detail="Vocabulary item not found")
+        
+        # Check if answer is correct (case-insensitive)
+        if question_type in ("english_to_french", "fill_blank"):
+            is_correct = request.user_answer.lower() == vocab_item["french"].lower()
+        elif question_type == "french_to_english":
+            is_correct = request.user_answer.lower() == vocab_item["english"].lower()
+        else:
+            is_correct = request.user_answer.lower() in [
+                vocab_item["french"].lower(),
+                vocab_item["english"].lower()
+            ]
+        
+        feedback_message = ""
+        if is_correct:
+            feedback_message = f"✓ Correct! '{vocab_item['french']}' means '{vocab_item['english']}'"
+        else:
+            feedback_message = f"✗ Incorrect. The correct answer is '{correct_answer}'. '{vocab_item['french']}' means '{vocab_item['english']}'"
+            # Track this as a weakness
+            db.track_weakness(user_id=request.user_id, topic=lesson_data.get("theme", "vocabulary"), is_error=True)
+        
+        return {
+            "correct": is_correct,
+            "user_answer": request.user_answer,
+            "correct_answer": correct_answer,
+            "feedback": feedback_message,
+            "vocabulary": vocab_item
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check answer: {str(e)}")
+
+
+@app.post("/api/lessons/{lesson_id}/review")
+async def review_lesson(lesson_id: str, user_id: int = 1):
+    """Generate a fresh review of an old lesson with new examples (no homework/exam).
+    
+    Args:
+        lesson_id: ID of the lesson to review
+        user_id: User ID
+        
+    Returns:
+        Lesson data with fresh AI-generated examples
+    """
+    try:
+        # Get original lesson
+        original_lesson = db.get_lesson_by_id(lesson_id)
+        if not original_lesson:
+            raise HTTPException(status_code=404, detail=f"Lesson {lesson_id} not found")
+        
+        # Extract the core topic/theme
+        theme = original_lesson.get("theme", "")
+        level = original_lesson.get("level", "A1.1")
+        
+        # Generate fresh lesson with same topic but new examples
+        prompt = f"""Generate a review lesson for French {level} level.
+        
+Topic: {theme}
+This is a REVIEW lesson, so keep the same grammatical topic but provide FRESH examples.
+
+Requirements:
+1. Same grammar topic as: {theme}
+2. NEW example sentences (different from original)
+3. NEW vocabulary items (3 items)
+4. NEW speaking practice prompt
+5. NO homework section (this is review only)
+6. NO exam section (this is review only)
+
+Format as JSON with this structure:
+{{
+    "level": "{level}",
+    "theme": "{theme}",
+    "grammar": {{
+        "explanation": "...",
+        "examples": ["sentence 1", "sentence 2", ...],
+        "conjugation": [...]
+    }},
+    "vocabulary": ["word1 (translation)", "word2 (translation)", ...],
+    "speaking": {{
+        "prompt": "...",
+        "targets": [...]
+    }}
+}}
+
+Make it engaging and practical for review!"""
+
+        # Call Gemini AI to generate fresh content
+        fresh_lesson = await generate_lesson_ai(prompt, level)
+        
+        # Add review flag
+        fresh_lesson["is_review"] = True
+        fresh_lesson["original_lesson_id"] = lesson_id
+        fresh_lesson["reviewed_at"] = datetime.now().isoformat()
+        
+        return {
+            "success": True,
+            "lesson": fresh_lesson,
+            "message": f"Fresh review generated for: {theme}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate review: {str(e)}")
+
+
+@app.get("/api/vocabulary/stats")
+async def get_vocabulary_stats(user_id: int = 1):
+    """Get vocabulary practice dashboard stats."""
+    try:
+        return db.get_vocab_stats(user_id=user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get vocabulary stats: {str(e)}")
+
+
+# ===== App Lifecycle =====
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize database and check API key on startup"""
@@ -661,33 +1150,77 @@ async def health_check():
         "database": "connected"
     }
 
+
+@app.get("/api/mode")
+async def get_app_mode():
+    """Get current application mode and user setup state."""
+    dev_mode = get_dev_mode()
+    starting_level = db.get_app_setting("starting_level")
+    current_level = db.get_app_setting("current_level")
+    return {
+        "mode": "dev" if dev_mode else "production",
+        "starting_level": starting_level,
+        "current_level": current_level
+    }
+
+
+@app.post("/api/mode/toggle")
+async def toggle_app_mode(request: ModeToggleRequest):
+    """Toggle development mode on or off."""
+    db.set_app_setting("dev_mode", "true" if request.dev_mode else "false")
+    return {
+        "status": "success",
+        "mode": "dev" if request.dev_mode else "production"
+    }
+
+
+@app.post("/api/first-time-setup")
+async def first_time_setup(request: FirstTimeSetupRequest):
+    """Set the user's starting level on first use."""
+    if request.starting_level not in LEVEL_ORDER:
+        raise HTTPException(status_code=400, detail="Invalid starting level")
+
+    db.set_app_setting("starting_level", request.starting_level)
+    current_level = db.get_app_setting("current_level")
+    if current_level not in LEVEL_ORDER:
+        db.set_app_setting("current_level", request.starting_level)
+
+    return {
+        "status": "success",
+        "starting_level": request.starting_level,
+        "current_level": db.get_app_setting("current_level")
+    }
+
+
+@app.get("/api/curriculum/plan")
+async def get_curriculum_plan():
+    """Return the curriculum plan markdown."""
+    plan_path = Path(__file__).parent / "French_Course_Weekly_Plan.md"
+    if not plan_path.exists():
+        raise HTTPException(status_code=404, detail="Curriculum plan not found")
+    return {"plan": plan_path.read_text(encoding="utf-8")}
+
+
+@app.get("/api/lessons/available", response_model=List[LessonResponse])
+async def get_available_lessons():
+    """Get lessons available for the current mode and user level."""
+    try:
+        lessons_raw = db.get_all_lessons()
+        if get_dev_mode():
+            return [build_lesson_response(lesson) for lesson in lessons_raw]
+
+        current_level = get_current_level()
+        filtered = [lesson for lesson in lessons_raw if lesson.get("level") == current_level]
+        return [build_lesson_response(lesson) for lesson in filtered]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch available lessons: {str(e)}")
+
 @app.get("/api/lessons", response_model=List[LessonResponse])
 async def get_lessons():
     """Get all available lessons"""
     try:
         lessons_raw = db.get_all_lessons()
-        
-        # Transform to match frontend expectations
-        lessons = []
-        for lesson in lessons_raw:
-            # Build content object from schema columns
-            content = {
-                "grammar": json.loads(lesson.get("grammar_explanation", "{}")) if lesson.get("grammar_explanation") else {},
-                "vocabulary": json.loads(lesson.get("vocabulary", "[]")) if lesson.get("vocabulary") else [],
-                "speaking": json.loads(lesson.get("speaking_prompt", "{}")) if lesson.get("speaking_prompt") else {},
-                "homework": lesson.get("homework_prompt", ""),
-                "quiz": json.loads(lesson.get("quiz_questions", "{}")) if lesson.get("quiz_questions") else {}
-            }
-            
-            lessons.append(LessonResponse(
-                lesson_id=lesson["lesson_id"],
-                title=lesson.get("theme", "Untitled Lesson"),
-                level=lesson.get("level", "Unknown"),
-                description=f"Week {lesson.get('week_number', 'N/A')} - {lesson.get('theme', '')}",
-                content=content
-            ))
-        
-        return lessons
+        return [build_lesson_response(lesson) for lesson in lessons_raw]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch lessons: {str(e)}")
 
@@ -698,23 +1231,7 @@ async def get_lesson(lesson_id: str):
         lesson = db.get_lesson_by_id(lesson_id)
         if not lesson:
             raise HTTPException(status_code=404, detail="Lesson not found")
-        
-        # Build content object from schema columns
-        content = {
-            "grammar": json.loads(lesson.get("grammar_explanation", "{}")) if lesson.get("grammar_explanation") else {},
-            "vocabulary": json.loads(lesson.get("vocabulary", "[]")) if lesson.get("vocabulary") else [],
-            "speaking": json.loads(lesson.get("speaking_prompt", "{}")) if lesson.get("speaking_prompt") else {},
-            "homework": lesson.get("homework_prompt", ""),
-            "quiz": json.loads(lesson.get("quiz_questions", "{}")) if lesson.get("quiz_questions") else {}
-        }
-        
-        return LessonResponse(
-            lesson_id=lesson["lesson_id"],
-            title=lesson.get("theme", "Untitled Lesson"),
-            level=lesson.get("level", "Unknown"),
-            description=f"Week {lesson.get('week_number', 'N/A')} - {lesson.get('theme', '')}",
-            content=content
-        )
+        return build_lesson_response(lesson)
     except HTTPException:
         raise
     except Exception as e:
@@ -837,10 +1354,11 @@ async def text_to_speech(request: TTSRequest):
         if not cleaned_text:
             raise HTTPException(status_code=400, detail="Text contains no speakable content")
         
-        # Generate TTS
-        tts = gTTS(text=cleaned_text, lang=request.lang, slow=False)
         tts_path = tts_dir / f"tts_{hash(cleaned_text)}_{request.lang}.mp3"
-        tts.save(str(tts_path))
+        if not tts_path.exists():
+            # Generate TTS only if not cached
+            tts = gTTS(text=cleaned_text, lang=request.lang, slow=False)
+            tts.save(str(tts_path))
         
         return FileResponse(
             path=str(tts_path),
@@ -1045,6 +1563,20 @@ async def get_srs_due(user_id: int = 1, limit: int = 50):
             "items_due": len(items),
             "items": items,
             "message": f"{len(items)} items due for review"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get SRS items: {str(e)}")
+
+
+@app.get("/api/srs/items")
+async def get_srs_items(user_id: int = 1, limit: int | None = None):
+    """Get all SRS items with lesson metadata."""
+    try:
+        items = db.get_srs_items(user_id=user_id, limit=limit)
+        return {
+            "user_id": user_id,
+            "items": items,
+            "items_count": len(items)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get SRS items: {str(e)}")
