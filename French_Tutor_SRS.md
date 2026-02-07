@@ -131,6 +131,36 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
   }
   ```
 
+**FR-013: Speaking Practice Flow (Interactive)**
+
+* **Purpose:** In-lesson practice with immediate feedback, multiple retries allowed
+* **Duration:** 10 minutes per lesson (Section 3 of lesson structure)
+* **Flow Architecture (Token-efficient for free tier):**
+  1. **Scenario presented:** AI generates speaking scenario (text + TTS audio)
+  2. **Push-to-talk recording:** Student holds button to speak (sounddevice)
+  3. **STT conversion:** Whisper.cpp converts speech → text locally
+  4. **Text-based AI evaluation:** Send transcribed text to Gemini API (not audio)
+  5. **AI response:** Text feedback + suggestions
+  6. **TTS playback:** Piper reads AI response aloud
+  7. **Retry allowed:** Student can attempt again with new scenario or same
+  
+* **Key Design Decisions:**
+  * **No audio sent to AI:** Only STT transcription sent (saves tokens on free tier)
+  * **Local STT/TTS:** Whisper.cpp + Piper run locally (no API costs)
+  * **Interactive, not evaluative:** Not stored in database, just practice
+  * **Immediate feedback:** Real-time text + voice response
+  * **Multiple attempts:** Students can retry scenarios until satisfied
+  
+* **Difference from Homework Audio:**
+  * Speaking practice: STT → text → AI (text-based conversation)
+  * Homework audio: Raw audio stored + STT comparison for pronunciation scoring
+  
+* **UI Pattern:**
+  * Push-to-talk button (hold to record, release to stop)
+  * Transcription displayed in real-time
+  * AI response shown as text + spoken via TTS
+  * "Try again" button for retry
+
 ---
 
 ### **2.3 Exam System**

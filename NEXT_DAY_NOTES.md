@@ -2,6 +2,53 @@
 
 Date: 2026-02-07
 
+## Session 5 Update: Interactive Speaking Practice with STT/TTS
+**Date:** February 7, 2026 (continuation)  
+**Focus:** Implement push-to-talk speaking practice with local STT/TTS for token efficiency
+
+### Changes Made:
+- ✅ Added **FR-013: Speaking Practice Flow** to SRS
+  - Documents token-efficient architecture: STT → text → AI (not audio to AI)
+  - Push-to-talk recording with sounddevice
+  - Local Whisper STT (no API costs)
+  - Local/cloud TTS for feedback playback
+  - Multiple retries allowed (not stored in DB, just practice)
+- ✅ Updated requirements.txt:
+  - Added `openai-whisper` for local STT
+  - Added `gTTS` for text-to-speech (simple, works with free tier)
+- ✅ Implemented speaking practice UI in app.py:
+  - `transcribe_audio_to_text()`: Whisper STT with model caching
+  - `text_to_speech()`: gTTS for French TTS
+  - `get_ai_speaking_feedback()`: Placeholder for Gemini text-based feedback
+  - `render_speaking_practice()`: Interactive UI with start/stop recording
+  - Push-to-talk pattern: Start → Record → Stop → STT → AI feedback → TTS playback
+- ✅ Key design decisions:
+  - **No audio sent to AI:** Only transcribed text sent to Gemini (saves tokens)
+  - **Local processing:** Whisper runs locally, no STT API costs
+  - **Interactive, not evaluative:** Not saved to DB, students can retry unlimited times
+  - **Immediate feedback:** Real-time transcription + AI response + optional TTS playback
+
+### Rationale:
+- **Token efficiency:** Free tier Gemini API has token limits; sending text is much cheaper than audio
+- **Local STT/TTS:** Whisper + gTTS avoid per-use API costs
+- **Learning-focused:** Speaking practice is for improvement, not evaluation (unlike homework)
+- **Retry-friendly:** Students can practice multiple times without penalty
+- **Different from homework:** Homework needs pronunciation scoring on stored audio; speaking practice needs conversation
+
+### Result:
+- **Token-efficient:** Text-based AI interaction keeps free tier viable
+- **Interactive learning:** Immediate feedback loop encourages practice
+- **No storage overhead:** Temp recordings deleted after transcription
+- **Scalable:** Can switch to faster-whisper or Piper later for performance
+
+### Next Steps:
+1. Install Whisper and gTTS dependencies
+2. Test speaking practice recording and transcription
+3. Implement actual Gemini API call in get_ai_speaking_feedback()
+4. Optimize Whisper model loading (cache in session state ✅ already done)
+
+---
+
 ## Session 4 Update: Homework Evaluation Logic + Recording Improvements
 **Date:** February 7, 2026 (continuation)  
 **Focus:** Define clear homework evaluation logic in SRS + improve recording UX

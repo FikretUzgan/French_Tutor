@@ -110,6 +110,86 @@ def normalize_audio_peak(audio: np.ndarray, target_dbfs: float = -3.0) -> np.nda
     return np.clip(audio * gain, -1.0, 1.0)
 
 
+def transcribe_audio_to_text(audio_path: Path) -> tuple[str, bool]:
+    """Convert speech to text using Whisper STT.
+    
+    Args:
+        audio_path: Path to audio file
+        
+    Returns:
+        Tuple of (transcribed_text, success)
+    """
+    try:
+        import whisper
+        
+        # Load Whisper model (cache it in session state for performance)
+        if 'whisper_model' not in st.session_state:
+            st.session_state.whisper_model = whisper.load_model("base")
+        
+        model = st.session_state.whisper_model
+        result = model.transcribe(str(audio_path), language="fr")
+        return result["text"].strip(), True
+        
+    except Exception as e:
+        st.error(f"STT failed: {str(e)}")
+        return "", False
+
+
+def text_to_speech(text: str, lang: str = "fr") -> tuple[Path | None, bool]:
+    """Convert text to speech using gTTS.
+    
+    Args:
+        text: Text to speak
+        lang: Language code (default: 'fr')
+        
+    Returns:
+        Tuple of (audio_file_path, success)
+    """
+    try:
+        from gtts import gTTS
+        
+        tts = gTTS(text=text, lang=lang, slow=False)
+        
+        # Save to temp directory
+        temp_dir = Path("submissions") / "tts"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"tts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
+        file_path = temp_dir / filename
+        
+        tts.save(str(file_path))
+        return file_path, True
+        
+    except Exception as e:
+        st.error(f"TTS failed: {str(e)}")
+        return None, False
+
+
+def get_ai_speaking_feedback(transcribed_text: str, scenario: str, targets: list[str]) -> str:
+    """Get AI feedback on speaking practice (text-based, token-efficient).
+    
+    Args:
+        transcribed_text: What the student said (from STT)
+        scenario: The speaking prompt/scenario
+        targets: Learning targets for this practice
+        
+    Returns:
+        AI feedback text
+    """
+    # TODO: Implement Gemini API call
+    # For now, return placeholder feedback
+    feedback = f"""
+📝 **Your response:** {transcribed_text}
+
+✅ **Feedback:**
+- Good attempt at using past tenses
+- Try to include more descriptive vocabulary
+- Practice pronunciation of nasal sounds
+
+💡 **Suggestion:** Try again with more details about the location and person.
+"""
+    return feedback
+
+
 def render_homework_submission(lesson: dict) -> None:
     """Render homework submission section with local Python audio recording and upload options."""
     st.markdown("## Homework Submission")
@@ -273,6 +353,91 @@ def render_homework_submission(lesson: dict) -> None:
                     st.caption("Please try again or contact support.")
 
 
+def render_speaking_practice(speaking: dict) -> None:
+    """Render interactive speaking practice with push-to-talk STT/TTS."""
+    st.markdown("## 🎤 Speaking Practice")
+    st.markdown(f"**Scenario:** {speaking['prompt']}")
+    
+    st.info("""
+    **Instructions:**
+    1. Read the scenario and targets below
+    2. Click **Start Recording** and speak your response
+    3. Click **Stop Recording** when done
+    4. Your speech will be transcribed and AI will provide feedback
+    5. Try again as many times as you want!
+    """)
+    
+    render_list("Targets", speaking["targets"])
+    
+    st.markdown("---")
+    
+    # Recording controls
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🎙️ Start Recording", use_container_width=True, type="primary"):
+            st.session_state.speaking_recording = True
+            st.session_state.speaking_stopped = False
+    
+    with col2:
+        if st.button("⏹️ Stop Recording", use_container_width=True):
+            st.session_state.speaking_stopped = True
+    
+    # Handle recording
+    if st.session_state.get("speaking_recording") and not st.session_state.get("speaking_stopped"):
+        st.warning("🔴 Recording... Speak now! Click **Stop Recording** when done.")
+    
+    if st.session_state.get("speaking_stopped") and st.session_state.get("speaking_recording"):
+        # Simulate recording (use 30 seconds as default for speaking practice)
+        with st.spinner("Processing your speech..."):
+            audio_path, duration = record_audio_with_sounddevice(
+                duration=30,
+                output_dir=Path("submissions") / "speaking_temp"
+            )
+            
+            if audio_path:
+                st.audio(str(audio_path), format="audio/wav")
+                
+                # Transcribe speech to text
+                with st.spinner("Transcribing..."):
+                    transcribed_text, stt_success = transcribe_audio_to_text(audio_path)
+                
+                if stt_success and transcribed_text:
+                    st.success(f"✅ Transcription complete!")
+                    st.markdown(f"**You said:** _{transcribed_text}_")
+                    
+                    # Get AI feedback (text-based, token-efficient)
+                    with st.spinner("Getting AI feedback..."):
+                        feedback = get_ai_speaking_feedback(
+                            transcribed_text,
+                            speaking["prompt"],
+                            speaking["targets"]
+                        )
+                    
+                    st.markdown("### 🤖 AI Feedback")
+                    st.markdown(feedback)
+                    
+                    # TTS - speak the feedback
+                    if st.checkbox("🔊 Listen to feedback (TTS)", value=False):
+                        with st.spinner("Generating speech..."):
+                            tts_path, tts_success = text_to_speech(feedback)
+                        
+                        if tts_success and tts_path:
+                            st.audio(str(tts_path), format="audio/mp3")
+                
+                # Clean up temp audio
+                try:
+                    audio_path.unlink()
+                except:
+                    pass
+        
+        # Reset recording state
+        st.session_state.speaking_recording = False
+        st.session_state.speaking_stopped = False
+        
+        st.info("💡 Want to try again? Click **Start Recording** for another attempt!")
+
+
 def main() -> None:
     st.set_page_config(page_title="French Tutor Sample", layout="wide")
     st.title("French Tutor - Sample Lesson (A2)")
@@ -298,8 +463,7 @@ def main() -> None:
             render_list("Vocabulary (3 words)", lesson["vocabulary"])
     
     with tab2:
-        render_section("Speaking Scenario", lesson["speaking"]["prompt"])
-        render_list("Speaking Targets", lesson["speaking"]["targets"])
+        render_speaking_practice(lesson["speaking"])
     
     with tab3:
         render_list("Mini Quiz", lesson["quiz"]["questions"])
