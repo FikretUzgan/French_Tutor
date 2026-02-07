@@ -622,6 +622,147 @@ h2 {
     transform: translateY(-2px);
 }
 
+/* Lesson Card Buttons */
+.lesson-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-start-lesson {
+    flex: 1;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 8px 16px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* Lesson Modal */
+.lesson-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.lesson-modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.lesson-modal-content .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #667eea;
+    padding: 4px 8px;
+    transition: all 0.2s;
+}
+
+.lesson-modal-content .modal-close:hover {
+    color: #764ba2;
+    transform: scale(1.2);
+}
+
+.lesson-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.lesson-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.lesson-header .level-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.lesson-body {
+    padding: 24px;
+}
+
+.lesson-section {
+    margin-bottom: 24px;
+}
+
+.lesson-section:last-child {
+    margin-bottom: 0;
+}
+
+.lesson-section h3 {
+    color: #667eea;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #667eea;
+}
+
+.lesson-section p {
+    line-height: 1.6;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.lesson-section ul {
+    margin-left: 20px;
+}
+
+.lesson-section li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.lesson-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.lesson-actions button {
+    padding: 10px 24px;
+}
+
 /* Status Indicator */
 .status-indicator {
     position: fixed;

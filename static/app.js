@@ -143,9 +143,20 @@ async function loadLessons() {
                 <h3>${lesson.title}</h3>
                 <span class="lesson-badge">${lesson.level}</span>
                 <p>${lesson.description}</p>
-                <button class="btn-review" data-lesson-id="${lesson.lesson_id}">🔄 Review Lesson</button>
+                <div class="lesson-buttons">
+                    <button class="btn-primary btn-start-lesson" data-lesson-id="${lesson.lesson_id}">Start Lesson</button>
+                    <button class="btn-secondary btn-review" data-lesson-id="${lesson.lesson_id}">Review</button>
+                </div>
             </div>
         `).join('');
+        
+        // Add click handlers for start lesson buttons
+        document.querySelectorAll('.btn-start-lesson').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lessonId = e.target.dataset.lessonId;
+                displayLesson(lessonId);
+            });
+        });
         
         // Add click handlers for review buttons
         document.querySelectorAll('.btn-review').forEach(btn => {
@@ -933,39 +944,101 @@ function endVocabPractice() {
 }
 
 // Review Lesson Function
-async function reviewLesson(lessonId) {
+async function displayLesson(lessonId) {
     try {
-        const response = await fetch(`${API_BASE}/api/lessons/${lessonId}/review`, {
-            method: 'POST'
-        });
+        const response = await fetch(`${API_BASE}/api/lessons/${lessonId}`);
         
-        const lesson = await response.json();
-        
-        if (lesson.error) {
-            alert(`Error: ${lesson.error}`);
-            return;
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        // Display lesson in a modal or alert (simple version)
-        const content = `
-📚 **${lesson.title}** (${lesson.level})
-
-**Grammar:**
-${lesson.content.grammar.explanation || 'No explanation'}
-
-**New Examples:**
-${(lesson.content.grammar.examples || []).map((ex, i) => `${i + 1}. ${ex}`).join('\n')}
-
-**Vocabulary:**
-${(lesson.content.vocabulary || []).join(', ')}
-
-This is a review - no homework or exam required!
-        `;
+        const lesson = await response.json();
+        AppState.currentLesson = lesson;
         
-        alert(content);
+        // Create and display lesson modal
+        const modal = createLessonModal(lesson);
+        document.body.appendChild(modal);
+        
+        // Auto-remove modal when close button clicked
+        const closeBtn = modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
         
     } catch (error) {
-        alert('Failed to load lesson review');
-        console.error('Review lesson error:', error);
+        console.error('Failed to load lesson:', error);
+        alert(`Failed to load lesson: ${error.message}`);
     }
+}
+
+function createLessonModal(lesson) {
+    const modal = document.createElement('div');
+    modal.className = 'lesson-modal';
+    modal.innerHTML = `
+        <div class="lesson-modal-content">
+            <button class="modal-close" aria-label="Close">x</button>
+            <div class="lesson-header">
+                <h2>${lesson.title}</h2>
+                <span class="level-badge">${lesson.level}</span>
+            </div>
+            
+            <div class="lesson-body">
+                ${createSectionHTML('Grammar', lesson.content.grammar)}
+                ${createSectionHTML('Vocabulary', lesson.content.vocabulary)}
+                ${createSectionHTML('Speaking Practice', lesson.content.speaking)}
+                ${createSectionHTML('Quiz', lesson.content.quiz)}
+            </div>
+            
+            <div class="lesson-actions">
+                <button class="btn-primary" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+            </div>
+        </div>
+    `;
+    return modal;
+}
+
+function createSectionHTML(title, content) {
+    if (!content || (Array.isArray(content) && content.length === 0)) {
+        return '';
+    }
+    
+    let html = `<div class="lesson-section">`;
+    html += `<h3>${title}</h3>`;
+    
+    if (typeof content === 'string') {
+        html += `<p>${content}</p>`;
+    } else if (Array.isArray(content)) {
+        html += `<ul>`;
+        content.forEach(item => {
+            html += `<li>${item}</li>`;
+        });
+        html += `</ul>`;
+    } else if (typeof content === 'object') {
+        // For grammar/speaking objects
+        if (content.explanation) {
+            html += `<p><strong>Explanation:</strong> ${content.explanation}</p>`;
+        }
+        if (content.examples && Array.isArray(content.examples)) {
+            html += `<p><strong>Examples:</strong></p><ul>`;
+            content.examples.forEach(ex => {
+                html += `<li>${ex}</li>`;
+            });
+            html += `</ul>`;
+        }
+        if (content.prompt) {
+            html += `<p><strong>Prompt:</strong> ${content.prompt}</p>`;
+        }
+        if (content.targets && Array.isArray(content.targets)) {
+            html += `<p><strong>Learning Targets:</strong></p><ul>`;
+            content.targets.forEach(target => {
+                html += `<li>${target}</li>`;
+            });
+            html += `</ul>`;
+        }
+    }
+    
+    html += `</div>`;
+    return html;
 }
