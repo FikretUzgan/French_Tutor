@@ -335,6 +335,62 @@ def init_lesson_progress(lesson_id: str) -> None:
     conn.close()
 
 
+def get_all_lessons() -> list[dict]:
+    """Retrieve all lessons from the database."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT 
+            lesson_id, 
+            level, 
+            theme,
+            week_number,
+            grammar_explanation,
+            vocabulary,
+            speaking_prompt,
+            homework_prompt,
+            quiz_questions
+        FROM lessons
+        ORDER BY level, lesson_id
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return [dict(row) for row in rows]
+
+
+def get_user_progress(user_id: int) -> list[dict]:
+    """Get progress for a specific user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT 
+            progress_id,
+            lesson_id,
+            completed,
+            homework_submitted,
+            homework_passed,
+            date_started,
+            date_completed
+        FROM lesson_progress
+        ORDER BY lesson_id
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    progress_list = []
+    for row in rows:
+        row_dict = dict(row)
+        # Add computed fields
+        row_dict['status'] = 'completed' if row_dict['completed'] else ('submitted' if row_dict['homework_submitted'] else 'started')
+        row_dict['completion_percentage'] = 100 if row_dict['completed'] else (50 if row_dict['homework_submitted'] else 25)
+        progress_list.append(row_dict)
+    
+    return progress_list
+
+
 if __name__ == "__main__":
     # Initialize database
     init_db()
