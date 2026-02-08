@@ -210,6 +210,17 @@ def parse_vocabulary_set(content: str) -> List[Dict[str, str]]:
             word = bullet_match.group(1).strip()
             definition = bullet_match.group(2).strip()
             vocab_items.append({'word': word, 'definition': definition})
+            continue
+        
+        # Try inline format (all on one line, separated by " – ")
+        # Format: "word – word – word – ..." or "word - definition, word - definition"
+        if '–' in line and not line.startswith('**'):
+            # Check if it's a simple list (no definitions, just words)
+            parts = [p.strip() for p in line.split('–')]
+            if len(parts) > 2:  # Likely a list of words only
+                for word in parts:
+                    if word and not any(keyword in word.lower() for keyword in ['semantic', 'domain', 'vocabulary']):
+                        vocab_items.append({'word': word, 'definition': ''})
     
     return vocab_items
 
@@ -339,9 +350,14 @@ def parse_homework_task(content: str) -> Dict[str, Any]:
     
     # Extract task description
     task_desc = ''
-    task_match = re.search(r"(?:\*\*)?Task(?:\*\*)?\s*:\s*\n(.*?)(?=\n\*\*|\n\[|\Z)", section, re.DOTALL)
+    task_match = re.search(r"\*\*Task:\*\*\s*\n+(.*?)(?=\n\n\*\*Rubric|\Z)", section, re.DOTALL)
     if task_match:
         task_desc = task_match.group(1).strip()
+    else:
+        # Fallback: try simpler pattern without requiring double newline
+        task_match = re.search(r"\*\*Task:\*\*\s*\n+(.*?)(?=\n\*\*|\Z)", section, re.DOTALL)
+        if task_match:
+            task_desc = task_match.group(1).strip()
     
     # Extract rubric (checkbox items)
     rubric = []

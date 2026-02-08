@@ -1,0 +1,164 @@
+{
+  "lesson_id": "week_1_day_1_2026-02-08T20:01:09.324385+00:00",
+  "week": 1,
+  "day": 1,
+  "level": "A1.1",
+  "theme": "Greetings and Basic Introductions",
+  "estimated_duration_minutes": 45,
+  "is_fallback": true,
+  "fallback_reason": "API generation failed: \n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    ",
+  "grammar": {
+    "target_form": "Être (present tense)",
+    "complexity_rating": 1,
+    "explanation": "The verb \"être\" means \"to be\". It is used like \"I am\", \"you are\" in English.",
+    "key_rules": [
+      "Conjugation table:"
+    ],
+    "examples": [
+      "Je suis Fikret.",
+      "Tu es turc ?",
+      "Elle est étudiante.",
+      "Nous sommes à Istanbul."
+    ],
+    "common_errors": []
+  },
+  "vocabulary": {
+    "semantic_domain": "Greetings and Basic Introductions",
+    "words": [
+      {
+        "word": "bonjour",
+        "definition": "hello"
+      },
+      {
+        "word": "salut",
+        "definition": "hi (informal)"
+      },
+      {
+        "word": "au revoir",
+        "definition": "goodbye"
+      },
+      {
+        "word": "je m'appelle …",
+        "definition": "my name is …"
+      },
+      {
+        "word": "comment vous appelez-vous ?",
+        "definition": "what is your name? (formal)"
+      },
+      {
+        "word": "comment t'appelles-tu ?",
+        "definition": "what is your name? (informal)"
+      },
+      {
+        "word": "enchanté(e)",
+        "definition": "nice to meet you"
+      },
+      {
+        "word": "merci",
+        "definition": "thank you"
+      },
+      {
+        "word": "de rien",
+        "definition": "you're welcome"
+      },
+      {
+        "word": "je suis",
+        "definition": "I am"
+      },
+      {
+        "word": "français(e)",
+        "definition": "French"
+      },
+      {
+        "word": "turc / turque",
+        "definition": "Turkish"
+      },
+      {
+        "word": "étudiant(e)",
+        "definition": "student"
+      },
+      {
+        "word": "professeur",
+        "definition": "teacher"
+      },
+      {
+        "word": "comment ça va ?",
+        "definition": "how are you?"
+      }
+    ]
+  },
+  "speaking": {
+    "scenario_domain": "First meeting",
+    "scenario_prompt": "Have a brief conversation with the AI tutor",
+    "ai_opening": "Bonjour! Je suis ton tuteur français. Parlons ensemble.",
+    "interaction_tier": 1,
+    "target_phrases": [
+      "Greetings",
+      "Basic introductions"
+    ],
+    "success_criteria": "Respond naturally to the AI tutor's questions"
+  },
+  "quiz": {
+    "instruction": "Answer the following review questions",
+    "questions": [
+      {
+        "id": "q1",
+        "type": "short",
+        "question": "Conjugate: Je ___ turc. → suis",
+        "correct_answer": ""
+      },
+      {
+        "id": "q2",
+        "type": "short",
+        "question": "Translate: Hello, my name is Fikret. → Bonjour, je m'appelle Fikret.",
+        "correct_answer": ""
+      },
+      {
+        "id": "q3",
+        "type": "short",
+        "question": "Form a question: Are you a student? → Es-tu étudiant ? / Tu es étudiant ?",
+        "correct_answer": ""
+      },
+      {
+        "id": "q4",
+        "type": "short",
+        "question": "Make negative: Je suis professeur. → Je ne suis pas professeur.",
+        "correct_answer": ""
+      },
+      {
+        "id": "q5",
+        "type": "short",
+        "question": "Listen and choose: In the audio, who says \"enchantée\"?",
+        "correct_answer": ""
+      }
+    ]
+  },
+  "homework": {
+    "type": "Text",
+    "prompt": "Write a 6–10 sentence self-introduction (name, nationality, student or not, how you are, etc.).  \nExample start:  \n\"Bonjour, je m'appelle … Je suis …\"",
+    "detailed_instructions": "Review the curriculum file for this week's homework assignment",
+    "minimum_requirements": {
+      "text_length": null,
+      "vocabulary_words": "Write a 6–10 sentence self-introduction (name, nationality, student or not, how you are, etc.).  \nExample start:  \n\"Bonjour, je m'appelle … Je suis …\""
+    },
+    "rubric": [
+      "At least 5 words from the vocabulary set used correctly",
+      "\"Être\" verb conjugated correctly at least 3 times",
+      "Sentences are simple but understandable",
+      "Minimal spelling/grammar issues (AI will suggest improvements)"
+    ],
+    "pass_threshold": 4,
+    "example_response": "Refer to curriculum file"
+  },
+  "metadata": {
+    "generated_at": "2026-02-08T20:01:09.324385+00:00",
+    "curriculum_file": "wk1.md",
+    "personalization_applied": {
+      "weakness_addressed": false,
+      "extra_scaffolding_given": false,
+      "extra_examples_given": false,
+      "complexity_adjusted": "none"
+    },
+    "warning": "This is a fallback lesson created because the AI lesson generation encountered an error. Please check the curriculum file for complete content."
+  }
+}

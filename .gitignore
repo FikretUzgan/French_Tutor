@@ -52,3 +52,6 @@ Thumbs.db
 submissions/audio/
 submissions/tts/
 submissions/speaking_temp/
+
+# Database (local data, schema tracked separately)
+french_tutor.db
