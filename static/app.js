@@ -1375,25 +1375,32 @@ function createInteractiveVocabulary(vocabContent) {
             } else if (typeof item === 'object' && item.word) {
                 return {
                     front: item.word,
-                    back: item.definition || '',
+                    back: item.definition || item.context_example || '',
                     pronunciation: item.pronunciation_tip || ''
                 };
             } else if (typeof item === 'object' && item.front) {
                 return item;
+            } else if (typeof item === 'object') {
+                // Try to find a property that might be the word/text
+                const text = item.text || item.phrase || item.example || item.french || Object.values(item).find(v => typeof v === 'string') || '';
+                return { front: text, back: '', pronunciation: '' };
             }
             return { front: String(item), back: '', pronunciation: '' };
         });
     } else if (typeof vocabContent === 'object' && vocabContent.words) {
         // Object with words property
         vocabItems = vocabContent.words.map(item => ({
-            front: item.word || String(item),
-            back: item.definition || '',
-            pronunciation: item.pronunciation_tip || ''
+            front: item.word || item.text || item.phrase || '',
+            back: item.definition || item.context_example || '',
+            pronunciation: item.pronunciation_tip || item.pronunciation || ''
         }));
     } else if (typeof vocabContent === 'string') {
         // Single string
         vocabItems = [{ front: vocabContent, back: '', pronunciation: '' }];
     }
+    
+    // Filter out items with no front text
+    vocabItems = vocabItems.filter(item => item && item.front && item.front.trim().length > 0);
     
     if (!vocabItems || vocabItems.length === 0) {
         return '<p>No vocabulary content available.</p>';
@@ -1410,20 +1417,24 @@ function createInteractiveVocabulary(vocabContent) {
         const pronunciation = item.pronunciation || '';
         // Handle gender notation like "étudiant(e)" - remove the parentheses for TTS
         const ttsText = frontText.replace(/\([^)]*\)/g, '').trim();
-        html += `
-        <div class="vocab-card-mini" onclick="this.classList.toggle('flipped')">
-            <div class="card-inner">
-                <div class="card-front">
-                    ${frontText}
-                    <button class="vocab-tts-mini" onclick="event.stopPropagation(); playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">Listen</button>
-                </div>
-                <div class="card-back">
-                    <div class="vocab-back-text">${backText || frontText}</div>
-                    ${pronunciation ? `<div class="vocab-pronunciation">${pronunciation}</div>` : ''}
+        
+        // Always create Listen button if we have text
+        if (frontText.trim()) {
+            html += `
+            <div class="vocab-card-mini" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        ${frontText}
+                        <button class="vocab-tts-mini" onclick="event.stopPropagation(); playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">Listen</button>
+                    </div>
+                    <div class="card-back">
+                        <div class="vocab-back-text">${backText || frontText}</div>
+                        ${pronunciation ? `<div class="vocab-pronunciation">${pronunciation}</div>` : ''}
+                    </div>
                 </div>
             </div>
-        </div>
-        `;
+            `;
+        }
     });
     
     html += '</div>';

@@ -130,10 +130,15 @@ Generate a JSON lesson object with these sections:
         "explanation": "Use 'suis' with 'je' (I am). The subject is singular first person."
       }},
       // 4-5 questions total, mix of:
-      // - conjugation (complete the verb)
-      // - translation (French → English or vice versa)
-      // - fill_blank (complete the sentence)
+      // - conjugation (complete the verb with blanks)
+      // - translation (French → English or vice versa, single form)
+      // - fill_blank (complete the sentence with ONE correct answer)
       // - multiple_choice (select correct form)
+      
+      // CRITICAL: Do NOT show answer options in the question text
+      // CRITICAL: Do NOT show multiple forms of the answer in question (e.g., "Are you? → Es-tu? / Tu es?" reveals answer)
+      // CRITICAL: Questions should have blanks (___) or parentheses (être) to hide the answer
+      // CRITICAL: Options should be SHORT (1-3 words max) unless it's a translation question
     ]
   }},
   
@@ -168,6 +173,35 @@ Generate a JSON lesson object with these sections:
     }}
   }}
 }}
+
+GRAMMAR EXPLANATION EXAMPLE (THIS IS WHAT WE WANT):
+For "être" conjugation, the explanation should be 3-5+ paragraphs like:
+
+"The verb 'être' (to be) is one of the most fundamental verbs in French. It is used to describe states of being (permanent or temporary), professions, locations, emotions, and characteristics. Understanding 'être' is essential for constructing basic sentences and asking questions.
+
+The conjugation of 'être' is irregular, meaning it does NOT follow the standard pattern of regular -er, -ir, or -re verbs. Each pronoun has a unique form that must be memorized.
+
+Conjugation Table:
+- Je suis (I am) - used for yourself
+- Tu es (You are) - used with people you know well
+- Il/Elle/On est (He/She/One is) - singular third person
+- Nous sommes (We are) - includes you and others
+- Vous êtes (You are) - formal singular or plural
+- Ils/Elles sont (They are) - plural, mixed group or all female
+
+Key Rules:
+1. Subject-Verb Agreement: The form of 'être' ALWAYS changes based on the subject pronoun (who is doing the action)
+2. Question Formation: To ask a question, invert the pronoun and verb: 'Suis-je déprimé ?' (Am I sad?)
+3. Liaison with vowels: When a form of être starts with a vowel (es, est, êtes, sont), you may hear liaison with preceding words: 'Tu es' (you are) vs 'Tu arrives' (you arrive)
+
+Real-life Examples with Context:
+- 'Je suis étudiant.' = I am a student. (stating profession/role)
+- 'Tu es français ?' = Are you French? (asking about nationality)
+- 'Elle est à la maison.' = She is at home. (describing location)
+- 'On est en classe.' = We are in class. (casual way to say we)
+- 'Vous êtes professeur ?' = Are you a teacher? (formal, respectful)
+- 'Ils sont heureux.' = They are happy. (describing emotion/state)
+- 'Elles sont malades aujourd'hui.' = They (fem.) are sick today. (describing condition)"
 
 CRITICAL REQUIREMENTS FOR YOUR OUTPUT:
 1. VALID JSON ONLY: Your response must be parseable JSON. Test it before submitting.
