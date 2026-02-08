@@ -60,3 +60,4 @@
   - [ ] Grammar reference tab with curated fixed content per topic
   - [ ] Quiz question bank pooling from previous generations
   - [ ] Speaking scenario history to avoid AI repeating the same opening
+  - [ ] Decide how to handle local french_tutor.db changes (commit, discard, or add to .gitignore)
