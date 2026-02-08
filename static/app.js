@@ -325,14 +325,16 @@ function renderConjugationTable(table) {
 }
 
 function showSpeakingPractice() {
-    // Close the lesson modal first
-    const modal = document.getElementById('lesson-modal');
-    if (modal) {
-        modal.style.display = 'none';
+    // Close the lesson modal
+    if (window.currentLessonModal) {
+        window.currentLessonModal.remove();
     }
     // Then switch to speaking tab
     setTimeout(() => {
-        document.querySelector('[data-tab="speaking"]').click();
+        const speakingTab = document.querySelector('[data-tab="speaking"]');
+        if (speakingTab) {
+            speakingTab.click();
+        }
     }, 100);
 }
 
@@ -1472,7 +1474,6 @@ function createInteractiveSpeaking(speakingContent) {
         <p class="speaking-hint">Use the Push-to-Talk button on the Speaking tab.</p>
     </div>
     `;
-    html += '<div class="speaking-action"><button class="btn-primary" onclick="window.lessonContinue()">Continue to Quiz →</button></div>';
     html += '</div>';
     return html;
 }
@@ -1555,7 +1556,18 @@ function startSpeakingPractice(button) {
 
 function submitQuiz() {
     const quizDiv = document.querySelector('.quiz-interactive');
-    const questions = window.currentLessonModal.lesson.content.quiz;
+    if (!quizDiv) {
+        alert('Quiz not found');
+        return;
+    }
+    
+    const lesson = window.currentLessonModal.lesson;
+    if (!lesson || !lesson.content || !lesson.content.quiz) {
+        alert('Quiz data not found');
+        return;
+    }
+    
+    const questions = lesson.content.quiz;
     
     // Handle both formats
     let questionArray = [];
@@ -1570,34 +1582,26 @@ function submitQuiz() {
         return;
     }
     
-    // Collect answers
-    const answers = {};
-    let answeredCount = 0;
-    
-    // Count how many questions we need to check
+    // Collect all student answers first
+    const studentAnswers = {};
     const questionDivs = document.querySelectorAll('.quiz-question-interactive');
     
     questionDivs.forEach((qDiv, idx) => {
         const questionId = `quiz-q${idx}`;
-        const radioInputs = qDiv.querySelectorAll(`input[name="${questionId}"][type="radio"]`);
+        const radioInputs = qDiv.querySelectorAll(`input[name="${questionId}"][type="radio"]:checked`);
         const textInput = qDiv.querySelector(`input[name="${questionId}"][type="text"]`);
         
         if (radioInputs.length > 0) {
-            radioInputs.forEach(input => {
-                if (input.checked) {
-                    answers[questionId] = input.value;
-                    answeredCount++;
-                }
-            });
-        } else if (textInput) {
-            if (textInput.value.trim()) {
-                answers[questionId] = textInput.value.trim();
-                answeredCount++;
-            }
+            // Multiple choice - get the selected option index
+            studentAnswers[idx] = radioInputs[0].value;
+        } else if (textInput && textInput.value.trim()) {
+            // Text answer
+            studentAnswers[idx] = textInput.value.trim();
         }
     });
     
-    if (answeredCount < questionArray.length) {
+    // Check if all questions answered
+    if (Object.keys(studentAnswers).length < questionArray.length) {
         alert('Please answer all questions before submitting.');
         return;
     }
@@ -1605,83 +1609,87 @@ function submitQuiz() {
     let score = 0;
     const results = [];
     
-    Object.keys(answers).forEach(questionId => {
-        const qIdx = parseInt(questionId.match(/\d+/)[0]);
-        const question = questionArray[qIdx];
-        const selectedValue = answers[questionId];
-        
+    // Grade each question
+    questionArray.forEach((question, idx) => {
+        const studentAnswer = studentAnswers[idx];
         let isCorrect = false;
         let correctAnswer = '';
         
-        // Try to grade if correct_answer is provided
-        if (question.correct_answer !== undefined) {
-            correctAnswer = question.correct_answer;
+        if (!studentAnswer) {
+            results.push({
+                index: idx,
+                question: question.question || question,
+                studentAnswer: 'No answer provided',
+                correctAnswer: question.correct_answer || 'Unknown',
+                isCorrect: false
+            });
+            return;
+        }
+        
+        // Get the correct answer
+        if (question.correct_answer !== undefined && question.correct_answer !== null) {
+            correctAnswer = String(question.correct_answer);
             
-            // For multiple choice, selectedValue is the index
+            // Handle multiple choice (studentAnswer is an index, correct_answer could be index or value)
             if (question.options && Array.isArray(question.options)) {
-                // Find the index of the correct answer
                 let correctIdx = -1;
                 
-                // Check if correct_answer is a number (index) or string (value)
-                if (typeof correctAnswer === 'number') {
-                    correctIdx = correctAnswer;
+                // If correct_answer is a number, use it as index
+                if (typeof correctAnswer === 'number' || !isNaN(correctAnswer)) {
+                    correctIdx = parseInt(correctAnswer);
                 } else {
-                    // Find the option that matches
+                    // Find the index of matching option
                     correctIdx = question.options.findIndex(opt => 
-                        opt.toLowerCase().trim() === correctAnswer.toLowerCase().trim()
+                        String(opt).toLowerCase().trim() === String(correctAnswer).toLowerCase().trim()
                     );
                 }
                 
-                if (parseInt(selectedValue) === correctIdx) {
+                // Compare student answer index with correct index
+                const studentIdx = parseInt(studentAnswer);
+                if (studentIdx === correctIdx) {
                     score++;
                     isCorrect = true;
                 }
                 
-                // Highlight correct/incorrect
-                document.querySelectorAll(`[name="${questionId}"]`).forEach((input, idx) => {
+                // Highlight answers in UI
+                document.querySelectorAll(`[name="quiz-q${idx}"]`).forEach((input, optIdx) => {
                     const label = input.parentElement;
-                    if (idx === correctIdx) {
-                        label.classList.add('correct');
+                    if (optIdx === correctIdx) {
                         label.style.backgroundColor = '#d4edda';
                         label.style.borderColor = '#28a745';
-                    } else if (input.checked && idx !== correctIdx) {
-                        label.classList.add('incorrect');
+                    } else if (input.checked && optIdx !== correctIdx) {
                         label.style.backgroundColor = '#f8d7da';
                         label.style.borderColor = '#dc3545';
                     }
                 });
-                
-                results.push({
-                    question: question.question,
-                    yourAnswer: question.options[parseInt(selectedValue)] || selectedValue,
-                    correctAnswer: question.options[correctIdx] || correctAnswer,
-                    isCorrect: isCorrect
-                });
             } else {
-                // For text answers, do flexible comparison
-                const normalizedAnswer = selectedValue.toLowerCase().trim().replace(/[.,!?]/g, '');
-                const normalizedCorrect = correctAnswer.toLowerCase().trim().replace(/[.,!?]/g, '');
+                // Free text answer - flexible matching
+                const studentNorm = String(studentAnswer).toLowerCase().trim().replace(/[.,!?;:\s]+/g, ' ');
+                const correctNorm = String(correctAnswer).toLowerCase().trim().replace(/[.,!?;:\s]+/g, ' ');
                 
-                if (normalizedAnswer === normalizedCorrect) {
+                if (studentNorm === correctNorm) {
                     score++;
                     isCorrect = true;
-                    const input = document.querySelector(`[name="${questionId}"]`);
-                    input.style.backgroundColor = '#d4edda';
-                    input.style.borderColor = '#28a745';
-                } else {
-                    const input = document.querySelector(`[name="${questionId}"]`);
-                    input.style.backgroundColor = '#f8d7da';
-                    input.style.borderColor = '#dc3545';
                 }
                 
-                results.push({
-                    question: question.question,
-                    yourAnswer: selectedValue,
-                    correctAnswer: correctAnswer,
-                    isCorrect: isCorrect
-                });
+                const input = document.querySelector(`[name="quiz-q${idx}"][type="text"]`);
+                if (input) {
+                    input.style.backgroundColor = isCorrect ? '#d4edda' : '#f8d7da';
+                    input.style.borderColor = isCorrect ? '#28a745' : '#dc3545';
+                }
             }
+        } else {
+            // No correct_answer provided in question
+            correctAnswer = 'Not specified';
         }
+        
+        results.push({
+            index: idx,
+            question: question.question || String(question),
+            studentAnswer: studentAnswer,
+            correctAnswer: correctAnswer,
+            isCorrect: isCorrect
+        });
     });
     
     const percentage = Math.round((score / questionArray.length) * 100);
@@ -1689,14 +1697,14 @@ function submitQuiz() {
     // Build detailed results HTML
     let resultsHTML = '<div class="quiz-results-details" style="margin-top: 20px; text-align: left;">';
     resultsHTML += '<h4 style="margin-bottom: 15px;">Review Your Answers:</h4>';
-    results.forEach((result, idx) => {
+    results.forEach((result) => {
         const icon = result.isCorrect ? '✅' : '❌';
         const bgColor = result.isCorrect ? '#d4edda' : '#f8d7da';
         const borderColor = result.isCorrect ? '#28a745' : '#dc3545';
         resultsHTML += `
             <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-                <p style="margin: 5px 0;"><strong>${icon} Question ${idx + 1}:</strong> ${result.question}</p>
-                <p style="margin: 5px 0;"><strong>Your Answer:</strong> ${result.yourAnswer}</p>
+                <p style="margin: 5px 0;"><strong>${icon} Question ${result.index + 1}:</strong> ${result.question}</p>
+                <p style="margin: 5px 0;"><strong>Your Answer:</strong> ${result.studentAnswer}</p>
                 ${!result.isCorrect ? `<p style="margin: 5px 0; color: #28a745;"><strong>✓ Correct Answer:</strong> ${result.correctAnswer}</p>` : ''}
             </div>
         `;
@@ -1712,7 +1720,6 @@ function submitQuiz() {
             <p>${percentage >= 70 ? '✅ Great job!' : '⚠️ Keep practicing!'}</p>
         </div>
         ${resultsHTML}
-        <button class="btn-primary" onclick="window.lessonContinue()">Finish Lesson →</button>
     `;
     
     quizDiv.appendChild(resultsDiv);
