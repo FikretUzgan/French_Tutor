@@ -62,23 +62,41 @@ Generate a JSON lesson object with these sections:
   "grammar": {{
     "target_form": "the main grammar structure for this week",
     "complexity_rating": 1-10,
-    "explanation": "Clear, step-by-step explanation (2-3 paragraphs). For beginners, include English translations. For advanced, think about usage nuances.",
+    "explanation": "COMPREHENSIVE, IN-DEPTH explanation (3-5 paragraphs minimum). MUST include: 1) What the grammar structure means and when it's used, 2) How it differs from English if applicable, 3) Detailed explanation of each conjugation form or rule variation, 4) Usage contexts and nuances. For beginners, include English translations and comparisons. For advanced levels, discuss subtleties and exceptions.",
     "conjugation_table": {{
       "headers": ["pronoun", "form", "example"],
       "rows": [
-        {{"pronoun": "je", "form": "suis", "example": "Je suis français."}}
+        {{"pronoun": "je", "form": "suis", "example": "Je suis français."}},
+        {{"pronoun": "tu", "form": "es", "example": "Tu es turc."}},
+        {{"pronoun": "il/elle/on", "form": "est", "example": "Elle est étudiante."}},
+        {{"pronoun": "nous", "form": "sommes", "example": "Nous sommes à Istanbul."}},
+        {{"pronoun": "vous", "form": "êtes", "example": "Vous êtes intelligents."}},
+        {{"pronoun": "ils/elles", "form": "sont", "example": "Ils sont français."}}
+        // CRITICAL: Include ALL conjugation forms for the target verb/structure
+        // For verbs: je, tu, il/elle/on, nous, vous, ils/elles
+        // Provide a realistic, contextual example for EACH form
       ]
     }},
     "key_rules": [
-      "Rule 1 with explanation",
-      "Rule 2 with explanation"
+      "Rule 1 with detailed explanation (2-3 sentences minimum)",
+      "Rule 2 with detailed explanation and examples",
+      "Rule 3 covering common patterns or exceptions"
+      // Include 3-5 key rules that explain the essential patterns
     ],
     "examples": [
-      {{"french": "Je suis étudiant.", "english": "I am a student.", "usage_context": "Introducing yourself"}},
-      // Include 5-6 examples, progressively more complex
+      {{"french": "Je suis étudiant.", "english": "I am a student.", "usage_context": "Introducing yourself - profession"}},
+      {{"french": "Tu es turc ?", "english": "Are you Turkish?", "usage_context": "Asking about nationality"}},
+      {{"french": "Elle est à Paris.", "english": "She is in Paris.", "usage_context": "Describing location"}},
+      {{"french": "Nous sommes contents.", "english": "We are happy.", "usage_context": "Expressing emotion"}},
+      {{"french": "Vous êtes professeur ?", "english": "Are you a teacher?", "usage_context": "Formal question about profession"}},
+      {{"french": "Ils sont français.", "english": "They are French.", "usage_context": "Describing nationality - plural"}}
+      // MINIMUM 6-8 examples showing different contexts and all pronoun forms
+      // Examples should progressively increase in complexity
     ],
     "common_errors": [
-      {{"error": "Je es fatigué", "correction": "Je suis fatigué", "explanation": "Subject-verb agreement"}}
+      {{"error": "Je es fatigué", "correction": "Je suis fatigué", "explanation": "Subject-verb agreement: 'je' always takes 'suis', not 'es'"}},
+      {{"error": "Tu suis étudiant", "correction": "Tu es étudiant", "explanation": "'tu' takes 'es' form, not 'suis'"}}
+      // Include 2-3 common beginner mistakes with clear corrections
     ]
   }},
   
@@ -154,11 +172,17 @@ Generate a JSON lesson object with these sections:
 CRITICAL REQUIREMENTS FOR YOUR OUTPUT:
 1. VALID JSON ONLY: Your response must be parseable JSON. Test it before submitting.
 2. VOCABULARY FIDELITY: Use ALL vocabulary words from the curriculum. Do not skip words.
-3. GRAMMAR ACCURACY: Verify all French is correct. No invented words or structures.
-4. COMPLEXITY: Match {student_level} level (A1.1 → very simple, B2.2 → advanced nuances).
-5. WEAKNESSES: If student has documented weaknesses, add extra examples/scaffolding in that grammar area.
-6. EXAMPLES: Include 5-6 realistic, contextual examples for the grammar target.
-7. DATETIME: Use ISO format for timestamp (e.g., 2026-02-08T14:30:00Z).
+3. GRAMMAR COMPLETENESS: 
+   - Provide COMPREHENSIVE explanations (3-5 paragraphs minimum)
+   - Include FULL conjugation tables with ALL pronouns (je, tu, il/elle/on, nous, vous, ils/elles)
+   - Provide realistic examples for EACH conjugation form
+   - Include 6-8 progressive examples showing different contexts
+   - Explain ALL key rules with detailed explanations (2-3 sentences each)
+4. GRAMMAR ACCURACY: Verify all French is correct. No invented words or structures.
+5. COMPLEXITY: Match {student_level} level (A1.1 → very simple, B2.2 → advanced nuances).
+6. WEAKNESSES: If student has documented weaknesses, add extra examples/scaffolding in that grammar area.
+7. EXAMPLES: Include 6-8 realistic, contextual examples for the grammar target, covering all pronoun forms.
+8. DATETIME: Use ISO format for timestamp (e.g., 2026-02-08T14:30:00Z).
 
 COMMON MISTAKES TO AVOID:
 - Do NOT invent curriculum content. Stick to what was provided.
@@ -368,6 +392,9 @@ def get_lesson_generation_prompt(
     # Format curriculum data for inclusion
     curriculum_str = _format_curriculum_for_display(curriculum_data)
     
+    # Generate curriculum file reference
+    curriculum_file = f"wk{week_number}.md"
+    
     prompt = LESSON_GENERATION_PROMPT.format(
         week_number=week_number,
         day_number=day_number,
@@ -377,6 +404,7 @@ def get_lesson_generation_prompt(
         struggled_topics=struggled_str,
         curriculum_data=curriculum_str,
         curriculum_theme=curriculum_theme,
+        curriculum_file=curriculum_file,
         timestamp=timestamp
     )
     

@@ -325,8 +325,15 @@ function renderConjugationTable(table) {
 }
 
 function showSpeakingPractice() {
-    // Switch to speaking tab
-    document.querySelector('[data-tab="speaking"]').click();
+    // Close the lesson modal first
+    const modal = document.getElementById('lesson-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Then switch to speaking tab
+    setTimeout(() => {
+        document.querySelector('[data-tab="speaking"]').click();
+    }, 100);
 }
 
 function playLessonTTS(text) {
@@ -1350,7 +1357,6 @@ function createInteractiveGrammar(grammarContent) {
         html += '</div>';
     }
     
-    html += '<div class="grammar-action"><button class="btn-primary" onclick="window.lessonContinue()">Continue →</button></div>';
     html += '</div>';
     return html;
 }
@@ -1400,15 +1406,18 @@ function createInteractiveVocabulary(vocabContent) {
         const frontText = item.front || '';
         const backText = item.back || '';
         const pronunciation = item.pronunciation || '';
-        const ttsText = frontText;
+        // Handle gender notation like "étudiant(e)" - remove the parentheses for TTS
+        const ttsText = frontText.replace(/\([^)]*\)/g, '').trim();
         html += `
         <div class="vocab-card-mini" onclick="this.classList.toggle('flipped')">
             <div class="card-inner">
-                <div class="card-front">${frontText}</div>
+                <div class="card-front">
+                    ${frontText}
+                    <button class="vocab-tts-mini" onclick="event.stopPropagation(); playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">Listen</button>
+                </div>
                 <div class="card-back">
                     <div class="vocab-back-text">${backText || frontText}</div>
                     ${pronunciation ? `<div class="vocab-pronunciation">${pronunciation}</div>` : ''}
-                    <button class="vocab-tts-mini" onclick="event.stopPropagation(); playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">Listen</button>
                 </div>
             </div>
         </div>
@@ -1417,7 +1426,6 @@ function createInteractiveVocabulary(vocabContent) {
     
     html += '</div>';
     html += '<p style="text-align: center; margin-top: 20px; font-size: 0.9em;">Click cards to flip</p>';
-    html += '<div class="vocab-action"><button class="btn-primary" onclick="window.lessonContinue()">I Can Say These →</button></div>';
     html += '</div>';
     return html;
 }
@@ -1564,44 +1572,69 @@ function submitQuiz() {
     
     // Collect answers
     const answers = {};
-    let answered = true;
+    let answeredCount = 0;
     
-    document.querySelectorAll('.quiz-option-input').forEach(input => {
-        if (!input.checked) {
-            answered = false;
-        } else {
-            answers[input.name] = input.value;
+    // Count how many questions we need to check
+    const questionDivs = document.querySelectorAll('.quiz-question-interactive');
+    
+    questionDivs.forEach((qDiv, idx) => {
+        const questionId = `quiz-q${idx}`;
+        const radioInputs = qDiv.querySelectorAll(`input[name="${questionId}"][type="radio"]`);
+        const textInput = qDiv.querySelector(`input[name="${questionId}"][type="text"]`);
+        
+        if (radioInputs.length > 0) {
+            radioInputs.forEach(input => {
+                if (input.checked) {
+                    answers[questionId] = input.value;
+                    answeredCount++;
+                }
+            });
+        } else if (textInput) {
+            if (textInput.value.trim()) {
+                answers[questionId] = textInput.value.trim();
+                answeredCount++;
+            }
         }
     });
     
-    document.querySelectorAll('.quiz-input').forEach(input => {
-        if (!input.value.trim()) {
-            answered = false;
-        } else {
-            answers[input.name] = input.value.trim();
-        }
-    });
-    
-    if (!answered) {
+    if (answeredCount < questionArray.length) {
         alert('Please answer all questions before submitting.');
         return;
     }
     
     let score = 0;
+    const results = [];
     
     Object.keys(answers).forEach(questionId => {
         const qIdx = parseInt(questionId.match(/\d+/)[0]);
         const question = questionArray[qIdx];
         const selectedValue = answers[questionId];
         
+        let isCorrect = false;
+        let correctAnswer = '';
+        
         // Try to grade if correct_answer is provided
         if (question.correct_answer !== undefined) {
-            const correctAnswer = question.correct_answer;
+            correctAnswer = question.correct_answer;
+            
             // For multiple choice, selectedValue is the index
             if (question.options && Array.isArray(question.options)) {
-                let correctIdx = question.options.indexOf(correctAnswer);
+                // Find the index of the correct answer
+                let correctIdx = -1;
+                
+                // Check if correct_answer is a number (index) or string (value)
+                if (typeof correctAnswer === 'number') {
+                    correctIdx = correctAnswer;
+                } else {
+                    // Find the option that matches
+                    correctIdx = question.options.findIndex(opt => 
+                        opt.toLowerCase().trim() === correctAnswer.toLowerCase().trim()
+                    );
+                }
+                
                 if (parseInt(selectedValue) === correctIdx) {
                     score++;
+                    isCorrect = true;
                 }
                 
                 // Highlight correct/incorrect
@@ -1609,25 +1642,66 @@ function submitQuiz() {
                     const label = input.parentElement;
                     if (idx === correctIdx) {
                         label.classList.add('correct');
+                        label.style.backgroundColor = '#d4edda';
+                        label.style.borderColor = '#28a745';
                     } else if (input.checked && idx !== correctIdx) {
                         label.classList.add('incorrect');
+                        label.style.backgroundColor = '#f8d7da';
+                        label.style.borderColor = '#dc3545';
                     }
                 });
+                
+                results.push({
+                    question: question.question,
+                    yourAnswer: question.options[parseInt(selectedValue)] || selectedValue,
+                    correctAnswer: question.options[correctIdx] || correctAnswer,
+                    isCorrect: isCorrect
+                });
             } else {
-                // For text answers, do simple comparison
-                if (selectedValue.toLowerCase() === correctAnswer.toLowerCase()) {
+                // For text answers, do flexible comparison
+                const normalizedAnswer = selectedValue.toLowerCase().trim().replace(/[.,!?]/g, '');
+                const normalizedCorrect = correctAnswer.toLowerCase().trim().replace(/[.,!?]/g, '');
+                
+                if (normalizedAnswer === normalizedCorrect) {
                     score++;
+                    isCorrect = true;
                     const input = document.querySelector(`[name="${questionId}"]`);
-                    input.classList.add('correct');
+                    input.style.backgroundColor = '#d4edda';
+                    input.style.borderColor = '#28a745';
                 } else {
                     const input = document.querySelector(`[name="${questionId}"]`);
-                    input.classList.add('incorrect');
+                    input.style.backgroundColor = '#f8d7da';
+                    input.style.borderColor = '#dc3545';
                 }
+                
+                results.push({
+                    question: question.question,
+                    yourAnswer: selectedValue,
+                    correctAnswer: correctAnswer,
+                    isCorrect: isCorrect
+                });
             }
         }
     });
     
     const percentage = Math.round((score / questionArray.length) * 100);
+    
+    // Build detailed results HTML
+    let resultsHTML = '<div class="quiz-results-details" style="margin-top: 20px; text-align: left;">';
+    resultsHTML += '<h4 style="margin-bottom: 15px;">Review Your Answers:</h4>';
+    results.forEach((result, idx) => {
+        const icon = result.isCorrect ? '✅' : '❌';
+        const bgColor = result.isCorrect ? '#d4edda' : '#f8d7da';
+        const borderColor = result.isCorrect ? '#28a745' : '#dc3545';
+        resultsHTML += `
+            <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <p style="margin: 5px 0;"><strong>${icon} Question ${idx + 1}:</strong> ${result.question}</p>
+                <p style="margin: 5px 0;"><strong>Your Answer:</strong> ${result.yourAnswer}</p>
+                ${!result.isCorrect ? `<p style="margin: 5px 0; color: #28a745;"><strong>✓ Correct Answer:</strong> ${result.correctAnswer}</p>` : ''}
+            </div>
+        `;
+    });
+    resultsHTML += '</div>';
     
     // Show results
     const resultsDiv = document.createElement('div');
@@ -1637,6 +1711,7 @@ function submitQuiz() {
             <h3>Your Score: ${score}/${questionArray.length} (${percentage}%)</h3>
             <p>${percentage >= 70 ? '✅ Great job!' : '⚠️ Keep practicing!'}</p>
         </div>
+        ${resultsHTML}
         <button class="btn-primary" onclick="window.lessonContinue()">Finish Lesson →</button>
     `;
     
