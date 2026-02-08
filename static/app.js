@@ -59,10 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setupSpeaking();
         setupHomework();
         setupVocabulary();
+        setupLessonGeneration();
         loadProgress();
-        if (!AppState.isWaitingForLevel) {
-            loadLessons();
-        }
     })();
 });
 
@@ -116,68 +114,252 @@ function setupTabs() {
                 loadVocabStats();
             } else if (tabName === 'curriculum') {
                 loadCurriculumDashboard();
+            } else if (tabName === 'lessons') {
+                setupLessonGeneration();
             }
         });
     });
 }
 
-// Load lessons
-async function loadLessons() {
-    const listEl = document.getElementById('lessons-list');
-    const selectEl = document.getElementById('lesson-select');
+// Setup lesson generation UI and functionality
+async function setupLessonGeneration() {
+    const weekSelect = document.getElementById('week-select');
+    const dayBtns = document.querySelectorAll('.day-btn');
+    const generateBtn = document.getElementById('generate-lesson-btn');
+    const statusMsg = document.getElementById('lesson-status');
+    const selectedDayDisplay = document.getElementById('selected-day-display');
     
-    try {
-        const response = await fetch(`${API_BASE}/api/lessons/available`);
-        const data = await response.json();
-        const lessons = Array.isArray(data) ? data : (data.lessons || []);
-        AppState.lessons = lessons;
-        
-        if (lessons.length === 0) {
-            listEl.innerHTML = '<p>No lessons available yet.</p>';
-            return;
+    let selectedWeek = null;
+    let selectedDay = 1; // Default to day 1
+    
+    // Populate week select with all 52 weeks
+    let weekOptions = '<option value="">-- Choose a week --</option>';
+    for (let i = 1; i <= 52; i++) {
+        weekOptions += `<option value="${i}">Week ${i}</option>`;
+    }
+    weekSelect.innerHTML = weekOptions;
+    
+    // Week select handler
+    weekSelect.addEventListener('change', (e) => {
+        selectedWeek = parseInt(e.target.value) || null;
+        updateGenerateButton();
+    });
+    
+    // Day buttons handler
+    dayBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Remove active class from all day buttons
+            dayBtns.forEach(b => b.classList.remove('active'));
+            // Add active to clicked
+            btn.classList.add('active');
+            selectedDay = parseInt(btn.dataset.day);
+            selectedDayDisplay.textContent = `Selected: Day ${selectedDay}`;
+            updateGenerateButton();
+        });
+    });
+    
+    // Set first day as default
+    dayBtns[0].classList.add('active');
+    selectedDayDisplay.textContent = 'Selected: Day 1';
+    
+    function updateGenerateButton() {
+        if (selectedWeek && selectedDay) {
+            generateBtn.style.display = 'block';
+        } else {
+            generateBtn.style.display = 'none';
         }
-        
-        // Populate lessons list
-        listEl.innerHTML = lessons.map(lesson => `
-            <div class="lesson-card">
-                <h3>${lesson.title}</h3>
-                <span class="lesson-badge">${lesson.level}</span>
-                <p>${lesson.description}</p>
-                <div class="lesson-buttons">
-                    <button class="btn-primary btn-start-lesson" data-lesson-id="${lesson.lesson_id}">Start Lesson</button>
-                    <button class="btn-secondary btn-review" data-lesson-id="${lesson.lesson_id}">Review</button>
-                </div>
-            </div>
-        `).join('');
-        
-        // Add click handlers for start lesson buttons
-        document.querySelectorAll('.btn-start-lesson').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const lessonId = e.target.dataset.lessonId;
-                displayLesson(lessonId);
+    }
+    
+    // Generate button handler
+    generateBtn.addEventListener('click', async () => {
+        try {
+            statusMsg.textContent = 'Generating lesson...';
+            statusMsg.classList.add('loading');
+            statusMsg.style.display = 'block';
+            
+            const weekValue = parseInt(selectedWeek, 10);
+            const dayValue = parseInt(selectedDay, 10);
+            const levelValue = AppState.currentLevel || 'A1.1';
+
+            if (Number.isNaN(weekValue) || Number.isNaN(dayValue)) {
+                throw new Error('Please select a valid week and day.');
+            }
+            
+            const response = await fetch(`${API_BASE}/api/lessons/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    week: weekValue,
+                    day: dayValue,
+                    student_level: levelValue,
+                    user_id: 1
+                })
             });
-        });
-        
-        // Add click handlers for review buttons
-        document.querySelectorAll('.btn-review').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const lessonId = e.target.dataset.lessonId;
-                reviewLesson(lessonId);
-            });
-        });
-        
-        // Populate homework lesson select
-        selectEl.innerHTML = '<option value="">-- Choose a lesson --</option>' +
-            lessons.map(lesson => `
-                <option value="${lesson.lesson_id}">${lesson.title} (${lesson.level})</option>
-            `).join('');
-        
-    } catch (error) {
-        listEl.innerHTML = '<p class="error">Failed to load lessons</p>';
-        console.error('Failed to load lessons:', error);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.lesson) {
+                statusMsg.textContent = '✅ Lesson generated successfully!';
+                statusMsg.classList.remove('loading');
+                statusMsg.classList.add('success');
+                
+                // Store current lesson info for homework
+                AppState.currentLesson = {
+                    id: data.lesson_id || data.lesson.lesson_id,
+                    title: data.lesson.theme || 'Lesson',
+                    week: weekValue,
+                    day: dayValue,
+                    level: data.lesson.level
+                };
+                
+                // Update homework form
+                updateHomeworkLessonDisplay();
+                
+                displayGeneratedLesson(data.lesson);
+            } else {
+                throw new Error(data.detail || 'Unknown error');
+            }
+        } catch (error) {
+            statusMsg.textContent = `❌ Error: ${error.message}`;
+            statusMsg.classList.remove('loading');
+            statusMsg.classList.add('error');
+            console.error('Failed to generate lesson:', error);
+        }
+    });
+}
+
+function displayGeneratedLesson(lesson) {
+    // Convert generated lesson structure to interactive lesson format
+    const grammarExamples = (lesson.grammar?.examples || []).map(ex => {
+        if (typeof ex === 'string') {
+            return ex;
+        }
+        if (ex && ex.french && ex.english) {
+            return `${ex.french} - ${ex.english}`;
+        }
+        return String(ex);
+    });
+
+    const vocabItems = (lesson.vocabulary?.words || []).map(item => {
+        if (typeof item === 'string') {
+            return { front: item, back: '', pronunciation: '' };
+        }
+        return {
+            front: item.word || String(item),
+            back: item.definition || '',
+            pronunciation: item.pronunciation_tip || ''
+        };
+    });
+
+    const speakingTargets = lesson.speaking?.target_phrases
+        || lesson.speaking?.example_interaction
+        || (lesson.speaking?.success_criteria ? [lesson.speaking.success_criteria] : []);
+
+    const speakingPrompt = lesson.speaking?.scenario_prompt
+        || lesson.speaking?.prompt
+        || lesson.speaking?.scenario_domain
+        || '';
+
+    const interactiveLesson = {
+        title: lesson.theme || 'Lesson',
+        level: lesson.level,
+        content: {
+            grammar: {
+                explanation: lesson.grammar?.explanation || '',
+                examples: grammarExamples,
+                conjugation: lesson.grammar?.conjugation || []
+            },
+            vocabulary: vocabItems,
+            speaking: {
+                prompt: speakingPrompt,
+                targets: Array.isArray(speakingTargets) ? speakingTargets : []
+            },
+            quiz: lesson.quiz || {}
+        }
+    };
+    
+    // Create and display interactive modal
+    const modal = createLessonModal(interactiveLesson);
+    document.body.appendChild(modal);
+}
+
+function updateHomeworkLessonDisplay() {
+    const infoEl = document.getElementById('current-lesson-info');
+    const lessonSelect = document.getElementById('lesson-select');
+    
+    if (AppState.currentLesson) {
+        infoEl.textContent = `📚 Week ${AppState.currentLesson.week}, Day ${AppState.currentLesson.day} - ${AppState.currentLesson.title} (${AppState.currentLesson.level})`;
+        infoEl.style.color = '#28a745';
+        lessonSelect.value = AppState.currentLesson.id;
+    } else {
+        infoEl.textContent = '⚠️ Generate a lesson first in the Lessons tab';
+        infoEl.style.color = '#666';
+        lessonSelect.value = '';
     }
 }
 
+function renderConjugationTable(table) {
+    if (!table || !table.rows || table.rows.length === 0) return '';
+    
+    let html = '<table class="grammar-table"><thead><tr>';
+    
+    // Add headers
+    if (table.headers) {
+        table.headers.forEach(h => html += `<th>${h}</th>`);
+    }
+    html += '</tr></thead><tbody>';
+    
+    // Add rows
+    table.rows.forEach(row => {
+        html += '<tr>';
+        Object.values(row).forEach(cell => html += `<td>${cell}</td>`);
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+
+function showSpeakingPractice() {
+    // Switch to speaking tab
+    document.querySelector('[data-tab="speaking"]').click();
+}
+
+function playLessonTTS(text) {
+    if (!text) {
+        return;
+    }
+    fetch(`${API_BASE}/api/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, lang: 'fr' })
+    })
+        .then(response => response.blob())
+        .then(blob => {
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        })
+        .catch(error => console.error('TTS error:', error));
+}
+
+function showQuiz() {
+    // Interactive quiz is now part of the lesson flow
+    // This function is no longer needed
+}
+
+function showHomeworkSubmit(lessonId) {
+    // Switch to homework tab
+    document.querySelector('[data-tab="homework"]').click();
+    // Would also set the lesson select if needed
+    document.getElementById('lesson-select').value = lessonId;
+}
+
+// Load lessons
 async function initializeAppMode() {
     const params = new URLSearchParams(window.location.search);
     const hasDevParam = params.has('dev');
@@ -269,8 +451,6 @@ async function selectStartingLevel(level) {
         if (modal) {
             modal.style.display = 'none';
         }
-
-        loadLessons();
     } catch (error) {
         console.error('Failed to set starting level:', error);
     }
@@ -296,6 +476,9 @@ function setupSpeaking() {
     
     // Push-to-Talk: Keyboard events (spacebar)
     document.addEventListener('keydown', (e) => {
+        if (document.querySelector('.lesson-modal')) {
+            return;
+        }
         if (e.code === 'Space' && !AppState.isRecording) {
             e.preventDefault();
             startRecording();
@@ -303,6 +486,9 @@ function setupSpeaking() {
     });
     
     document.addEventListener('keyup', (e) => {
+        if (document.querySelector('.lesson-modal')) {
+            return;
+        }
         if (e.code === 'Space' && AppState.isRecording) {
             e.preventDefault();
             stopRecording();
@@ -425,7 +611,7 @@ function setupHomework() {
         const audioFile = document.getElementById('audio-file').files[0];
         
         if (!lessonId) {
-            alert('Please select a lesson');
+            alert('⚠️ Please generate a lesson first in the Lessons tab');
             return;
         }
         
@@ -976,26 +1162,94 @@ async function displayLesson(lessonId) {
 function createLessonModal(lesson) {
     const modal = document.createElement('div');
     modal.className = 'lesson-modal';
+    
+    // Initialize lesson state
+    const lessonState = {
+        currentSection: 0, // 0: grammar, 1: vocab, 2: speaking, 3: quiz
+        sections: ['grammar', 'vocabulary', 'speaking', 'quiz'],
+        sectionProgress: { grammar: false, vocabulary: false, speaking: false, quiz: false },
+        quizAnswers: {},
+        vocabAnswers: {}
+    };
+    
+    const updateLessonView = () => {
+        const section = lessonState.sections[lessonState.currentSection];
+        let sectionHTML = '';
+        
+        switch(section) {
+            case 'grammar':
+                sectionHTML = createInteractiveGrammar(lesson.content.grammar);
+                break;
+            case 'vocabulary':
+                sectionHTML = createInteractiveVocabulary(lesson.content.vocabulary);
+                break;
+            case 'speaking':
+                sectionHTML = createInteractiveSpeaking(lesson.content.speaking);
+                break;
+            case 'quiz':
+                sectionHTML = createInteractiveQuiz(lesson.content.quiz);
+                break;
+        }
+        
+        const progressPercent = Math.round((lessonState.currentSection / 4) * 100);
+        
+        lessonContent.innerHTML = `
+            <div class="lessonflow-header">
+                <h3>${lesson.title} - ${section.charAt(0).toUpperCase() + section.slice(1)}</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                </div>
+            </div>
+            ${sectionHTML}
+            <div class="lessonflow-nav">
+                <button class="btn-secondary" onclick="lessonGoBack()" ${lessonState.currentSection === 0 ? 'disabled' : ''}>← Back</button>
+                <button class="btn-primary" onclick="lessonContinue()">
+                    ${lessonState.currentSection === 3 ? 'Finish' : 'Next →'}
+                </button>
+            </div>
+        `;
+    };
+    
+    // Store functions on modal for access
+    modal.lessonState = lessonState;
+    modal.lesson = lesson;
+    modal.updateLessonView = updateLessonView;
+    
     modal.innerHTML = `
-        <div class="lesson-modal-content">
+        <div class="lesson-modal-content lesson-flow-modal">
             <button class="modal-close" aria-label="Close">x</button>
-            <div class="lesson-header">
-                <h2>${lesson.title}</h2>
-                <span class="level-badge">${lesson.level}</span>
-            </div>
-            
-            <div class="lesson-body">
-                ${createSectionHTML('Grammar', lesson.content.grammar)}
-                ${createSectionHTML('Vocabulary', lesson.content.vocabulary)}
-                ${createSectionHTML('Speaking Practice', lesson.content.speaking)}
-                ${createSectionHTML('Quiz', lesson.content.quiz)}
-            </div>
-            
-            <div class="lesson-actions">
-                <button class="btn-primary" onclick="this.closest('.lesson-modal').remove()">Close Lesson</button>
+            <div id="lesson-flow-content">
+                <!-- Content updated dynamically -->
             </div>
         </div>
     `;
+    
+    const lessonContent = modal.querySelector('#lesson-flow-content');
+    const closeBtn = modal.querySelector('.modal-close');
+    
+    closeBtn.addEventListener('click', () => modal.remove());
+    
+    // Make functions available globally for button click handlers
+    window.currentLessonModal = modal;
+    window.lessonGoBack = () => {
+        if (lessonState.currentSection > 0) {
+            lessonState.currentSection--;
+            updateLessonView();
+        }
+    };
+    window.lessonContinue = () => {
+        if (lessonState.currentSection < 3) {
+            lessonState.currentSection++;
+            updateLessonView();
+        } else {
+            // Finish lesson
+            alert('Lesson completed! 🎉');
+            modal.remove();
+        }
+    };
+    
+    // Show first section
+    updateLessonView();
     return modal;
 }
 
@@ -1041,4 +1295,351 @@ function createSectionHTML(title, content) {
     
     html += `</div>`;
     return html;
+}
+
+// Interactive sections for lesson flow
+function createInteractiveGrammar(grammarContent) {
+    let html = '<div class="lesson-section-interactive">';
+    html += '<h3>📖 Learn the Grammar Rule</h3>';
+    
+    let hasContent = false;
+    
+    // Handle string content
+    if (typeof grammarContent === 'string' && grammarContent.trim()) {
+        html += `<div class="grammar-explanation"><p>${grammarContent}</p></div>`;
+        hasContent = true;
+    } else if (typeof grammarContent === 'object' && grammarContent !== null) {
+        // Handle object with explanation
+        if (grammarContent.explanation && grammarContent.explanation.trim()) {
+            html += `<div class="grammar-explanation"><p>${grammarContent.explanation}</p></div>`;
+            hasContent = true;
+        }
+        
+        // Handle conjugation array
+        if (grammarContent.conjugation && Array.isArray(grammarContent.conjugation) && grammarContent.conjugation.length > 0) {
+            html += '<div class="grammar-conjugation">';
+            html += '<h4>Conjugation:</h4>';
+            html += '<ul>';
+            grammarContent.conjugation.forEach(conj => {
+                if (conj && typeof conj === 'string') {
+                    html += `<li>${conj}</li>`;
+                }
+            });
+            html += '</ul></div>';
+            hasContent = true;
+        }
+        
+        // Handle examples array
+        if (grammarContent.examples && Array.isArray(grammarContent.examples) && grammarContent.examples.length > 0) {
+            html += '<div class="grammar-examples">';
+            html += '<h4>Examples:</h4>';
+            html += '<ul>';
+            grammarContent.examples.forEach(ex => {
+                if (ex && typeof ex === 'string') {
+                    html += `<li><strong>${ex}</strong></li>`;
+                }
+            });
+            html += '</ul></div>';
+            hasContent = true;
+        }
+    }
+    
+    if (!hasContent) {
+        html += '<div style="background: #f0f0f0; padding: 20px; border-radius: 8px; text-align: center; color: #666;">';
+        html += '<p>📖 Grammar explanation will be generated</p>';
+        html += '</div>';
+    }
+    
+    html += '<div class="grammar-action"><button class="btn-primary" onclick="window.lessonContinue()">Continue →</button></div>';
+    html += '</div>';
+    return html;
+}
+
+function createInteractiveVocabulary(vocabContent) {
+    // Handle different vocabulary formats
+    let vocabItems = [];
+    
+    if (Array.isArray(vocabContent)) {
+        // Already an array
+        vocabItems = vocabContent.map(item => {
+            if (typeof item === 'string') {
+                return { front: item, back: '', pronunciation: '' };
+            } else if (typeof item === 'object' && item.word) {
+                return {
+                    front: item.word,
+                    back: item.definition || '',
+                    pronunciation: item.pronunciation_tip || ''
+                };
+            } else if (typeof item === 'object' && item.front) {
+                return item;
+            }
+            return { front: String(item), back: '', pronunciation: '' };
+        });
+    } else if (typeof vocabContent === 'object' && vocabContent.words) {
+        // Object with words property
+        vocabItems = vocabContent.words.map(item => ({
+            front: item.word || String(item),
+            back: item.definition || '',
+            pronunciation: item.pronunciation_tip || ''
+        }));
+    } else if (typeof vocabContent === 'string') {
+        // Single string
+        vocabItems = [{ front: vocabContent, back: '', pronunciation: '' }];
+    }
+    
+    if (!vocabItems || vocabItems.length === 0) {
+        return '<p>No vocabulary content available.</p>';
+    }
+    
+    let html = '<div class="lesson-section-interactive vocab-drill">';
+    html += '<h3>🔤 Vocabulary Drill</h3>';
+    html += '<p>Learn these key words and phrases:</p>';
+    html += '<div class="vocab-flashcards">';
+    
+    vocabItems.forEach((item) => {
+        const frontText = item.front || '';
+        const backText = item.back || '';
+        const pronunciation = item.pronunciation || '';
+        const ttsText = frontText;
+        html += `
+        <div class="vocab-card-mini" onclick="this.classList.toggle('flipped')">
+            <div class="card-inner">
+                <div class="card-front">${frontText}</div>
+                <div class="card-back">
+                    <div class="vocab-back-text">${backText || frontText}</div>
+                    ${pronunciation ? `<div class="vocab-pronunciation">${pronunciation}</div>` : ''}
+                    <button class="vocab-tts-mini" onclick="event.stopPropagation(); playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">Listen</button>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+    
+    html += '</div>';
+    html += '<p style="text-align: center; margin-top: 20px; font-size: 0.9em;">Click cards to flip</p>';
+    html += '<div class="vocab-action"><button class="btn-primary" onclick="window.lessonContinue()">I Can Say These →</button></div>';
+    html += '</div>';
+    return html;
+}
+
+function createInteractiveSpeaking(speakingContent) {
+    if (!speakingContent) {
+        return '<p>No speaking practice available.</p>';
+    }
+    
+    let html = '<div class="lesson-section-interactive speaking-drill">';
+    html += '<h3>🎤 Speaking Practice</h3>';
+    
+    let prompt = '';
+    let targets = [];
+    
+    if (typeof speakingContent === 'string') {
+        prompt = speakingContent;
+    } else if (typeof speakingContent === 'object') {
+        if (speakingContent.prompt) {
+            prompt = speakingContent.prompt;
+        }
+        if (speakingContent.targets && Array.isArray(speakingContent.targets)) {
+            targets = speakingContent.targets;
+        } else if (speakingContent.success_criteria) {
+            targets = [speakingContent.success_criteria];
+        }
+    }
+    
+    if (prompt) {
+        html += `<p><strong>Scenario:</strong> ${prompt}</p>`;
+    }
+    
+    if (targets && targets.length > 0) {
+        html += '<p><strong>Try to say:</strong></p><ul>';
+        targets.forEach(target => {
+            html += `<li>${target}</li>`;
+        });
+        html += '</ul>';
+    }
+    
+    html += `
+    <div class="speaking-practice-box">
+        <button class="btn-primary btn-large" onclick="showSpeakingPractice()">Open Speaking Practice</button>
+        <p class="speaking-hint">Use the Push-to-Talk button on the Speaking tab.</p>
+    </div>
+    `;
+    html += '<div class="speaking-action"><button class="btn-primary" onclick="window.lessonContinue()">Continue to Quiz →</button></div>';
+    html += '</div>';
+    return html;
+}
+
+function createInteractiveQuiz(quizContent) {
+    if (!quizContent) {
+        return '<p>No quiz available.</p>';
+    }
+    
+    // Handle different quiz formats
+    let questions = [];
+    if (Array.isArray(quizContent)) {
+        // Simple array of question strings
+        questions = quizContent.map((q, idx) => ({
+            id: idx,
+            question: typeof q === 'string' ? q : (q.question || ''),
+            options: q.options || []
+        }));
+    } else if (quizContent.questions && Array.isArray(quizContent.questions)) {
+        // Structured quiz with questions array
+        questions = quizContent.questions;
+    }
+    
+    if (questions.length === 0) {
+        return '<p>No quiz questions available.</p>';
+    }
+    
+    let html = '<div class="lesson-section-interactive quiz-section">';
+    html += `<h3>❓ Quiz (${questions.length} questions)</h3>`;
+    html += '<div class="quiz-interactive">';
+    
+    questions.forEach((question, idx) => {
+        const questionId = `quiz-q${idx}`;
+        const questionText = typeof question === 'string' ? question : (question.question || '');
+        const options = question.options || [];
+        
+        html += `
+        <div class="quiz-question-interactive" data-question="${idx}">
+            <h4>${idx + 1}. ${questionText}</h4>
+        `;
+        
+        if (options && Array.isArray(options) && options.length > 0) {
+            html += '<div class="quiz-options-interactive">';
+            options.forEach((option, optIdx) => {
+                const optionId = `${questionId}-opt${optIdx}`;
+                html += `
+                <label class="quiz-option-label">
+                    <input type="radio" name="${questionId}" value="${optIdx}" class="quiz-option-input">
+                    <span class="quiz-option-text">${option}</span>
+                </label>
+                `;
+            });
+            html += '</div>';
+        } else {
+            // Text input for questions without options
+            html += `<div class="quiz-input-wrapper"><input type="text" name="${questionId}" class="quiz-input" placeholder="Your answer..."></div>`;
+        }
+        
+        html += '</div>';
+    });
+    
+    html += '</div>';
+    html += `
+    <div class="quiz-action">
+        <button class="btn-primary btn-large" onclick="submitQuiz()">
+            Submit Quiz
+        </button>
+    </div>
+    `;
+    html += '</div>';
+    return html;
+}
+
+function startSpeakingPractice(button) {
+    // Simple placeholder - just mark as done for now
+    const transcriptDiv = button.parentElement.querySelector('#speaking-transcript');
+    transcriptDiv.style.display = 'block';
+    button.style.display = 'none';
+}
+
+function submitQuiz() {
+    const quizDiv = document.querySelector('.quiz-interactive');
+    const questions = window.currentLessonModal.lesson.content.quiz;
+    
+    // Handle both formats
+    let questionArray = [];
+    if (Array.isArray(questions)) {
+        questionArray = questions;
+    } else if (questions.questions && Array.isArray(questions.questions)) {
+        questionArray = questions.questions;
+    }
+    
+    if (questionArray.length === 0) {
+        alert('No questions to grade');
+        return;
+    }
+    
+    // Collect answers
+    const answers = {};
+    let answered = true;
+    
+    document.querySelectorAll('.quiz-option-input').forEach(input => {
+        if (!input.checked) {
+            answered = false;
+        } else {
+            answers[input.name] = input.value;
+        }
+    });
+    
+    document.querySelectorAll('.quiz-input').forEach(input => {
+        if (!input.value.trim()) {
+            answered = false;
+        } else {
+            answers[input.name] = input.value.trim();
+        }
+    });
+    
+    if (!answered) {
+        alert('Please answer all questions before submitting.');
+        return;
+    }
+    
+    let score = 0;
+    
+    Object.keys(answers).forEach(questionId => {
+        const qIdx = parseInt(questionId.match(/\d+/)[0]);
+        const question = questionArray[qIdx];
+        const selectedValue = answers[questionId];
+        
+        // Try to grade if correct_answer is provided
+        if (question.correct_answer !== undefined) {
+            const correctAnswer = question.correct_answer;
+            // For multiple choice, selectedValue is the index
+            if (question.options && Array.isArray(question.options)) {
+                let correctIdx = question.options.indexOf(correctAnswer);
+                if (parseInt(selectedValue) === correctIdx) {
+                    score++;
+                }
+                
+                // Highlight correct/incorrect
+                document.querySelectorAll(`[name="${questionId}"]`).forEach((input, idx) => {
+                    const label = input.parentElement;
+                    if (idx === correctIdx) {
+                        label.classList.add('correct');
+                    } else if (input.checked && idx !== correctIdx) {
+                        label.classList.add('incorrect');
+                    }
+                });
+            } else {
+                // For text answers, do simple comparison
+                if (selectedValue.toLowerCase() === correctAnswer.toLowerCase()) {
+                    score++;
+                    const input = document.querySelector(`[name="${questionId}"]`);
+                    input.classList.add('correct');
+                } else {
+                    const input = document.querySelector(`[name="${questionId}"]`);
+                    input.classList.add('incorrect');
+                }
+            }
+        }
+    });
+    
+    const percentage = Math.round((score / questionArray.length) * 100);
+    
+    // Show results
+    const resultsDiv = document.createElement('div');
+    resultsDiv.className = 'quiz-results';
+    resultsDiv.innerHTML = `
+        <div class="results-score">
+            <h3>Your Score: ${score}/${questionArray.length} (${percentage}%)</h3>
+            <p>${percentage >= 70 ? '✅ Great job!' : '⚠️ Keep practicing!'}</p>
+        </div>
+        <button class="btn-primary" onclick="window.lessonContinue()">Finish Lesson →</button>
+    `;
+    
+    quizDiv.appendChild(resultsDiv);
+    document.querySelector('.quiz-action').style.display = 'none';
 }

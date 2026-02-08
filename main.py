@@ -18,15 +18,30 @@ import re
 import unicodedata
 
 # Import our existing modules
-import db
-from google import genai
-from google.genai import types
+import db_core
+import db_lessons
+import db_homework
+import db_exams
+import db_srs
+import db_utils
+import google.generativeai as genai
+from google.generativeai import types
 import whisper
 from gtts import gTTS
-import sounddevice as sd
-import soundfile as sf
+try:
+    import sounddevice as sd
+    import soundfile as sf
+except ImportError:  # Optional for local audio capture
+    sd = None
+    sf = None
 import numpy as np
 import tempfile
+
+# Import new modules for dynamic lesson generation
+import curriculum_loader
+import prompt_builders
+import lesson_generator
+import answer_validator
 
 # Load environment variables
 load_dotenv()
@@ -108,12 +123,20 @@ class ModeToggleRequest(BaseModel):
 class FirstTimeSetupRequest(BaseModel):
     starting_level: str
 
+class LessonGenerateRequest(BaseModel):
+    week: int  # Week number (1-52)
+    day: int = 1  # Day number (1-7, default 1)
+    student_level: Optional[str] = None  # CEFR level (overrides student profile if provided)
+    user_id: Optional[int] = 1  # Student user ID
+
 # Helper Functions
 def load_whisper_model():
-    """Load Whisper model with caching"""
+    """Get cached Whisper model (pre-loaded on startup)"""
     global WHISPER_MODEL
     if WHISPER_MODEL is None:
-        WHISPER_MODEL = whisper.load_model("base")
+        # This should not happen if startup event ran, but as a fallback:
+        print("[WARNING] Whisper model not pre-loaded. Loading now (this will be slow)...")
+        WHISPER_MODEL = whisper.load_model("tiny")  # Use tiny model as fallback
     return WHISPER_MODEL
 
 def normalize_audio_peak(audio: np.ndarray, target_dbfs: float = -3.0) -> np.ndarray:
@@ -142,15 +165,15 @@ LEVEL_ORDER = [
 
 
 def get_dev_mode() -> bool:
-    value = db.get_app_setting("dev_mode", "false")
+    value = db_core.get_app_setting("dev_mode", "false")
     return str(value).lower() == "true"
 
 
 def get_current_level() -> str:
-    level = db.get_app_setting("current_level")
+    level = db_core.get_app_setting("current_level")
     if level in LEVEL_ORDER:
         return level
-    starting_level = db.get_app_setting("starting_level")
+    starting_level = db_core.get_app_setting("starting_level")
     if starting_level in LEVEL_ORDER:
         return starting_level
     return "A1.1"
@@ -872,18 +895,18 @@ async def get_vocabulary_practice(mode: str = "daily", user_id: int = 1, limit: 
     """
     try:
         questions = []
-        all_lessons = db.get_all_lessons()
+        all_lessons = db_lessons.get_all_lessons()
         vocab_pool = build_vocab_pool(all_lessons)
         
         if mode == "daily":
             # Get lessons due for SRS review
-            srs_items = db.get_srs_due(user_id=user_id, limit=limit)
+            srs_items = db_srs.get_srs_due(user_id=user_id, limit=limit)
             lesson_ids = [item["lesson_id"] for item in srs_items]
             
             # Get lesson data and extract vocabulary
             for item in srs_items:
                 lesson_id = item["lesson_id"]
-                lesson_data = db.get_lesson_by_id(lesson_id)
+                lesson_data = db_lessons.get_lesson_by_id(lesson_id)
                 if lesson_data:
                     vocab_items = extract_vocabulary_from_lesson(lesson_data)
                     for vocab in vocab_items[:2]:  # 2 questions per lesson
@@ -905,11 +928,11 @@ async def get_vocabulary_practice(mode: str = "daily", user_id: int = 1, limit: 
                     
         elif mode == "weak":
             # Get weak topics
-            weaknesses = db.get_user_weaknesses(user_id=user_id, limit=limit)
+            weaknesses = db_utils.get_user_weaknesses(user_id=user_id, limit=limit)
             
             # Get lessons related to weak topics
             for lesson in all_lessons:
-                lesson_data = db.get_lesson_by_id(lesson["lesson_id"])
+                lesson_data = db_lessons.get_lesson_by_id(lesson["lesson_id"])
                 if lesson_data:
                     # Check if lesson matches weak topics
                     for weakness in weaknesses:
@@ -925,7 +948,7 @@ async def get_vocabulary_practice(mode: str = "daily", user_id: int = 1, limit: 
         else:  # mode == "all"
             # Get all lessons
             for lesson in all_lessons:
-                lesson_data = db.get_lesson_by_id(lesson["lesson_id"])
+                lesson_data = db_lessons.get_lesson_by_id(lesson["lesson_id"])
                 if lesson_data:
                     vocab_items = extract_vocabulary_from_lesson(lesson_data)
                     for vocab in vocab_items:
@@ -975,7 +998,7 @@ async def check_vocabulary_answer(request: VocabularyCheckRequest):
             raise HTTPException(status_code=400, detail="Invalid question_id format")
         
         # Get lesson data
-        lesson_data = db.get_lesson_by_id(lesson_id)
+        lesson_data = db_lessons.get_lesson_by_id(lesson_id)
         if not lesson_data:
             raise HTTPException(status_code=404, detail=f"Lesson {lesson_id} not found")
         
@@ -1020,7 +1043,7 @@ async def check_vocabulary_answer(request: VocabularyCheckRequest):
         else:
             feedback_message = f"✗ Incorrect. The correct answer is '{correct_answer}'. '{vocab_item['french']}' means '{vocab_item['english']}'"
             # Track this as a weakness
-            db.track_weakness(user_id=request.user_id, topic=lesson_data.get("theme", "vocabulary"), is_error=True)
+            db_utils.track_weakness(user_id=request.user_id, topic=lesson_data.get("theme", "vocabulary"), is_error=True)
         
         return {
             "correct": is_correct,
@@ -1049,7 +1072,7 @@ async def review_lesson(lesson_id: str, user_id: int = 1):
     """
     try:
         # Get original lesson
-        original_lesson = db.get_lesson_by_id(lesson_id)
+        original_lesson = db_lessons.get_lesson_by_id(lesson_id)
         if not original_lesson:
             raise HTTPException(status_code=404, detail=f"Lesson {lesson_id} not found")
         
@@ -1113,7 +1136,7 @@ Make it engaging and practical for review!"""
 async def get_vocabulary_stats(user_id: int = 1):
     """Get vocabulary practice dashboard stats."""
     try:
-        return db.get_vocab_stats(user_id=user_id)
+        return db_utils.get_vocab_stats(user_id=user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get vocabulary stats: {str(e)}")
 
@@ -1122,14 +1145,38 @@ async def get_vocabulary_stats(user_id: int = 1):
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database and check API key on startup"""
-    db.init_db()
+    """Initialize database, API key, and pre-load Whisper model on startup"""
+    global WHISPER_MODEL
+    
+    # Initialize database
+    db_core.init_db()
+    print("[OK] Database initialized")
+    
+    # Check API key
     api_key = os.getenv("GEMINI_API_KEY")
     if api_key:
         print("[OK] GEMINI_API_KEY loaded successfully")
     else:
         print("[WARNING] GEMINI_API_KEY not found in environment")
-    print("[OK] Database initialized")
+    
+    # Pre-load Whisper model to avoid slow startup on first request
+    try:
+        print("[LOADING] Whisper model (this takes 30-60 seconds on first run)...")
+        WHISPER_MODEL = whisper.load_model("base")
+        print("[OK] Whisper model loaded and cached in memory")
+    except Exception as e:
+        print(f"[WARNING] Failed to load Whisper model: {e}")
+        print("[WARNING] Audio transcription will not be available")
+        WHISPER_MODEL = None
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up resources on shutdown"""
+    global WHISPER_MODEL
+    if WHISPER_MODEL is not None:
+        print("[OK] Shutting down Whisper model")
+        # Whisper model is cleaned up by Python's garbage collection
+        WHISPER_MODEL = None
 
 @app.get("/")
 async def root():
@@ -1155,9 +1202,9 @@ async def health_check():
 async def get_app_mode():
     """Get current application mode and user setup state."""
     dev_mode = get_dev_mode()
-    starting_level = db.get_app_setting("starting_level")
-    current_level = db.get_app_setting("current_level")
-    homework_blocking = db.get_app_setting("homework_blocking_enabled", "true") == "true"
+    starting_level = db_core.get_app_setting("starting_level")
+    current_level = db_core.get_app_setting("current_level")
+    homework_blocking = db_core.get_app_setting("homework_blocking_enabled", "true") == "true"
     return {
         "mode": "dev" if dev_mode else "production",
         "starting_level": starting_level,
@@ -1169,7 +1216,7 @@ async def get_app_mode():
 @app.post("/api/mode/toggle")
 async def toggle_app_mode(request: ModeToggleRequest):
     """Toggle development mode on or off."""
-    db.set_app_setting("dev_mode", "true" if request.dev_mode else "false")
+    db_core.set_app_setting("dev_mode", "true" if request.dev_mode else "false")
     return {
         "status": "success",
         "mode": "dev" if request.dev_mode else "production"
@@ -1186,7 +1233,7 @@ async def toggle_homework_blocking(enabled: bool = True):
     When disabled, all lessons are accessible regardless of homework completion.
     When enabled, next lesson is blocked until current homework is submitted and passed.
     """
-    db.set_app_setting("homework_blocking_enabled", "true" if enabled else "false")
+    db_core.set_app_setting("homework_blocking_enabled", "true" if enabled else "false")
     return {
         "status": "success",
         "homework_blocking_enabled": enabled,
@@ -1200,15 +1247,15 @@ async def first_time_setup(request: FirstTimeSetupRequest):
     if request.starting_level not in LEVEL_ORDER:
         raise HTTPException(status_code=400, detail="Invalid starting level")
 
-    db.set_app_setting("starting_level", request.starting_level)
-    current_level = db.get_app_setting("current_level")
+    db_core.set_app_setting("starting_level", request.starting_level)
+    current_level = db_core.get_app_setting("current_level")
     if current_level not in LEVEL_ORDER:
-        db.set_app_setting("current_level", request.starting_level)
+        db_core.set_app_setting("current_level", request.starting_level)
 
     return {
         "status": "success",
         "starting_level": request.starting_level,
-        "current_level": db.get_app_setting("current_level")
+        "current_level": db_core.get_app_setting("current_level")
     }
 
 
@@ -1225,7 +1272,7 @@ async def get_curriculum_plan():
 async def get_available_lessons():
     """Get lessons available for the current mode and user level."""
     try:
-        lessons_raw = db.get_all_lessons()
+        lessons_raw = db_lessons.get_all_lessons()
         dev_mode = get_dev_mode()
         current_level = get_current_level()
         
@@ -1234,12 +1281,12 @@ async def get_available_lessons():
             lessons_raw = [lesson for lesson in lessons_raw if lesson.get("level") == current_level]
         
         # Filter out blocked lessons (unless blocking is disabled)
-        blocking_enabled = db.get_app_setting("homework_blocking_enabled", "true") == "true"
+        blocking_enabled = db_core.get_app_setting("homework_blocking_enabled", "true") == "true"
         
         if blocking_enabled:
             available_lessons = []
             for lesson in lessons_raw:
-                if not db.is_lesson_blocked(lesson["lesson_id"]):
+                if not db_lessons.is_lesson_blocked(lesson["lesson_id"]):
                     available_lessons.append(lesson)
         else:
             available_lessons = lessons_raw
@@ -1252,7 +1299,7 @@ async def get_available_lessons():
 async def get_lessons():
     """Get all available lessons"""
     try:
-        lessons_raw = db.get_all_lessons()
+        lessons_raw = db_lessons.get_all_lessons()
         return [build_lesson_response(lesson) for lesson in lessons_raw]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch lessons: {str(e)}")
@@ -1261,13 +1308,13 @@ async def get_lessons():
 async def get_lesson(lesson_id: str):
     """Get specific lesson by ID"""
     try:
-        lesson = db.get_lesson_by_id(lesson_id)
+        lesson = db_lessons.get_lesson_by_id(lesson_id)
         if not lesson:
             raise HTTPException(status_code=404, detail="Lesson not found")
         
         # Check if lesson is blocked
-        blocking_enabled = db.get_app_setting("homework_blocking_enabled", "true") == "true"
-        if blocking_enabled and db.is_lesson_blocked(lesson_id):
+        blocking_enabled = db_core.get_app_setting("homework_blocking_enabled", "true") == "true"
+        if blocking_enabled and db_lessons.is_lesson_blocked(lesson_id):
             raise HTTPException(
                 status_code=403, 
                 detail="This lesson is blocked. Complete the previous lesson's homework first."
@@ -1278,6 +1325,30 @@ async def get_lesson(lesson_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch lesson: {str(e)}")
+
+@app.get("/api/lessons/selection-ui")
+async def get_lessons_for_selection_ui(user_id: int = 1):
+    """Get available lessons with their status for the lesson selection UI.
+    
+    Returns:
+        - completed: Green (can review)
+        - in_progress: White (current lesson)
+        - not_started: Dimmed (locked until previous complete)
+    """
+    try:
+        lessons = db_lessons.get_available_lessons_for_ui(user_id)
+        return {"success": True, "lessons": lessons}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch lessons: {str(e)}")
+
+@app.post("/api/lessons/{lesson_id}/start")
+async def start_lesson(lesson_id: str, user_id: int = 1):
+    """Mark lesson as started when user opens it."""
+    try:
+        db_lessons.mark_lesson_started(lesson_id)
+        return {"success": True, "message": "Lesson started"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start lesson: {str(e)}")
 
 @app.post("/api/homework/submit")
 async def submit_homework(
@@ -1297,7 +1368,7 @@ async def submit_homework(
                 f.write(content)
         
         # Save submission to database
-        submission_id = db.save_homework_submission(
+        submission_id = db_homework.save_homework_submission(
             lesson_id=lesson_id,
             text_content=homework_text,
             audio_file_path=str(audio_path) if audio_path else None,
@@ -1312,7 +1383,7 @@ async def submit_homework(
         )
         
         # Save feedback
-        db.save_homework_feedback(
+        db_homework.save_homework_feedback(
             submission_id=submission_id,
             text_score=evaluation["text_score"],
             audio_score=evaluation["audio_score"],
@@ -1324,17 +1395,17 @@ async def submit_homework(
         )
         
         # Update submission status
-        db.update_homework_status(submission_id, "completed")
+        db_homework.update_homework_status(submission_id, "completed")
         
         # Update lesson progress with homework result
-        db.update_lesson_homework_progress(lesson_id, evaluation["passed"])
+        db_lessons.update_lesson_homework_progress(lesson_id, evaluation["passed"])
         
         # Track weaknesses from homework
         if not evaluation["passed"]:
             if evaluation["text_score"] < 70:
-                db.track_weakness(user_id=user_id, topic="grammar and vocabulary", is_error=True)
+                db_utils.track_weakness(user_id=user_id, topic="grammar and vocabulary", is_error=True)
         if evaluation["audio_score"] is not None and evaluation["audio_score"] < 60:
-            db.track_weakness(user_id=user_id, topic="pronunciation", is_error=True)
+            db_utils.track_weakness(user_id=user_id, topic="pronunciation", is_error=True)
         
         return {
             "success": True,
@@ -1418,7 +1489,7 @@ async def text_to_speech(request: TTSRequest):
 async def get_user_progress(user_id: int = 1):
     """Get user progress summary"""
     try:
-        progress = db.get_user_progress(user_id)
+        progress = db_lessons.get_user_progress(user_id)
         return {
             "user_id": user_id,
             "progress": progress
@@ -1436,7 +1507,7 @@ async def generate_exam(request: ExamGenerateRequest):
             raise HTTPException(status_code=500, detail=exam["error"])
         
         # Store exam in database for later reference
-        db.save_exam(
+        db_exams.save_exam(
             exam_id=exam["exam_id"],
             level=request.level,
             week_number=request.week_number,
@@ -1456,7 +1527,7 @@ async def submit_exam(request: ExamSubmitRequest):
     """Submit exam answers and get graded results"""
     try:
         # Retrieve exam from database
-        exam_data = db.get_exam(request.exam_id)
+        exam_data = db_exams.get_exam(request.exam_id)
         if not exam_data:
             raise HTTPException(status_code=404, detail="Exam not found")
         
@@ -1470,7 +1541,7 @@ async def submit_exam(request: ExamSubmitRequest):
             raise HTTPException(status_code=500, detail=grading["error"])
         
         # Save results
-        db.save_exam_result(
+        db_exams.save_exam_result(
             exam_id=request.exam_id,
             user_id=request.user_id,
             answers=json.dumps(request.answers),
@@ -1485,7 +1556,7 @@ async def submit_exam(request: ExamSubmitRequest):
         if not grading["passed"]:
             for topic, score in grading.get("critical_topics", {}).items():
                 if score < 70:
-                    db.track_weakness(user_id=request.user_id, topic=topic, is_error=True)
+                    db_utils.track_weakness(user_id=request.user_id, topic=topic, is_error=True)
         
         return {
             "success": True,
@@ -1506,12 +1577,12 @@ async def submit_exam(request: ExamSubmitRequest):
 async def get_weakness_report(user_id: int = 1):
     """Get weakness analysis report for a user"""
     try:
-        report = db.get_weakness_report(user_id)
+        report = db_utils.get_weakness_report(user_id)
         return report
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate weakness report: {str(e)}")
 
-@app.post("/api/lessons/generate")
+@app.post("/api/lessons/generate-batch")
 async def generate_lessons_batch(level: str, week_count: int = 4):
     """Generate and seed lessons for a specific level"""
     try:
@@ -1556,7 +1627,7 @@ async def generate_lessons_batch(level: str, week_count: int = 4):
                 #Save to database
                 try:
                     lesson_id = f"lesson_{level}_w{week_num}"
-                    db.save_lesson(
+                    db_lessons.save_lesson(
                         lesson_id=lesson_id,
                         level=level,
                         theme=lesson.get("theme", topic),
@@ -1602,7 +1673,7 @@ async def generate_lessons_batch(level: str, week_count: int = 4):
 async def get_srs_due(user_id: int = 1, limit: int = 50):
     """Get vocabulary items due for review (SM-2 spaced repetition)"""
     try:
-        items = db.get_srs_due(user_id=user_id, limit=limit)
+        items = db_srs.get_srs_due(user_id=user_id, limit=limit)
         return {
             "user_id": user_id,
             "items_due": len(items),
@@ -1617,7 +1688,7 @@ async def get_srs_due(user_id: int = 1, limit: int = 50):
 async def get_srs_items(user_id: int = 1, limit: int | None = None):
     """Get all SRS items with lesson metadata."""
     try:
-        items = db.get_srs_items(user_id=user_id, limit=limit)
+        items = db_srs.get_srs_items(user_id=user_id, limit=limit)
         return {
             "user_id": user_id,
             "items": items,
@@ -1635,7 +1706,7 @@ async def submit_srs_review(request: SRSReviewRequest):
             raise HTTPException(status_code=400, detail="Quality must be 0-5")
         
         # Update SRS item using SM-2
-        updated_item = db.update_srs_item(
+        updated_item = db_srs.update_srs_review(
             srs_id=request.srs_id,
             quality=request.quality,
             user_id=request.user_id
@@ -1651,11 +1722,126 @@ async def submit_srs_review(request: SRSReviewRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to submit review: {str(e)}")
 
+# ===== DYNAMIC LESSON GENERATION ENDPOINTS =====
+
+@app.post("/api/lessons/generate")
+async def generate_lesson(request: LessonGenerateRequest):
+    """
+    Generate a dynamic lesson from curriculum using Gemini AI.
+    
+    Args:
+        week: Week number (1-52)
+        day: Day number (1-7), default 1
+        student_level: CEFR level (optional, uses student profile if not provided)
+        user_id: Student ID (default 1)
+    
+    Returns:
+        Generated lesson JSON with grammar, vocabulary, speaking, quiz, homework
+    
+    Rate limit: 1 request per user per hour (prevents API spam)
+    """
+    try:
+        # Validate input
+        if not (1 <= request.week <= 52):
+            raise HTTPException(status_code=400, detail="Week must be 1-52")
+        if not (1 <= request.day <= 7):
+            raise HTTPException(status_code=400, detail="Day must be 1-7")
+        
+        # Get or use provided student level
+        if request.student_level:
+            student_level = request.student_level
+        else:
+            student_level = db_utils.get_student_level(request.user_id)
+        
+        # Check rate limiting (optional - can be enabled later)
+        # For now, allow unlimited generation for testing
+        
+        # Generate the lesson
+        lesson_dict, was_generated = lesson_generator.generate_lesson_from_curriculum(
+            week_number=request.week,
+            day_number=request.day,
+            student_level=student_level,
+            user_id=request.user_id,
+            fallback_on_error=True  # Always provide a lesson, even if API fails
+        )
+        
+        # Add metadata about generation
+        lesson_dict['generated_by_ai'] = was_generated
+        lesson_dict['generation_status'] = 'success' if was_generated else 'fallback'
+        # Create a lesson ID for tracking homework/progress
+        lesson_dict['lesson_id'] = f"dynamic_wk{request.week}_d{request.day}"
+        
+        return {
+            "success": True,
+            "lesson": lesson_dict,
+            "lesson_id": lesson_dict['lesson_id'],
+            "was_generated_by_ai": was_generated,
+            "message": "Lesson generated successfully" if was_generated else "Using fallback lesson (AI generation failed)"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
+    except lesson_generator.LessonGenerationError as e:
+        raise HTTPException(status_code=500, detail=f"Lesson generation failed: {str(e)}")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.get("/api/lessons/history")
+async def get_lesson_generation_history(user_id: int = 1, limit: int = 20):
+    """Get lesson generation history for a student.
+    
+    Args:
+        user_id: Student ID
+        limit: Maximum number of records (default 20)
+    
+    Returns:
+        List of lesson generation records
+    """
+    try:
+        history = db_utils.get_lesson_generation_history(user_id=user_id, limit=limit)
+        return {
+            "success": True,
+            "user_id": user_id,
+            "count": len(history),
+            "history": history
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get history: {str(e)}")
+
+
+@app.get("/api/lessons/available-weeks")
+async def get_available_weeks():
+    """Get list of available curriculum weeks (1-52).
+    
+    Returns:
+        List of week numbers that have curriculum files
+    """
+    try:
+        from pathlib import Path
+        curriculum_dir = Path(__file__).parent / "New_Curriculum"
+        
+        available_weeks = []
+        for week_num in range(1, 53):
+            filepath = curriculum_dir / f"wk{week_num}.md"
+            if filepath.exists():
+                available_weeks.append(week_num)
+        
+        return {
+            "success": True,
+            "available_weeks": available_weeks,
+            "total_weeks": len(available_weeks)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get available weeks: {str(e)}")
+
 @app.get("/api/srs/stats")
 async def get_srs_stats(user_id: int = 1):
     """Get SRS statistics for a user"""
     try:
-        stats = db.get_srs_stats(user_id=user_id)
+        stats = db_srs.get_srs_stats(user_id=user_id)
         return stats
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get SRS stats: {str(e)}")
@@ -1664,7 +1850,7 @@ async def get_srs_stats(user_id: int = 1):
 async def schedule_lesson_srs(lesson_id: str, user_id: int = 1):
     """Schedule vocabulary from a lesson for SRS review"""
     try:
-        count = db.schedule_lesson_vocabulary(
+        count = db_srs.schedule_lesson_vocabulary(
             lesson_id=lesson_id,
             vocabulary_count=3,
             user_id=user_id

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>French Tutor</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/ui-enhancements.css">
 </head>
 <body>
     <!-- First-Time Use Modal -->
@@ -48,8 +49,35 @@
         <main>
             <!-- Lessons Tab -->
             <div id="lessons-tab" class="tab-content active">
-                <h2>Available Lessons</h2>
-                <div id="lessons-list">Loading lessons...</div>
+                <h2>Dynamic Lesson Generation</h2>
+                
+                <div class="lesson-selector-container">
+                    <div class="lesson-selector-group">
+                        <label for="week-select">Select Week (1-52):</label>
+                        <select id="week-select">
+                            <option value="">-- Choose a week --</option>
+                        </select>
+                    </div>
+
+                    <div class="lesson-selector-group">
+                        <label for="day-select">Select Day (1-7):</label>
+                        <div class="day-buttons">
+                            <button class="day-btn" data-day="1">Day 1</button>
+                            <button class="day-btn" data-day="2">Day 2</button>
+                            <button class="day-btn" data-day="3">Day 3</button>
+                            <button class="day-btn" data-day="4">Day 4</button>
+                            <button class="day-btn" data-day="5">Day 5</button>
+                            <button class="day-btn" data-day="6">Day 6</button>
+                            <button class="day-btn" data-day="7">Day 7</button>
+                        </div>
+                        <p id="selected-day-display" class="selected-display">Select a day</p>
+                    </div>
+
+                    <div class="lesson-selector-group">
+                        <button id="generate-lesson-btn" class="btn-primary btn-large" style="display: none;">Generate Lesson</button>
+                        <p id="lesson-status" class="lesson-status-message" style="display: none;"></p>
+                    </div>
+                </div>
             </div>
 
             <!-- Vocabulary Practice Tab -->
@@ -154,10 +182,9 @@
                 <h2>Submit Homework</h2>
                 <form id="homework-form">
                     <div class="form-group">
-                        <label for="lesson-select">Select Lesson:</label>
-                        <select id="lesson-select" required>
-                            <option value="">-- Choose a lesson --</option>
-                        </select>
+                        <label>Current Lesson:</label>
+                        <p id="current-lesson-info" class="lesson-info">⚠️ Generate a lesson first in the Lessons tab</p>
+                        <input type="hidden" id="lesson-select" />
                     </div>
 
                     <div class="form-group">
@@ -192,6 +219,7 @@
         ✅ Ready (API key loaded)
     </div>
 
+    <script src="/static/ui-enhancements.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>

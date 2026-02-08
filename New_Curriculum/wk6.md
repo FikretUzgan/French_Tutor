@@ -56,7 +56,7 @@ Use at least 6 être verbs + correct agreement.
 2. Traduis : « He was born in 1995. »  
 3. Corrige : « Je suis descendu les escaliers rapidement. »  
 4. Which verb takes être? a) manger  b) venir  
-5. Cümle kur: « sortir » + hier + passé composé---
+5. Build a sentence: « sortir » + hier + passé composé---
 
 ## Weekly Exam Rubric (Addendum)
 - Accuracy (0-4): grammar, agreement, and target structure control

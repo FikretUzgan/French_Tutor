@@ -155,6 +155,34 @@ def init_db() -> None:
         )
     """)
 
+    # Lesson generation history table (tracks when lessons are generated)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS lesson_generation_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER DEFAULT 1,
+            lesson_id TEXT NOT NULL,
+            week INTEGER NOT NULL,
+            day INTEGER NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            curriculum_file TEXT,
+            status TEXT DEFAULT 'generated',
+            error_message TEXT,
+            api_duration_seconds REAL,
+            UNIQUE(user_id, lesson_id)
+        )
+    """)
+
+    # Student profile table (tracks student level and progress)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS student_profile (
+            user_id INTEGER PRIMARY KEY,
+            current_level TEXT DEFAULT 'A1.1',
+            completed_weeks TEXT,
+            started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     # Initialize default settings if they don't exist
     cursor.execute("SELECT COUNT(*) as count FROM app_settings WHERE key = 'homework_blocking_enabled'")
     if cursor.fetchone()["count"] == 0:
@@ -459,7 +487,10 @@ def get_all_lessons() -> list[dict]:
 
 
 def get_user_progress(user_id: int) -> list[dict]:
-    """Get progress for a specific user."""
+    """Get progress for a specific user.
+    
+    Returns only lessons that have been started or completed, not all available lessons.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     
@@ -473,7 +504,8 @@ def get_user_progress(user_id: int) -> list[dict]:
             date_started,
             date_completed
         FROM lesson_progress
-        ORDER BY lesson_id
+        WHERE date_started IS NOT NULL
+        ORDER BY date_started DESC
     """)
     rows = cursor.fetchall()
     conn.close()
@@ -481,12 +513,102 @@ def get_user_progress(user_id: int) -> list[dict]:
     progress_list = []
     for row in rows:
         row_dict = dict(row)
-        # Add computed fields
-        row_dict['status'] = 'completed' if row_dict['completed'] else ('submitted' if row_dict['homework_submitted'] else 'started')
-        row_dict['completion_percentage'] = 100 if row_dict['completed'] else (50 if row_dict['homework_submitted'] else 25)
+        # Add computed fields based on actual lesson state
+        if row_dict['completed']:
+            row_dict['status'] = 'completed'
+            row_dict['completion_percentage'] = 100
+        else:
+            row_dict['status'] = 'in_progress'
+            row_dict['completion_percentage'] = 50  # Mid-lesson
         progress_list.append(row_dict)
     
     return progress_list
+
+
+def get_available_lessons_for_ui(user_id: int = 1) -> list[dict]:
+    """Get all available lessons with their progress status for lesson selection UI.
+    
+    Returns:
+        List of lessons with status: 'completed', 'in_progress', or 'not_started'
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Get all lessons
+    cursor.execute("""
+        SELECT lesson_id, level, theme, week_number
+        FROM lessons
+        ORDER BY week_number, lesson_id
+    """)
+    all_lessons = cursor.fetchall()
+    
+    # Get progress for started/completed lessons
+    cursor.execute("""
+        SELECT lesson_id, completed, date_started
+        FROM lesson_progress
+        WHERE date_started IS NOT NULL
+    """)
+    progress_rows = cursor.fetchall()
+    conn.close()
+    
+    progress_map = {row['lesson_id']: row for row in progress_rows}
+    
+    result = []
+    for lesson in all_lessons:
+        lesson_dict = dict(lesson)
+        
+        if lesson['lesson_id'] in progress_map:
+            progress = progress_map[lesson['lesson_id']]
+            lesson_dict['status'] = 'completed' if progress['completed'] else 'in_progress'
+        else:
+            lesson_dict['status'] = 'not_started'
+        
+        result.append(lesson_dict)
+    
+    return result
+
+
+def mark_lesson_started(lesson_id: str) -> None:
+    """Mark a lesson as started (update date_started if not already set).
+    
+    This creates or updates the lesson_progress record when user opens a lesson.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        INSERT OR IGNORE INTO lesson_progress 
+        (lesson_id, completed, homework_submitted, date_started)
+        VALUES (?, FALSE, FALSE, CURRENT_TIMESTAMP)
+    """, (lesson_id,))
+    
+    conn.commit()
+    conn.close()
+
+
+def get_lesson_status(lesson_id: str) -> str:
+    """Get the status of a specific lesson: 'completed', 'in_progress', or 'not_started'."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT completed, date_started
+        FROM lesson_progress
+        WHERE lesson_id = ?
+    """, (lesson_id,))
+    
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return 'not_started'
+    
+    if row['completed']:
+        return 'completed'
+    elif row['date_started']:
+        return 'in_progress'
+    else:
+        return 'not_started'
 
 
 def save_exam(exam_id: str, level: str, week_number: int, questions: str, user_id: int = 1) -> str:
@@ -1089,6 +1211,328 @@ def get_app_settings(keys: list[str]) -> dict[str, Optional[str]]:
     for row in rows:
         data[row["key"]] = row["value"]
     return data
+
+
+# ===== NEW FUNCTIONS FOR DYNAMIC LESSON GENERATION =====
+
+def get_student_profile(user_id: int = 1) -> Optional[dict]:
+    """Get or create a student profile.
+    
+    Args:
+        user_id: User ID (default 1)
+    
+    Returns:
+        Dict with user_id, current_level, completed_weeks, or None if not found
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Try to get existing profile
+    cursor.execute("""
+        SELECT user_id, current_level, completed_weeks, started_at
+        FROM student_profile
+        WHERE user_id = ?
+    """, (user_id,))
+    
+    row = cursor.fetchone()
+    
+    if row:
+        completed_weeks = []
+        if row['completed_weeks']:
+            try:
+                import json
+                completed_weeks = json.loads(row['completed_weeks'])
+            except:
+                completed_weeks = []
+        
+        conn.close()
+        return {
+            'user_id': row['user_id'],
+            'level': row['current_level'],
+            'completed_weeks': completed_weeks,
+            'started_at': row['started_at']
+        }
+    
+    # Create new profile with default A1.1 level
+    cursor.execute("""
+        INSERT INTO student_profile (user_id, current_level, completed_weeks)
+        VALUES (?, ?, ?)
+    """, (user_id, 'A1.1', '[]'))
+    
+    conn.commit()
+    conn.close()
+    
+    return {
+        'user_id': user_id,
+        'level': 'A1.1',
+        'completed_weeks': [],
+        'started_at': None
+    }
+
+
+def get_student_weaknesses(user_id: int = 1, limit: int = 5) -> list[dict]:
+    """Get a student's documented weaknesses.
+    
+    Args:
+        user_id: User ID
+        limit: Maximum number of weaknesses to return
+    
+    Returns:
+        List of dicts with {'topic': str, 'error_count': int}
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT topic, error_count, success_count, accuracy_percentage
+        FROM weakness_tracking
+        WHERE user_id = ?
+        ORDER BY error_count DESC, accuracy_percentage ASC
+        LIMIT ?
+    """, (user_id, limit))
+    
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return [
+        {
+            'topic': row['topic'],
+            'error_count': row['error_count'],
+            'success_count': row['success_count'],
+            'accuracy_percentage': row['accuracy_percentage']
+        }
+        for row in rows
+    ]
+
+
+def get_completed_weeks(user_id: int = 1) -> list[int]:
+    """Get list of weeks completed by a student.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        List of week numbers (1-52)
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT completed_weeks FROM student_profile WHERE user_id = ?
+    """, (user_id,))
+    
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row or not row['completed_weeks']:
+        return []
+    
+    try:
+        import json
+        return json.loads(row['completed_weeks'])
+    except:
+        return []
+
+
+def get_student_level(user_id: int = 1) -> str:
+    """Get current CEFR level of a student.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        CEFR level string (e.g., 'A1.1')
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT current_level FROM student_profile WHERE user_id = ?
+    """, (user_id,))
+    
+    row = cursor.fetchone()
+    conn.close()
+    
+    return row['current_level'] if row else 'A1.1'
+
+
+def update_student_level(user_id: int, new_level: str) -> None:
+    """Update a student's current level.
+    
+    Args:
+        user_id: User ID
+        new_level: New CEFR level
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        UPDATE student_profile
+        SET current_level = ?, last_updated = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+    """, (new_level, user_id))
+    
+    conn.commit()
+    conn.close()
+
+
+def add_completed_week(user_id: int, week_number: int) -> None:
+    """Mark a week as completed for a student.
+    
+    Args:
+        user_id: User ID
+        week_number: Week number to mark as complete
+    """
+    import json
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Get current completed weeks
+    cursor.execute("""
+        SELECT completed_weeks FROM student_profile WHERE user_id = ?
+    """, (user_id,))
+    
+    row = cursor.fetchone()
+    
+    try:
+        completed_weeks = json.loads(row['completed_weeks']) if row and row['completed_weeks'] else []
+    except:
+        completed_weeks = []
+    
+    # Add week if not already there
+    if week_number not in completed_weeks:
+        completed_weeks.append(week_number)
+        completed_weeks.sort()
+    
+    # Update database
+    cursor.execute("""
+        UPDATE student_profile
+        SET completed_weeks = ?, last_updated = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+    """, (json.dumps(completed_weeks), user_id))
+    
+    conn.commit()
+    conn.close()
+
+
+def store_generated_lesson(
+    user_id: int,
+    lesson_id: str,
+    week: int,
+    day: int,
+    curriculum_file: str,
+    status: str = 'generated',
+    error_message: Optional[str] = None,
+    api_duration_seconds: Optional[float] = None
+) -> int:
+    """Store a lesson generation record in the database.
+    
+    Args:
+        user_id: User ID
+        lesson_id: Generated lesson ID
+        week: Week number
+        day: Day number
+        curriculum_file: Path to curriculum file used
+        status: 'generated' or 'fallback'
+        error_message: Error message if status is 'error'
+        api_duration_seconds: How long the API call took
+    
+    Returns:
+        Record ID
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        INSERT INTO lesson_generation_history
+        (user_id, lesson_id, week, day, curriculum_file, status, error_message, api_duration_seconds)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (user_id, lesson_id, week, day, curriculum_file, status, error_message, api_duration_seconds))
+    
+    record_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    return record_id
+
+
+def get_lesson_generation_history(user_id: int = 1, limit: int = 20) -> list[dict]:
+    """Get lesson generation history for a student.
+    
+    Args:
+        user_id: User ID
+        limit: Maximum number of records to return
+    
+    Returns:
+        List of generation records
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT id, lesson_id, week, day, timestamp, curriculum_file, status, error_message, api_duration_seconds
+        FROM lesson_generation_history
+        WHERE user_id = ?
+        ORDER BY timestamp DESC
+        LIMIT ?
+    """, (user_id, limit))
+    
+    rows = cursor.fetchall()
+    conn.close()
+    
+    return [dict(row) for row in rows]
+
+
+def record_weakness(
+    user_id: int,
+    topic: str,
+    is_error: bool = True
+) -> None:
+    """Record a student's weakness/mistake on a topic.
+    
+    Args:
+        user_id: User ID
+        topic: Topic or grammar structure where the error occurred
+        is_error: True if error, False if success
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Try to get existing weakness record
+    cursor.execute("""
+        SELECT weakness_id, error_count, success_count FROM weakness_tracking
+        WHERE user_id = ? AND topic = ?
+    """, (user_id, topic))
+    
+    row = cursor.fetchone()
+    
+    if row:
+        # Update existing record
+        new_error_count = row['error_count'] + (1 if is_error else 0)
+        new_success_count = row['success_count'] + (0 if is_error else 1)
+        total_attempts = new_error_count + new_success_count
+        accuracy = (new_success_count / total_attempts * 100) if total_attempts > 0 else 0
+        
+        cursor.execute("""
+            UPDATE weakness_tracking
+            SET error_count = ?, success_count = ?, accuracy_percentage = ?, last_error = CURRENT_TIMESTAMP
+            WHERE weakness_id = ?
+        """, (new_error_count, new_success_count, accuracy, row['weakness_id']))
+    else:
+        # Create new record
+        error_count = 1 if is_error else 0
+        success_count = 0 if is_error else 1
+        accuracy = 0 if is_error else 100
+        
+        cursor.execute("""
+            INSERT INTO weakness_tracking
+            (user_id, topic, error_count, success_count, accuracy_percentage)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_id, topic, error_count, success_count, accuracy))
+    
+    conn.commit()
+    conn.close()
 
 
 if __name__ == "__main__":

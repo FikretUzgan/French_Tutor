@@ -14,7 +14,7 @@
 **Complexity Rating:** 2/10  
 **Prerequisite Knowledge:** Aller present conjugation, basic verb infinitives  
 **Scaffolding Steps:**
-1. Formül: aller (présent) + infinitif → Je vais manger, Tu vas partir
+1. Formula: aller (présent) + infinitif → Je vais manger, Tu vas partir
 2. 6 example sentences: daily plans, weather forecast, weekend
 3. Transform from present to future: Je mange → Je vais manger
 4. 5 activity planning: "Demain je vais…"
@@ -26,10 +26,10 @@
 demain – après-demain – bientôt – ce soir – ce weekend – planifier – prévoir – espérer – rencontrer – appeler – envoyer – pluie – soleil – vent – nuage – fête – rendez-vous – vacances – peut-être – probablement – sûrement
 
 ### Speaking Scenario
-**Domain:** Yakın Gelecek Planları  
+**Domain:** Near-Future Plans  
 **Prompt:**  
-« Qu’est-ce que tu vas faire ce weekend ? Décris tes plans en 5-7 cümle. »  
-**AI Role:** Takip soruları sorar: « Et après ? », « Avec qui ? », « Il va pleuvoir, tu vas quand même sortir ? »
+« Qu’est-ce que tu vas faire ce weekend ? Décris tes plans en 5-7 sentences. »  
+**AI Role:** Asks follow-up questions: « Et après ? », « Avec qui ? », « Il va pleuvoir, tu vas quand même sortir ? »
 
 ### Reading/Listening Component
 **Type:** Listening (short dialogue)
@@ -50,7 +50,7 @@ Use at least 7 near-future structures + 8 words.
 **Pass:** ≥70% (if not, near-future remedial drill)
 
 ### Assessment Checkpoint
-**Mini-Quiz (5 soru):**
+**Mini-Quiz (5 questions):**
 1. Conjugue : Nous (voyager) en Italie cet été.  
 2. Traduis : « She is going to call her mother tonight. »  
 3. Transforme au futur proche : Je regarde un film ce soir.  

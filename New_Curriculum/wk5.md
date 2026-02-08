@@ -52,12 +52,12 @@ Use at least 8 words + 5 passé composé verbs.
 **Pass:** ≥70% (if not, remedial passé composé drill)
 
 ### Assessment Checkpoint
-**Mini-Quiz (5 soru):**
+**Mini-Quiz (5 questions):**
 1. Conjugue : Je (manger) une pizza hier.  
 2. Traduis : « We watched a movie last night. »  
 3. Correct: "Tu as fini tes devoirs hier?" (if correct, explain why)  
 4. Which verb takes **avoir**? a) aller  b) parler  
-5. Cümle kur: « visiter » + Paris + passé composé---
+5. Build a sentence: « visiter » + Paris + passé composé---
 
 ## Weekly Exam Rubric (Addendum)
 - Accuracy (0-4): grammar, agreement, and target structure control

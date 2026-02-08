@@ -57,6 +57,115 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 
 ---
 
+### 2.1.2 Dynamic Lesson Generation System
+
+**FR-004: Curriculum-Driven Lesson Generation**
+
+* **Purpose:** Generate lessons dynamically from structured curriculum files instead of static database storage
+* **Inputs:** Week number (1-52), day number (1-7), student level, student weaknesses
+* **Process:**
+  1. Load curriculum file (`New_Curriculum/wk{N}.md`) for requested week
+  2. Parse curriculum structure: learning outcomes, grammar target, vocabulary set, speaking scenario, homework task
+  3. Build system prompt (roles, course scope, big picture)
+  4. Build lesson generation prompt (curriculum context + student profile)
+  5. Call Gemini API with complete context
+  6. Validate and return generated lesson JSON
+
+* **Output:** Complete lesson JSON with:
+  * Grammar section (explanation, form, 5+ examples, conjugation table, error focus)
+  * Vocabulary section (21 words with translations, examples, pronunciation tips)
+  * Speaking section (scenario prompt, targets, expected elements)
+  * Quiz section (3-5 questions with explanations)
+  * Homework section (prompt, requirements, rubric, estimated time)
+  * Session metadata (duration estimates, pace recommendations)
+
+* **Key Benefits:**
+  * No lesson storage limit (infinite content generation)
+  * No week restriction (students can start at any week)
+  * Fresh examples each time (prevents memorization)
+  * Curriculum-aligned (AI follows structured weekly plans)
+  * Personalized (adapts to student weaknesses and level)
+
+**FR-005: Curriculum File Structure**
+
+* Location: `New_Curriculum/wk{1-52}.md` (52-week progression A1.1 → B2.2)
+* Required sections:
+  * Learning Outcomes (CEFR descriptors for the week)
+  * Grammar Target (form, complexity, prerequisites, 7-step scaffolding sequence)
+  * Vocabulary Set (21 words with semantic domain)
+  * Speaking Scenario (domain, prompt in French, AI role, targets)
+  * Reading/Listening Component (type, content description, comprehension tasks)
+  * Homework Assignment (type, task description, detailed rubric with pass criteria)
+
+* Consistency Requirement: All files must follow same markdown format for reliable parsing
+
+**FR-006: System Prompt (Big Picture Context)**
+
+* **Content:** Explains to AI:
+  * Its role as rigorous French tutor ("strict professor")
+  * Course scope (52 weeks, A1 → B2, CEFR-aligned)
+  * Student context (current level, completed weeks, known weaknesses)
+  * Course philosophy (grammar-focused, practical scenarios, error correction)
+  * Constraints (follow curriculum exactly, provide specific feedback, maintain difficulty)
+
+* **Used in:** Every lesson generation call
+* **Token cost:** ~300 tokens per call
+* **Purpose:** Frames all subsequent AI responses with consistent perspective and constraints
+
+**FR-007: Lesson Generation Prompt (Main Curriculum-to-Lesson Transformation)**
+
+* **Content:** Instructs AI to:
+  * Transform curriculum metadata into structured lesson JSON
+  * Include all 21 vocabulary words in examples
+  * Provide 5+ progressive examples for grammar
+  * Adapt difficulty if student has related weaknesses
+  * Follow scaffolding steps from curriculum exactly
+  * Return ONLY valid JSON (no markdown, no extra text)
+
+* **Input Variables:**
+  * Curriculum JSON (parsed from wk{N}.md)
+  * Learning outcomes for the week
+  * Grammar target with scaffolding steps
+  * Vocabulary set (all 21 words)
+  * Speaking scenario requirements
+  * Homework task and rubric
+  * Student level and weaknesses
+
+* **Output:** Valid JSON with lesson structure (see FR-004)
+* **Token cost:** ~2000-3000 tokens per call
+* **Failure modes & handling:**
+  * Invalid JSON → Parse error, show user "Lesson generation failed, please retry"
+  * Missing sections → Validate response schema before returning
+  * Hallucinated content → Prompt includes "Do NOT deviate from curriculum"
+
+**FR-008: Weakness Personalization Subprompt (Adaptive Scaffolding)**
+
+* **Content:** When student has documented weaknesses:
+  * Add extra examples specifically targeting the weakness
+  * Provide clear English parallels for confusing topics
+  * Include focused homework exercise for weakness topic
+  * Test weakness explicitly in quiz question
+  * Mark weakness in speaking targets for conscious attention
+
+* **Trigger:** Only included if `student_weaknesses[]` is non-empty
+* **Combined with:** LESSON_GENERATION_PROMPT as additional instruction
+* **Purpose:** Provide extra scaffolding while maintaining rigor (not lowering standards)
+
+**FR-009: Homework Evaluation Prompt (Automatic Grading Logic)**
+
+* **Content:** Instructs AI to evaluate student homework against rubric:
+  * Score text for grammar, vocabulary, content quality (0-100)
+  * Score audio transcript for pronunciation, rhythm, clarity (0-100)
+  * Apply pass criteria (text ≥70% AND audio ≥60%)
+  * Provide specific corrections with explanations
+  * Highlight strengths and suggest next focus area
+
+* **Used in:** POST `/api/homework/submit` endpoint
+* **Output:** JSON with text_score, audio_score, passed flag, detailed feedback, corrections list
+* **Grading scale:** 90-100=excellent, 75-89=good, 70-74=passing, <70=needs revision
+
+---
+
 ### **2.2 Lesson Structure**
 
 **FR-010: Lesson Components (30 dakika)**
@@ -168,6 +277,23 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
   * AI response shown as text + spoken via TTS
   * "Try again" button for retry with new scenario
   * No manual "Stop" button—purely press/hold activation
+
+**FR-014: Interactive Lesson Flow (Weekly Plan Driven)**
+
+* **Purpose:** Start lesson uses the weekly plan as the source of truth for the session.
+* **Inputs:** Weekly plan (grammar target, vocabulary set, speaking scenario, mini-quiz).
+* **Flow:**
+  1. Load weekly plan by level and week number.
+  2. Present grammar explanation and examples from the plan.
+  3. Run vocabulary practice using plan vocabulary (FR->EN / EN->FR).
+  4. Run speaking scenario using plan prompt and targets.
+  5. Run mini-quiz using plan questions and immediate feedback.
+  6. Mark section completion (complete/skip/retry) and persist progress.
+* **Requirements:**
+  * AI must follow the weekly plan sequence and scope.
+  * User input is required at each section (response or skip).
+  * Responses are logged for progress tracking and weakness analysis.
+  * Lesson can resume from the last completed section.
 
 ---
 

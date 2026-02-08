@@ -5,8 +5,8 @@ import os
 
 import streamlit as st
 import numpy as np
-from google import genai
-from google.genai import types
+import google.generativeai as genai
+from google.generativeai import types
 
 from db import (
     init_db,
