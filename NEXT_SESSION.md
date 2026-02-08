@@ -1,33 +1,56 @@
 # Next Session To-Do List
-**Last Updated:** 2026-02-08  
-**Current Status:** Dynamic Lesson Generation Complete ✅
+**Last Updated:** 2026-02-09  
+**Current Status:** Grammar Explanations Fixed ✅ | Base Verb Validation Added ✅
 
 ---
 
 ## 🎯 Priority Tasks for Next Session
 
-## ⚠️ Known Issues (Session 3) with Root Causes
+### 1. **HIGH PRIORITY: Fix Gemini JSON Parsing Issues** 🔴
+- Current state: ~60% of lessons fall back to curriculum-based template
+- Root cause: Gemini responses contain malformed JSON on complex prompts
+- Actions:
+  - [ ] Log raw Gemini responses to identify which fields are malformed
+  - [ ] Simplify vocabulary section (include only top 10 words per lesson, not all 21)
+  - [ ] Implement JSON repair logic (auto-fix common Gemini formatting errors)
+  - [ ] Add structured prompting hints (e.g., "ensure valid JSON escaping")
+- Goal: Reduce fallback rate to <10%
 
-1. **Quiz scoring shows 0/5 even when answers are correct**
-    - **Root cause:** `submitQuiz()` scoring logic likely mismatches `correct_answer` format (index vs string) and/or comparison normalization still fails in some cases.
+### 2. **MEDIUM PRIORITY: Prompt Optimization** 🟡
+- [ ] Reduce token usage by simplifying curriculum formatting in prompts
+- [ ] Add JSON schema validation before passing to users
+- [ ] Test prompt variations with different token budgets (3500, 4500, etc.)
+- [ ] Profile which sections of prompt are most token-hungry
 
-2. **Speaking practice not embedded in lesson modal**
-    - **Root cause:** Current UI flow switches tabs and closes modal instead of rendering speaking content inside the lesson modal.
+### 3. **Documentation & Testing**
+- [ ] Document grammar explanation quality expectations
+- [ ] Test generated lessons across all 52 weeks for consistency
+- [ ] Create test suite for fallback lesson generation
 
-3. **Audio-based quiz questions missing (no Listen button)**
-    - **Root cause:** Quiz renderer does not include TTS controls for question text or options; no audio UI implemented for quiz questions.
+## ⚠️ Known Issues (Session 4) with Root Causes
 
-4. **Grammar explanations still shallow (single sentence)**
-    - **Root cause:** Prompt still allows short outputs; no minimum length or follow-up expansion step enforced.
+1. **Quiz scoring shows 0/5 even when answers are correct** ✅ FIXED
+    - Resolved via multi-part normalization, answer extraction, fuzzy matching
 
-5. **Vocabulary cards missing Listen buttons on 1-2 items (varies per lesson)**
-    - **Root cause:** Inconsistent vocab item structure from AI (missing `word`/`front` or empty text), causing renderer to skip button.
+2. **Speaking practice not embedded in lesson modal** ✅ FIXED
+    - Now hides modal instead of destroying, preserves lesson scenario
 
-6. **Grammar sentences lack Listen buttons**
-    - **Root cause:** Grammar section examples do not render audio controls; feature not implemented for grammar examples.
+3. **Audio-based quiz questions missing (no Listen button)** ✅ FIXED  
+    - Added `audio_text` field with TTS support for listening questions
 
-7. **Quiz questions reveal answers (multiple forms shown in prompt)**
-    - **Root cause:** AI is embedding answer variants directly in question text; prompt rules need stricter enforcement or post-processing cleanup.
+4. **Grammar explanations showing \"Tableau...\" instead of detailed content** ✅ FIXED
+    - Root cause: Missing API key config in lesson_generator.py
+    - Now generates structured 5-paragraph explanations (both AI and fallback)
+    - Fallback includes: Definition, Patterns, Practice, Real-World Usage, Next Steps
+
+5. **Fill-in-the-blank questions are impossible to answer** ✅ FIXED
+    - Now validates base verb included in parentheses: `Elle _____ (avoir) un chat.`
+    - Students clearly see what verb to conjugate
+
+6. **Gemini returning invalid/malformed JSON** ⚠️ ACTIVE
+    - **Root cause:** Prompt exceeds effective context window (~60% fallback rate)
+    - **Workaround:** Improved fallback provides quality explanations
+    - **Solution in progress:** Simplify vocabulary section or implement JSON repair
 
 ### 1. Interactive Lesson Enhancements
 - [ ] Store generated lesson JSON in DB for cross-attempt comparison
@@ -71,23 +94,25 @@
 
 ---
 
-## ✅ Recently Completed (2026-02-08)
+## ✅ Recently Completed (2026-02-09)
 
-### Dynamic Lesson Generation System
-- ✅ Complete backend implementation (curriculum_loader, ai_prompts, lesson_generator)
-- ✅ Enhanced AI prompts with 5-paragraph grammar structure
-- ✅ Attempt-based variation system with temperature escalation
-- ✅ POST /api/lessons/generate endpoint
-- ✅ Week/day selector frontend UI (1-52 weeks, 1-7 days)
-- ✅ Interactive lesson modal with grammar, vocab, speaking, quiz sections
-- ✅ Curriculum parsing fixes (vocabulary + homework task extraction)
-- ✅ Comprehensive test suite (test_dynamic_lesson_gen.py)
-- ✅ All 52 curriculum weeks validated
+### Grammar & Quiz Fixes (Session 4)
+- ✅ Fixed grammar explanations: Now show detailed 5-part structure (was showing "Tableau...")
+- ✅ Configured Gemini API key in lesson_generator.py (was missing, causing API failures)
+- ✅ Increased token budget (3000 → 4000) for fuller responses
+- ✅ Added retry logic for empty API responses
+- ✅ Improved fallback lesson generation with pedagogical explanations
+- ✅ Implemented `base_verb` validation for fill-in-the-blank questions
+- ✅ Base verb extracted from parentheses format: `Elle _____ (avoir) un chat.`
+- ✅ Relaxed validation from error → warning for graceful degradation
+- ✅ All changes committed to git
 
-### Curriculum Content Creation
-- ✅ All 52 weeks created (A1.1 → B2.2)
-- ✅ Weekly exam rubrics and remedial templates
-- ✅ Variation pools for dynamic content (contexts, adjectives, scenarios)
+### Earlier Work (Session 3, 2026-02-08)
+- ✅ Quiz scoring fixed (multi-part normalization + fuzzy matching)
+- ✅ Speaking practice embedded in lesson modal
+- ✅ Audio text extraction for listening questions
+- ✅ Dynamic Lesson Generation System complete
+- ✅ All 52 curriculum weeks created and validated
 
 ---
 
@@ -111,12 +136,24 @@
 
 ---
 
-## 📝 Session Notes Template
+## 📝 Session Notes
 
-When starting next session, add notes here:
+### Session 4 (2026-02-09)
+**Date:** 2026-02-09  
+**Focus:** Fix grammar explanation display, implement base verb validation, debug Gemini API issues  
+**Completed:**
+- Fixed grammar explanations (was showing "Tableau clair..." from curriculum)
+- Added Gemini API key config to lesson_generator.py
+- Increased token budget 3000→4000
+- Implemented base verb validation for fill-in-the-blank questions
+- Improved fallback lesson with structured 5-part grammar explanation
+- Committed all changes to git
 
-**Date:** _____  
-**Focus:** _____  
-**Completed:** _____  
-**Blocked by:** _____  
-**Next steps:** _____
+**Blocked by:**
+- Gemini returning invalid/malformed JSON on complex prompts (~60% of requests)
+- Need to simplify prompt or implement JSON repair logic
+
+**Next steps:**
+- Debug Gemini JSON issues (simplify vocab section or add JSON validation)
+- Test accuracy of generated grammar explanations (quality vs detail)
+- Consider migrating away from deprecated google.generativeai library
