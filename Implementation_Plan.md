@@ -193,8 +193,25 @@ Acceptance criteria:
 - Week 30: UX and testing complete
 - Week 40: Beta closed and launch stabilized
 
-## Current Phase: UI/UX Refinement & Progress Tracking (Feedback #1-9)
-Addressing user feedback for:
+## Current Phase: Dynamic Lesson Quality & Interactive Content (2026-02-08)
+Addressing critical issues with lesson generation:
+- **COMPLETED:** Enhanced AI prompts with mandatory 5-paragraph grammar structure
+  - Paragraph 1: Definition & importance (3-4 sentences)
+  - Paragraph 2: English comparison & common difficulties (3-4 sentences)
+  - Paragraph 3: Full conjugation/form breakdown per pronoun (6-8 sentences)
+  - Paragraph 4: Real-world usage scenarios (3-4 sentences, 2+ scenarios)
+  - Paragraph 5: Common pitfalls with corrections (3-4 sentences, 2+ errors)
+  - Minimum 400 words, 20 sentences per grammar explanation
+- **COMPLETED:** Dynamic content variation system (attempt tracking)
+  - Each lesson generation gets a unique attempt_number and variation_seed
+  - Attempt count tracked in DB via `get_lesson_generation_count()`
+  - Different variation instructions per attempt (contexts, adjectives, scenarios)
+  - Temperature escalation: 0.8 → 0.95 → 1.1 → 1.25 (more creative each attempt)
+  - 6 context pools × 6 adjective pools × 12 scenario pools = high variation
+- **COMPLETED:** Fixed Gemini model to `gemini-2.5-flash` consistently
+- **COMPLETED:** Increased max_tokens from 2000 to 4096 for richer content
+- **COMPLETED:** Enhanced vocabulary display (ALL curriculum words, usage notes)
+- **COMPLETED:** Improved quiz question type rotation per attempt
 - Standardized 3-button navigation (Back, Next, Exit Lesson) throughout all lessons
 - Vocabulary French-side listening with gender variant support
 - Listen icons on example sentences
@@ -213,3 +230,15 @@ Features for future implementation:
 
 ## Later Improvements
 - Polished UI (visual design, animations, richer layouts)
+- **Interactive grammar expansion buttons**
+  - "More Explanation" and "More Examples" in lesson grammar section
+  - Calls AI to extend only the grammar section (no full lesson regeneration)
+  - Appends new examples and avoids repeats
+- **Grammar reference tab with fixed content**
+  - Curated explanations by topic (tenses, pronouns, negation, questions)
+  - Reliable fallback when AI output is insufficient
+- **Store generated lesson JSON in DB** for comparison across attempts
+  - Enables "show me what changed" feature
+  - Prevents AI from accidentally reusing examples from previous generations
+- **Quiz question bank** from previous generations
+  - Pool questions across attempts for exam-style varied assessments

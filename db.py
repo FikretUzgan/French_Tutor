@@ -1484,6 +1484,36 @@ def get_lesson_generation_history(user_id: int = 1, limit: int = 20) -> list[dic
     return [dict(row) for row in rows]
 
 
+def get_lesson_generation_count(user_id: int, week: int, day: int) -> int:
+    """Count how many times a lesson has been generated for a specific week/day.
+    
+    This is used to determine the attempt_number for dynamic content variation.
+    Each generation gets a higher attempt number, which drives the AI to produce
+    different examples, quiz questions, and speaking scenarios.
+    
+    Args:
+        user_id: User ID
+        week: Week number
+        day: Day number
+    
+    Returns:
+        Number of previous successful generations (0 if never generated)
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT COUNT(*) as count
+        FROM lesson_generation_history
+        WHERE user_id = ? AND week = ? AND day = ? AND status = 'generated'
+    """, (user_id, week, day))
+    
+    result = cursor.fetchone()
+    conn.close()
+    
+    return result['count'] if result else 0
+
+
 def record_weakness(
     user_id: int,
     topic: str,

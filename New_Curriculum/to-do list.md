@@ -37,3 +37,26 @@
   - [completed] Strengthen weekly exam rubrics and remedial variation prompt templates
   - [completed] Clarify the rule for AI's dynamic content generation: "same topic with different perspective / context / example" (example: subjunctive for emotions → doubt → necessity → regret weeks)
   - [completed] Clean up / archive old BLOCK_X.md and Week_XX.md files (replace with new versions with grok_ prefix)
+
+5. [completed] **AI Prompt & Dynamic Lesson Enhancement (2026-02-08)**
+  - [completed] Rewrite SYSTEM_PROMPT with 5-paragraph grammar mandate & dynamic variation rules
+  - [completed] Rewrite LESSON_GENERATION_PROMPT with structured grammar format (400+ words, 20+ sentences)
+  - [completed] Add attempt_number tracking to lesson generation (via DB count)
+  - [completed] Add variation_seed for deterministic randomization of contexts/adjectives/scenarios
+  - [completed] Create variation instruction templates (attempt 1 → 2 → 3 → 4+)
+  - [completed] Add 6 context pools, 6 adjective pools, 12 scenario pools for variety
+  - [completed] Implement temperature escalation per attempt (0.8 → 0.95 → 1.1 → 1.25)
+  - [completed] Fix Gemini model to gemini-2.5-flash in lesson_generator.py
+  - [completed] Increase max_tokens from 2000 to 4096 for richer grammar content
+  - [completed] Add get_lesson_generation_count() to db.py
+  - [completed] Update prompt_builders.py to pass attempt_number and variation_seed
+  - [completed] Include curriculum scaffolding steps in prompt context
+  - [completed] Include ALL vocabulary words with "MUST INCLUDE" emphasis
+  - [completed] Update Implementation_Plan.md and French_Tutor_SRS.md
+
+6. [not-started] **Remaining Interactive Lesson Improvements**
+  - [ ] Store generated lesson JSON in DB for cross-attempt comparison
+  - [ ] "More Explanation" and "More Examples" interactive buttons in grammar section
+  - [ ] Grammar reference tab with curated fixed content per topic
+  - [ ] Quiz question bank pooling from previous generations
+  - [ ] Speaking scenario history to avoid AI repeating the same opening

@@ -116,23 +116,42 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 
 * **Content:** Instructs AI to:
   * Transform curriculum metadata into structured lesson JSON
-  * Include all 21 vocabulary words in examples
-  * Provide 5+ progressive examples for grammar
+  * Include all vocabulary words from curriculum in examples
+  * Provide 8+ progressive examples for grammar (statements, questions, negatives)
+  * Follow mandatory 5-paragraph grammar explanation structure:
+    1. Definition & importance (3-4 sentences)
+    2. English comparison & common difficulties (3-4 sentences)
+    3. Full conjugation/form breakdown per pronoun (6-8 sentences)
+    4. Real-world usage scenarios (3-4 sentences, 2+ scenarios)
+    5. Common pitfalls with corrections (3-4 sentences, 2+ errors)
+  * Minimum 400 words, 20 sentences per grammar explanation
   * Adapt difficulty if student has related weaknesses
-  * Follow scaffolding steps from curriculum exactly
+  * Use variation instructions to produce different content per attempt
   * Return ONLY valid JSON (no markdown, no extra text)
+
+* **Dynamic Content Variation System:**
+  * Each generation tracked with `attempt_number` (auto-incrementing per week/day)
+  * `variation_seed` provides deterministic randomization for content selection
+  * Attempt-specific variation instructions:
+    - Attempt 1: Foundation — basic contexts, recognition-focused quiz
+    - Attempt 2: Deeper — different verbs/adjectives, production-focused quiz
+    - Attempt 3: Nuances — edge cases, error detection quiz
+    - Attempt 4+: Complete mastery — mixed types, creative scenarios
+  * 6 context pools × 6 adjective pools × 12 scenario pools = high variation
+  * Temperature escalation: 0.8 → 0.95 → 1.1 → 1.25 (more creative each attempt)
 
 * **Input Variables:**
   * Curriculum JSON (parsed from wk{N}.md)
   * Learning outcomes for the week
   * Grammar target with scaffolding steps
-  * Vocabulary set (all 21 words)
+  * Vocabulary set (all words)
   * Speaking scenario requirements
   * Homework task and rubric
   * Student level and weaknesses
+  * attempt_number and variation_seed
 
 * **Output:** Valid JSON with lesson structure (see FR-004)
-* **Token cost:** ~2000-3000 tokens per call
+* **Token cost:** ~2000-4000 tokens per call
 * **Failure modes & handling:**
   * Invalid JSON → Parse error, show user "Lesson generation failed, please retry"
   * Missing sections → Validate response schema before returning
@@ -218,6 +237,32 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
   
 * **Audio Evaluation (Telaffuz Değerlendirmesi):**
   * AI kullanıcının teslim ettiği metni okuyup okumadığını kontrol eder
+
+**FR-013: On-Demand Grammar Expansion (Future Improvement)**
+
+* **Purpose:** Allow learners to request more grammar explanation or examples on demand
+* **UI Controls:**
+  * "More Explanation" button within lesson grammar section
+  * "More Examples" button within lesson grammar section
+* **Behavior:**
+  * Triggers AI to expand only the grammar section (no full lesson regeneration)
+  * Appends additional explanation paragraphs and 4-6 new examples
+  * Preserves the current lesson state and navigation
+* **Constraints:**
+  * Must stay aligned with the selected week/day curriculum
+  * Must remain at the learner's CEFR level
+  * Must avoid repeating existing examples
+* **Fallback:** If AI expansion fails, show a friendly error and keep existing content
+
+**FR-014: Grammar Reference Tab (Future Improvement)**
+
+* **Purpose:** Provide a fixed, searchable grammar reference separate from dynamic lessons
+* **Content:** Curated, non-AI grammar explanations organized by topic (tenses, pronouns, negation, questions, etc.)
+* **UI:** A dedicated "Grammar" tab with topic selector and quick examples
+* **Use Cases:**
+  * Students reviewing a specific grammar topic outside the lesson flow
+  * Reliable reference when AI output is insufficient
+  * Standardized explanations for consistency across lessons
   * Metne karşı STT (Speech-to-Text) transkript karşılaştırması
   * Telaffuz kalitesi (aksanlar, ses tonları, akıcılık)
   * Ritim ve vurgu (prosody)

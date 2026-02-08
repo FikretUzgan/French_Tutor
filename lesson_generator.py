@@ -7,6 +7,7 @@ Handles curriculum loading, prompt building, API calls, and fallback logic.
 
 import json
 import logging
+import random
 from typing import Dict, Optional, Any, Tuple
 from datetime import datetime, timezone
 import google.generativeai as genai
@@ -82,6 +83,11 @@ def generate_lesson_from_curriculum(
             logger.warning(f"Curriculum validation warnings: {errors}")
             # Continue anyway - some missing sections might be OK
         
+        # Step 1b: Determine attempt number (how many times this week/day was generated)
+        attempt_number = db.get_lesson_generation_count(user_id, week_number, day_number) + 1
+        variation_seed = int(datetime.now(timezone.utc).timestamp()) % 100000
+        logger.info(f"Generation attempt #{attempt_number} for Week {week_number} Day {day_number} (seed: {variation_seed})")
+        
         # Step 2: Get student profile
         logger.info(f"Fetching student profile for user {user_id}")
         student_profile = db.get_student_profile(user_id)
@@ -101,8 +107,8 @@ def generate_lesson_from_curriculum(
         logger.info(f"Fetching weaknesses for user {user_id}")
         weaknesses = db.get_student_weaknesses(user_id, limit=5)
         
-        # Step 4: Build prompts
-        logger.info("Building prompts")
+        # Step 4: Build prompts (now with attempt_number and variation_seed)
+        logger.info(f"Building prompts (attempt #{attempt_number})")
         system_prompt = prompt_builders.build_system_prompt(
             student_level=student_level,
             completed_weeks=student_profile.get('completed_weeks', []),
@@ -114,7 +120,9 @@ def generate_lesson_from_curriculum(
             day_number=day_number,
             curriculum_data=curriculum_data,
             student_profile=student_profile,
-            weaknesses_data=weaknesses
+            weaknesses_data=weaknesses,
+            attempt_number=attempt_number,
+            variation_seed=variation_seed
         )
         
         # Validate token budget
@@ -129,11 +137,15 @@ def generate_lesson_from_curriculum(
             logger.warning(f"Prompt exceeds token budget: {token_info['warning']}")
             # For now, continue anyway - Gemini can handle more
         
-        # Step 5: Call Gemini API
-        logger.info("Calling Gemini API for lesson generation")
+        # Step 5: Call Gemini API with dynamic temperature based on attempt
+        # Higher attempts get higher temperature for more variation
+        temperature = min(0.8 + (attempt_number - 1) * 0.15, 1.5)
+        logger.info(f"Calling Gemini API for lesson generation (temp={temperature:.2f})")
         lesson_json, api_call_duration = _call_gemini_for_lesson(
             system_prompt=system_prompt,
-            lesson_prompt=lesson_prompt
+            lesson_prompt=lesson_prompt,
+            temperature=temperature,
+            max_tokens=4096  # Increased for richer grammar explanations
         )
         
         # Step 6: Validate response
@@ -216,7 +228,7 @@ def _call_gemini_for_lesson(
     import time
     
     try:
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Combine prompts
         full_prompt = f"{system_prompt}\n\n{lesson_prompt}"

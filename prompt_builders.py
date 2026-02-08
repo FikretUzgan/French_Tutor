@@ -55,7 +55,9 @@ def build_lesson_generation_context(
     day_number: int,
     curriculum_data: Dict[str, Any],
     student_profile: Dict[str, Any],
-    weaknesses_data: Optional[List[Dict[str, Any]]] = None
+    weaknesses_data: Optional[List[Dict[str, Any]]] = None,
+    attempt_number: int = 1,
+    variation_seed: int = None
 ) -> str:
     """
     Build the complete lesson generation prompt with all context.
@@ -64,6 +66,7 @@ def build_lesson_generation_context(
     - The curriculum for the week
     - Student's profile (level, completed weeks)
     - Student's documented weaknesses
+    - Variation instructions based on attempt number
     - Detailed expectations for output format
     
     Args:
@@ -72,11 +75,13 @@ def build_lesson_generation_context(
         curriculum_data: Parsed curriculum (from curriculum_loader.load_curriculum_file)
         student_profile: Dict with 'level', 'completed_weeks'
         weaknesses_data: List of dicts with {'topic': str, 'error_count': int}
+        attempt_number: Which generation attempt (1, 2, 3, 4+) — drives content variation
+        variation_seed: Random seed for variation pool selection
     
     Returns:
         The complete prompt string for Gemini API
     
-    Token count: ~1000-1300 tokens (varies with student context)
+    Token count: ~1000-1500 tokens (varies with student context and attempt)
     """
     student_level = student_profile.get('level', 'A1.1')
     completed_weeks = student_profile.get('completed_weeks', [])
@@ -98,7 +103,7 @@ def build_lesson_generation_context(
     # Get the theme
     curriculum_theme = curriculum_data.get('theme', 'General')
     
-    # Build the prompt using the template
+    # Build the prompt using the template (now with variation support)
     prompt = ai_prompts.get_lesson_generation_prompt(
         week_number=week_number,
         day_number=day_number,
@@ -108,7 +113,9 @@ def build_lesson_generation_context(
         struggled_topics=struggled_topics,
         curriculum_data=curriculum_data,
         curriculum_theme=curriculum_theme,
-        timestamp=timestamp
+        timestamp=timestamp,
+        attempt_number=attempt_number,
+        variation_seed=variation_seed
     )
     
     # If student has significant weaknesses, add the personalization sub-prompt
