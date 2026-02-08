@@ -113,13 +113,21 @@ LESSON_GENERATION_PROMPT = """Based on the curriculum provided and student profi
 Generate a COMPLETE JSON lesson object following this EXACT structure. Every field is REQUIRED.
 
 CRITICAL GRAMMAR REQUIREMENTS:
-- The "explanation" field MUST be a SINGLE STRING containing 5 clearly separated paragraphs (use \\n\\n between paragraphs)
-- Paragraph 1: Definition — what this grammar structure is and why it matters (3-4 sentences)
-- Paragraph 2: English comparison — how it differs from English, why English speakers struggle (3-4 sentences)
-- Paragraph 3: Full form breakdown — explain EACH conjugation/form individually with when/why (6-8 sentences for verbs, 4-6 for other structures)
-- Paragraph 4: Real-world usage — when native speakers use this, with 2+ specific scenarios (3-4 sentences)
-- Paragraph 5: Common pitfalls — mistakes learners make, why, and how to avoid (3-4 sentences)
-- MINIMUM total: 400 words, 20 sentences
+- The "explanation" field MUST be a SINGLE STRING containing 5 clearly separated paragraphs
+- Use \\n\\n to separate paragraphs
+- Paragraph 1: Definition & why it matters (3-4 sentences)
+- Paragraph 2: English comparison & why English speakers struggle (3-4 sentences)
+- Paragraph 3: Full form breakdown by pronoun (6-8 sentences)
+- Paragraph 4: Real-world usage scenarios (2+ scenarios, 3-4 sentences)
+- Paragraph 5: Common mistakes & how to avoid (2+ errors, 3-4 sentences)
+- MINIMUM: 400 words total
+- CRITICAL: Create original, detailed explanations — do NOT copy tables from curriculum
+
+CRITICAL QUIZ REQUIREMENTS:
+- 5 questions, mixed types (NOT all the same)
+- For "fill_blank": MUST include base verb in parentheses like: "Elle _____ (avoir) un chat."
+- For "listening": MUST include "audio_text" field with exact French text for TTS
+- Do NOT show answer (except base verb for fill_blank)
 
 ```json
 {{
@@ -133,7 +141,7 @@ CRITICAL GRAMMAR REQUIREMENTS:
   "grammar": {{
     "target_form": "Name of the grammar structure",
     "complexity_rating": 1-10,
-    "explanation": "A SINGLE STRING with 5 FULL paragraphs separated by \\n\\n. Paragraph 1: Definition & importance. Paragraph 2: English comparison & difficulties for English speakers. Paragraph 3: Complete form breakdown for EACH pronoun/case individually. Paragraph 4: Real-world usage scenarios (at least 2). Paragraph 5: Common mistakes & how to avoid them (at least 2 errors). MINIMUM 400 words total.",
+    "explanation": "A SINGLE STRING with 5 FULL paragraphs separated by \\n\\n. CRITICAL: Write a comprehensive, original explanation. NOT a table or summary — provide DETAILED explanation. Paragraph 1: Definition & importance. Paragraph 2: English comparison & difficulties for English speakers. Paragraph 3: Complete form breakdown for EACH pronoun/case individually. Paragraph 4: Real-world usage scenarios (at least 2). Paragraph 5: Common mistakes & how to avoid them (at least 2 errors). MINIMUM 400 words total. Do NOT simply reference any table from the curriculum — create new, detailed explanatory text.",
     "conjugation_table": {{
       "headers": ["pronoun", "form", "english", "example", "example_translation"],
       "rows": [
@@ -186,12 +194,15 @@ CRITICAL GRAMMAR REQUIREMENTS:
       {{
         "id": "q1",
         "type": "conjugation|translation|fill_blank|multiple_choice|error_detection",
-        "question": "Question text with blank (___) or parentheses — do NOT reveal the answer in the question",
+        "question": "Question text with blank (___) — For fill_blank type ONLY: MUST include base verb(s) in parentheses like: Elle _____ (avoir) un chat. Do NOT reveal the answer but DO show the infinitive form so student knows what to conjugate. For other types, do NOT reveal the answer in the question.",
+        "base_verb": "REQUIRED for fill_blank type: the infinitive form(s) to conjugate, e.g. 'avoir', 'aller', 'être et avoir' — extracted from parentheses in question",
         "options": ["option1", "option2", "option3", "option4"],
         "correct_answer": "the correct option exactly as it appears in options",
-        "explanation": "Why this is correct. For wrong options, briefly explain why they're wrong."
+        "explanation": "Why this is correct. For wrong options, briefly explain why they're wrong.",
+        "audio_text": "ONLY for listening questions: the exact French text to be read by TTS (no audio files)"
       }}
       // 5 questions total. MUST mix question types (not all the same type).
+      // CRITICAL FOR FILL_BLANK: Always include base verb in parentheses within the question text
     ]
   }},
   
@@ -245,6 +256,7 @@ CRITICAL GRAMMAR REQUIREMENTS:
 ## CONJUGATION TABLE: Include ALL pronoun forms with a UNIQUE contextual example sentence per row
 
 ## QUIZ: 5 questions, mix types (NOT all the same), do NOT show answer in question text
+## LISTENING QUESTIONS: include an "audio_text" field with the exact French text for TTS playback (text only, no audio links/files)
 
 ## VOCABULARY: Include ALL words from curriculum with pronunciation tips, example sentences, and usage notes
 
@@ -626,59 +638,47 @@ def get_lesson_generation_prompt(
 
 
 def _format_curriculum_for_display(curriculum_data: dict) -> str:
-    """Format curriculum data as a readable string for prompt inclusion."""
+    """Format curriculum data as a CONCISE readable string for prompt inclusion."""
     parts = []
     
     parts.append(f"**Theme**: {curriculum_data.get('theme', 'N/A')}")
     parts.append(f"**Level**: {curriculum_data.get('level', 'N/A')}")
     
-    parts.append("\n**Learning Outcomes:**")
-    for outcome in curriculum_data.get('learning_outcomes', []):
-        parts.append(f"- {outcome}")
+    if curriculum_data.get('learning_outcomes'):
+        parts.append("\n**Learning Objectives:**")
+        for outcome in curriculum_data.get('learning_outcomes', [])[:2]:  # Only first 2
+            parts.append(f"- {outcome}")
     
     grammar = curriculum_data.get('grammar_target', {})
     parts.append(f"\n**Grammar Target**: {grammar.get('form', 'N/A')}")
     parts.append(f"**Complexity**: {grammar.get('complexity', 5)}/10")
 
-    # Include scaffolding steps for grammar depth
+    # Include ONLY the scaffolding steps, NOT full examples (save tokens)
     scaffolding = grammar.get('scaffolding', [])
     if scaffolding:
-        parts.append("**Scaffolding Steps:**")
-        for i, step in enumerate(scaffolding, 1):
-            parts.append(f"  {i}. {step}")
+        parts.append("**Key Teaching Steps:**")
+        for step in scaffolding[:3]:  # Only first 3 steps
+            parts.append(f"- {step[:120]}")  # Truncate each step
 
-    if grammar.get('examples'):
-        parts.append("**Curriculum Examples:**")
-        for ex in grammar.get('examples', []):
-            parts.append(f"- {ex}")
-    
     vocab = curriculum_data.get('vocabulary_set', [])
-    parts.append(f"\n**Vocabulary** ({len(vocab)} words) — YOU MUST INCLUDE ALL OF THESE:")
+    parts.append(f"\n**Vocabulary** ({len(vocab)} words) - MUST INCLUDE ALL:")
+    # Just list the words without definitions to save tokens
+    word_list = []
     for item in vocab:
         word = item.get('word', item) if isinstance(item, dict) else item
-        definition = item.get('definition', '') if isinstance(item, dict) else ''
-        if definition:
-            parts.append(f"- {word} – {definition}")
-        else:
-            parts.append(f"- {word}")
+        word_list.append(word)
+    parts.append(", ".join(word_list[:20]))  # Max 20 words shown
+    if len(word_list) > 20:
+        parts.append(f"... and {len(word_list) - 20} more")
     
     speaking = curriculum_data.get('speaking_scenario', {})
     parts.append(f"\n**Speaking Scenario**: {speaking.get('domain', 'N/A')}")
-    if speaking.get('example_interaction'):
-        parts.append("**Example Interaction:**")
-        interactions = speaking.get('example_interaction', [])
-        if isinstance(interactions, list):
-            for line in interactions[:6]:
-                parts.append(f"  {line}")
-        else:
-            parts.append(f"  {interactions}")
+    if speaking.get('instructions'):
+        parts.append(f"**Instructions**: {str(speaking['instructions'])[:150]}")
     
-    homework = curriculum_data.get('homework_task', {})
-    parts.append(f"\n**Homework Type**: {homework.get('type', 'N/A')}")
-    if homework.get('task_description'):
-        parts.append(f"**Homework Task**: {homework.get('task_description')}")
+    # Skip homework and reading/listening details to save tokens
     
-    return '\n'.join(parts)
+    return "\n".join(parts)
 
 
 def get_homework_evaluation_prompt(

@@ -192,8 +192,8 @@ def generate_vocab_question(vocab_item: dict, lesson_id: str, vocab_pool: list[d
 
 # ===== AI Functions (Gemini) =====
 
-def get_gemini_client():
-    """Get or initialize Gemini client"""
+def get_gemini_model(model_name: str = "gemini-2.5-flash"):
+    """Get or initialize Gemini model"""
     global genai
     if genai is None:
         try:
@@ -205,17 +205,19 @@ def get_gemini_client():
         except ImportError:
             print("[ERROR] google-generativeai not installed")
             return None
-    return genai
+    if genai is None:
+        return None
+    return genai.GenerativeModel(model_name)
 
 
 def call_gemini_json(prompt: str, model: str = "gemini-2.5-flash") -> Optional[Dict[str, Any]]:
     """Call Gemini API and parse JSON response safely"""
     try:
-        client = get_gemini_client()
-        if not client:
+        model = get_gemini_model(model)
+        if not model:
             return None
-        
-        response = client.models.generate_content(contents=prompt, model=model)
+
+        response = model.generate_content(prompt)
         text = response.text.strip()
         return json.loads(text)
     except json.JSONDecodeError:
@@ -228,8 +230,8 @@ def call_gemini_json(prompt: str, model: str = "gemini-2.5-flash") -> Optional[D
 
 def get_ai_speaking_feedback(transcribed_text: str, scenario: str, targets: List[str]) -> str:
     """Generate AI feedback for speaking practice"""
-    client = get_gemini_client()
-    if not client:
+    model = get_gemini_model("gemini-2.5-flash")
+    if not model:
         return "⚠️ API not configured"
     
     try:
@@ -247,7 +249,7 @@ Provide concise feedback in French only:
 
 Keep it under 80 words."""
         
-        response = client.models.generate_content(contents=prompt, model="gemini-2.5-flash")
+        response = model.generate_content(prompt)
         return f"📝 Votre réponse: {transcribed_text}\n\n🤖 Retour:\n{response.text}"
     except Exception as e:
         return f"❌ Feedback error: {str(e)}"

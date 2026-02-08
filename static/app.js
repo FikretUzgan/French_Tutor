@@ -15,7 +15,10 @@ const AppState = {
     isDevMode: false,
     startingLevel: null,
     currentLevel: null,
-    isWaitingForLevel: false
+    isWaitingForLevel: false,
+    returnLessonModal: null,
+    lessonScenarioPrompt: '',
+    lessonScenarioTargets: []
 };
 
 // Scenario targets mapping
@@ -23,7 +26,8 @@ const SCENARIO_TARGETS = {
     cafe: ['Order a coffee', 'Ask for the bill', 'Request the WiFi password'],
     shop: ['Ask for the price', 'Request a different size', 'Pay for items'],
     restaurant: ['Order a meal', 'Ask for recommendations', 'Request the check'],
-    hotel: ['Check in', 'Ask about amenities', 'Request room service']
+    hotel: ['Check in', 'Ask about amenities', 'Request room service'],
+    lesson: []
 };
 
 // DOM Elements
@@ -116,6 +120,8 @@ function setupTabs() {
                 loadCurriculumDashboard();
             } else if (tabName === 'lessons') {
                 setupLessonGeneration();
+            } else if (tabName === 'speaking') {
+                applyLessonScenarioToSpeakingTab();
             }
         });
     });
@@ -264,6 +270,10 @@ function displayGeneratedLesson(lesson) {
         || lesson.speaking?.scenario_domain
         || '';
 
+    AppState.lessonScenarioPrompt = speakingPrompt;
+    AppState.lessonScenarioTargets = Array.isArray(speakingTargets) ? speakingTargets : [];
+    SCENARIO_TARGETS.lesson = AppState.lessonScenarioTargets;
+
     const interactiveLesson = {
         title: lesson.theme || 'Lesson',
         level: lesson.level,
@@ -325,17 +335,77 @@ function renderConjugationTable(table) {
 }
 
 function showSpeakingPractice() {
-    // Close the lesson modal
     if (window.currentLessonModal) {
-        window.currentLessonModal.remove();
+        AppState.returnLessonModal = window.currentLessonModal;
+        window.currentLessonModal.style.display = 'none';
     }
-    // Then switch to speaking tab
+
+    const lessonSpeaking = window.currentLessonModal?.lesson?.content?.speaking || {};
+    const lessonPrompt = lessonSpeaking.prompt || lessonSpeaking.scenario_prompt || lessonSpeaking.scenario_context || lessonSpeaking.scenario_domain || '';
+    const lessonTargets = Array.isArray(lessonSpeaking.targets) && lessonSpeaking.targets.length > 0
+        ? lessonSpeaking.targets
+        : (Array.isArray(lessonSpeaking.target_phrases) ? lessonSpeaking.target_phrases : []);
+
+    AppState.lessonScenarioPrompt = lessonPrompt;
+    AppState.lessonScenarioTargets = lessonTargets;
+    SCENARIO_TARGETS.lesson = lessonTargets;
+
     setTimeout(() => {
         const speakingTab = document.querySelector('[data-tab="speaking"]');
         if (speakingTab) {
             speakingTab.click();
         }
+        applyLessonScenarioToSpeakingTab();
     }, 100);
+}
+
+function applyLessonScenarioToSpeakingTab() {
+    const speakingTabContent = document.getElementById('speaking-tab');
+    if (!speakingTabContent) {
+        return;
+    }
+
+    const scenarioSelect = document.getElementById('scenario-select');
+    const targetsList = document.getElementById('targets-list');
+
+    if (scenarioSelect) {
+        if (!scenarioSelect.querySelector('option[value="lesson"]')) {
+            const opt = document.createElement('option');
+            opt.value = 'lesson';
+            opt.textContent = '📘 Lesson Scenario';
+            scenarioSelect.prepend(opt);
+        }
+        if (AppState.lessonScenarioPrompt || AppState.lessonScenarioTargets.length > 0) {
+            scenarioSelect.value = 'lesson';
+        }
+    }
+
+    if (targetsList && (AppState.lessonScenarioPrompt || AppState.lessonScenarioTargets.length > 0)) {
+        const targets = AppState.lessonScenarioTargets.length > 0
+            ? AppState.lessonScenarioTargets
+            : ['Greetings', 'Basic introductions'];
+        targetsList.innerHTML = targets.map(t => `<li>${t}</li>`).join('');
+    }
+
+    let returnBox = document.getElementById('return-to-lesson');
+    if (!returnBox) {
+        returnBox = document.createElement('div');
+        returnBox.id = 'return-to-lesson';
+        returnBox.className = 'return-to-lesson';
+        returnBox.innerHTML = `
+            <button class="btn-secondary" type="button">← Return to Lesson</button>
+        `;
+        const header = speakingTabContent.querySelector('h2');
+        header?.insertAdjacentElement('afterend', returnBox);
+    }
+    returnBox.style.display = AppState.returnLessonModal ? 'block' : 'none';
+    returnBox.querySelector('button')?.addEventListener('click', () => {
+        if (AppState.returnLessonModal) {
+            AppState.returnLessonModal.style.display = 'block';
+            AppState.returnLessonModal = null;
+        }
+        returnBox.style.display = 'none';
+    });
 }
 
 function playLessonTTS(text) {
@@ -354,6 +424,87 @@ function playLessonTTS(text) {
             audio.play();
         })
         .catch(error => console.error('TTS error:', error));
+}
+
+function extractQuizAnswerFromText(questionText) {
+    if (!questionText) {
+        return { cleanText: '', extractedAnswer: '' };
+    }
+
+    const separators = ['→', '->', '=>'];
+    for (const sep of separators) {
+        if (questionText.includes(sep)) {
+            const parts = questionText.split(sep);
+            const cleanText = parts[0].trim();
+            const extractedAnswer = parts.slice(1).join(sep).trim();
+            return { cleanText, extractedAnswer };
+        }
+    }
+
+    return { cleanText: questionText.trim(), extractedAnswer: '' };
+}
+
+function extractQuotedText(text) {
+    if (!text) {
+        return '';
+    }
+    const match = text.match(/["“”'‘’]([^"“”'‘’]+)["“”'‘’]/);
+    return match ? match[1].trim() : '';
+}
+
+function getQuizAudioText(questionText, question) {
+    if (question && typeof question === 'object') {
+        const audioText = question.audio_text || question.listen_text || question.tts_text || '';
+        if (audioText) {
+            return String(audioText).trim();
+        }
+    }
+    const quoted = extractQuotedText(questionText);
+    if (quoted) {
+        return quoted;
+    }
+    return questionText;
+}
+
+function normalizeQuizText(text) {
+    return String(text)
+        .toLowerCase()
+        .replace(/[.,!?;:()\[\]{}"'\s]+/g, ' ')
+        .trim();
+}
+
+function normalizeQuizQuestions(questions) {
+    if (!Array.isArray(questions)) {
+        return [];
+    }
+
+    return questions.map((question, idx) => {
+        const normalized = typeof question === 'string'
+            ? { id: idx, question: question, options: [] }
+            : { ...question };
+
+        const questionText = normalized.question || normalized.question_text || '';
+        const { cleanText, extractedAnswer } = extractQuizAnswerFromText(questionText);
+        if (cleanText) {
+            normalized.question = cleanText;
+        }
+
+        const correctAnswerRaw = normalized.correct_answer;
+        const hasCorrectAnswer = correctAnswerRaw !== undefined && correctAnswerRaw !== null && String(correctAnswerRaw).trim() !== '';
+        if (!hasCorrectAnswer && extractedAnswer) {
+            normalized.correct_answer = extractedAnswer;
+        }
+
+        if (Array.isArray(normalized.options) && normalized.options.length > 0) {
+            const answerValue = normalized.correct_answer;
+            const numericAnswer = Number.parseInt(answerValue, 10);
+            if (!Number.isNaN(numericAnswer) && numericAnswer >= 0 && numericAnswer < normalized.options.length) {
+                normalized.correct_answer = normalized.options[numericAnswer];
+            }
+        }
+
+        return normalized;
+    });
 }
 
 function showQuiz() {
@@ -475,7 +626,10 @@ function setupSpeaking() {
     
     // Update targets when scenario changes
     scenarioSelect.addEventListener('change', () => {
-        const targets = SCENARIO_TARGETS[scenarioSelect.value];
+        const scenarioValue = scenarioSelect.value;
+        const targets = scenarioValue === 'lesson'
+            ? (AppState.lessonScenarioTargets.length > 0 ? AppState.lessonScenarioTargets : ['Greetings', 'Basic introductions'])
+            : (SCENARIO_TARGETS[scenarioValue] || []);
         targetsList.innerHTML = targets.map(t => `<li>${t}</li>`).join('');
     });
     
@@ -558,8 +712,13 @@ function setupSpeaking() {
             const { transcription } = await transcribeResponse.json();
             
             // Get AI feedback
-            const scenario = scenarioSelect.value;
-            const targets = SCENARIO_TARGETS[scenario];
+            const scenarioValue = scenarioSelect.value;
+            const scenario = scenarioValue === 'lesson'
+                ? (AppState.lessonScenarioPrompt || 'Lesson speaking practice')
+                : scenarioValue;
+            const targets = scenarioValue === 'lesson'
+                ? (AppState.lessonScenarioTargets.length > 0 ? AppState.lessonScenarioTargets : ['Greetings', 'Basic introductions'])
+                : (SCENARIO_TARGETS[scenarioValue] || []);
             
             const feedbackResponse = await fetch(`${API_BASE}/api/speaking/feedback`, {
                 method: 'POST',
@@ -1217,6 +1376,10 @@ function createLessonModal(lesson) {
                 </button>
             </div>
         `;
+
+        if (section === 'speaking') {
+            setupEmbeddedSpeaking(lessonContent, lesson.content.speaking);
+        }
     };
     
     // Store functions on modal for access
@@ -1315,12 +1478,22 @@ function createInteractiveGrammar(grammarContent) {
     
     // Handle string content
     if (typeof grammarContent === 'string' && grammarContent.trim()) {
-        html += `<div class="grammar-explanation"><p>${grammarContent}</p></div>`;
+        const paragraphs = grammarContent.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+        html += '<div class="grammar-explanation">';
+        paragraphs.forEach(p => {
+            html += `<p>${p}</p>`;
+        });
+        html += '</div>';
         hasContent = true;
     } else if (typeof grammarContent === 'object' && grammarContent !== null) {
         // Handle object with explanation
         if (grammarContent.explanation && grammarContent.explanation.trim()) {
-            html += `<div class="grammar-explanation"><p>${grammarContent.explanation}</p></div>`;
+            const paragraphs = grammarContent.explanation.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+            html += '<div class="grammar-explanation">';
+            paragraphs.forEach(p => {
+                html += `<p>${p}</p>`;
+            });
+            html += '</div>';
             hasContent = true;
         }
         
@@ -1344,8 +1517,19 @@ function createInteractiveGrammar(grammarContent) {
             html += '<h4>Examples:</h4>';
             html += '<ul>';
             grammarContent.examples.forEach(ex => {
-                if (ex && typeof ex === 'string') {
-                    html += `<li><strong>${ex}</strong></li>`;
+                if (!ex) {
+                    return;
+                }
+                if (typeof ex === 'string') {
+                    const ttsText = ex.replace(/\([^)]*\)/g, '').trim();
+                    html += `<li><strong>${ex}</strong> <button class="btn-secondary btn-listen-inline" onclick="playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">🔊 Listen</button></li>`;
+                } else if (typeof ex === 'object') {
+                    const french = ex.french || ex.text || ex.example || '';
+                    const english = ex.english || ex.translation || '';
+                    const ttsText = french.replace(/\([^)]*\)/g, '').trim();
+                    if (french) {
+                        html += `<li><strong>${french}</strong>${english ? ` <span class="muted">(${english})</span>` : ''} <button class="btn-secondary btn-listen-inline" onclick="playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">🔊 Listen</button></li>`;
+                    }
                 }
             });
             html += '</ul></div>';
@@ -1382,16 +1566,17 @@ function createInteractiveVocabulary(vocabContent) {
                 return item;
             } else if (typeof item === 'object') {
                 // Try to find a property that might be the word/text
-                const text = item.text || item.phrase || item.example || item.french || Object.values(item).find(v => typeof v === 'string') || '';
-                return { front: text, back: '', pronunciation: '' };
+                const text = item.word || item.front || item.french || item.text || item.phrase || item.example || Object.values(item).find(v => typeof v === 'string') || '';
+                const back = item.definition || item.english || item.translation || '';
+                return { front: text || back, back: back, pronunciation: item.pronunciation_tip || item.pronunciation || '' };
             }
             return { front: String(item), back: '', pronunciation: '' };
         });
     } else if (typeof vocabContent === 'object' && vocabContent.words) {
         // Object with words property
         vocabItems = vocabContent.words.map(item => ({
-            front: item.word || item.text || item.phrase || '',
-            back: item.definition || item.context_example || '',
+            front: item.word || item.text || item.phrase || item.french || item.front || item.definition || '',
+            back: item.definition || item.context_example || item.english || item.translation || '',
             pronunciation: item.pronunciation_tip || item.pronunciation || ''
         }));
     } else if (typeof vocabContent === 'string') {
@@ -1399,8 +1584,14 @@ function createInteractiveVocabulary(vocabContent) {
         vocabItems = [{ front: vocabContent, back: '', pronunciation: '' }];
     }
     
-    // Filter out items with no front text
-    vocabItems = vocabItems.filter(item => item && item.front && item.front.trim().length > 0);
+    // Ensure front text exists for each item
+    vocabItems = vocabItems.map(item => {
+        if (!item) {
+            return item;
+        }
+        const front = item.front && item.front.trim().length > 0 ? item.front : (item.back || '');
+        return { ...item, front };
+    }).filter(item => item && item.front && item.front.trim().length > 0);
     
     if (!vocabItems || vocabItems.length === 0) {
         return '<p>No vocabulary content available.</p>';
@@ -1480,13 +1671,154 @@ function createInteractiveSpeaking(speakingContent) {
     }
     
     html += `
-    <div class="speaking-practice-box">
-        <button class="btn-primary btn-large" onclick="showSpeakingPractice()">Open Speaking Practice</button>
-        <p class="speaking-hint">Use the Push-to-Talk button on the Speaking tab.</p>
+    <div class="speaking-practice-embedded">
+        <div class="speaking-controls">
+            <button class="btn-primary btn-large embedded-ptt-btn" type="button">Hold to Speak</button>
+            <span class="embedded-recording-status" style="display: none;"></span>
+        </div>
+        <div class="embedded-feedback-box" style="display: none;">
+            <p class="embedded-feedback-label"><strong>Feedback</strong></p>
+            <div class="embedded-feedback-content"></div>
+            <button class="btn-secondary embedded-play-feedback" type="button" style="display: none;">🔊 Play Feedback</button>
+        </div>
     </div>
     `;
     html += '</div>';
     return html;
+}
+
+function setupEmbeddedSpeaking(container, speakingContent) {
+    const speakingRoot = container.querySelector('.speaking-practice-embedded');
+    if (!speakingRoot) {
+        return;
+    }
+
+    const pttBtn = speakingRoot.querySelector('.embedded-ptt-btn');
+    const statusEl = speakingRoot.querySelector('.embedded-recording-status');
+    const feedbackBox = speakingRoot.querySelector('.embedded-feedback-box');
+    const feedbackContent = speakingRoot.querySelector('.embedded-feedback-content');
+    const playBtn = speakingRoot.querySelector('.embedded-play-feedback');
+
+    const scenario = speakingContent?.scenario_prompt
+        || speakingContent?.prompt
+        || speakingContent?.scenario_context
+        || speakingContent?.scenario_domain
+        || 'Speaking practice';
+
+    const targets = Array.isArray(speakingContent?.targets) && speakingContent.targets.length > 0
+        ? speakingContent.targets
+        : (Array.isArray(speakingContent?.target_phrases) ? speakingContent.target_phrases : []);
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioStream = null;
+    let isRecording = false;
+    let lastFeedback = '';
+
+    const startRecording = async () => {
+        if (isRecording) {
+            return;
+        }
+        try {
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(audioStream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                await processAudio(audioBlob);
+                audioStream?.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            pttBtn.classList.add('active');
+            statusEl.textContent = '🎤 Recording...';
+            statusEl.style.display = 'inline-block';
+        } catch (error) {
+            statusEl.textContent = '❌ Microphone access denied';
+            statusEl.style.display = 'inline-block';
+            console.error('Embedded speaking error:', error);
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            pttBtn.classList.remove('active');
+            statusEl.textContent = '⏳ Processing...';
+        }
+    };
+
+    const processAudio = async (audioBlob) => {
+        try {
+            const formData = new FormData();
+            formData.append('audio_file', audioBlob, 'recording.wav');
+
+            const transcribeResponse = await fetch(`${API_BASE}/api/audio/transcribe`, {
+                method: 'POST',
+                body: formData
+            });
+            const { transcription } = await transcribeResponse.json();
+
+            const feedbackResponse = await fetch(`${API_BASE}/api/speaking/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    scenario: scenario,
+                    targets: targets,
+                    transcribed_text: transcription
+                })
+            });
+            const { feedback } = await feedbackResponse.json();
+
+            lastFeedback = feedback || '';
+            feedbackContent.textContent = lastFeedback || 'No feedback returned.';
+            feedbackBox.style.display = 'block';
+            playBtn.style.display = lastFeedback ? 'inline-block' : 'none';
+            statusEl.textContent = '✅ Done!';
+        } catch (error) {
+            statusEl.textContent = '❌ Error processing audio';
+            console.error('Embedded speaking processing error:', error);
+        }
+    };
+
+    const playFeedback = async () => {
+        if (!lastFeedback) {
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE}/api/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: lastFeedback, lang: 'fr' })
+            });
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        } catch (error) {
+            console.error('Embedded speaking TTS error:', error);
+        }
+    };
+
+    pttBtn.addEventListener('mousedown', startRecording);
+    pttBtn.addEventListener('mouseup', stopRecording);
+    pttBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startRecording();
+    });
+    pttBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        stopRecording();
+    });
+    playBtn.addEventListener('click', playFeedback);
 }
 
 function createInteractiveQuiz(quizContent) {
@@ -1500,13 +1832,15 @@ function createInteractiveQuiz(quizContent) {
         // Simple array of question strings
         questions = quizContent.map((q, idx) => ({
             id: idx,
-            question: typeof q === 'string' ? q : (q.question || ''),
+            question: typeof q === 'string' ? q : (q.question || q.question_text || ''),
             options: q.options || []
         }));
     } else if (quizContent.questions && Array.isArray(quizContent.questions)) {
         // Structured quiz with questions array
         questions = quizContent.questions;
     }
+
+    questions = normalizeQuizQuestions(questions);
     
     if (questions.length === 0) {
         return '<p>No quiz questions available.</p>';
@@ -1518,22 +1852,31 @@ function createInteractiveQuiz(quizContent) {
     
     questions.forEach((question, idx) => {
         const questionId = `quiz-q${idx}`;
-        const questionText = typeof question === 'string' ? question : (question.question || '');
+        const questionText = typeof question === 'string' ? question : (question.question || question.question_text || '');
         const options = question.options || [];
+        const questionTts = getQuizAudioText(questionText, question).replace(/\([^)]*\)/g, '').trim();
+        const listenButton = questionTts
+            ? ` <button class="btn-secondary btn-listen-inline" onclick="playLessonTTS('${questionTts.replace(/'/g, "&#39;")}')">🔊 Listen</button>`
+            : '';
         
         html += `
         <div class="quiz-question-interactive" data-question="${idx}">
-            <h4>${idx + 1}. ${questionText}</h4>
+            <h4>${idx + 1}. ${questionText}${listenButton}</h4>
         `;
         
         if (options && Array.isArray(options) && options.length > 0) {
             html += '<div class="quiz-options-interactive">';
             options.forEach((option, optIdx) => {
                 const optionId = `${questionId}-opt${optIdx}`;
+                const optionTts = String(option).replace(/\([^)]*\)/g, '').trim();
+                const optionListen = optionTts
+                    ? `<button class="btn-secondary btn-listen-inline" onclick="event.preventDefault(); event.stopPropagation(); playLessonTTS('${optionTts.replace(/'/g, "&#39;")}')">🔊</button>`
+                    : '';
                 html += `
                 <label class="quiz-option-label">
                     <input type="radio" name="${questionId}" value="${optIdx}" class="quiz-option-input">
                     <span class="quiz-option-text">${option}</span>
+                    ${optionListen}
                 </label>
                 `;
             });
@@ -1587,6 +1930,8 @@ function submitQuiz() {
     } else if (questions.questions && Array.isArray(questions.questions)) {
         questionArray = questions.questions;
     }
+
+    questionArray = normalizeQuizQuestions(questionArray);
     
     if (questionArray.length === 0) {
         alert('No questions to grade');
@@ -1639,25 +1984,31 @@ function submitQuiz() {
         
         // Get the correct answer
         if (question.correct_answer !== undefined && question.correct_answer !== null) {
-            correctAnswer = String(question.correct_answer);
+            correctAnswer = String(question.correct_answer).trim();
             
             // Handle multiple choice (studentAnswer is an index, correct_answer could be index or value)
             if (question.options && Array.isArray(question.options)) {
                 let correctIdx = -1;
-                
-                // If correct_answer is a number, use it as index
-                if (typeof correctAnswer === 'number' || !isNaN(correctAnswer)) {
-                    correctIdx = parseInt(correctAnswer);
+                const numericAnswer = Number.parseInt(correctAnswer, 10);
+                if (!Number.isNaN(numericAnswer) && numericAnswer >= 0 && numericAnswer < question.options.length) {
+                    correctIdx = numericAnswer;
+                    correctAnswer = String(question.options[correctIdx]);
                 } else {
-                    // Find the index of matching option
                     correctIdx = question.options.findIndex(opt => 
-                        String(opt).toLowerCase().trim() === String(correctAnswer).toLowerCase().trim()
+                        normalizeQuizText(opt) === normalizeQuizText(correctAnswer)
                     );
                 }
+
+                if (correctIdx >= 0 && question.options[correctIdx] !== undefined) {
+                    correctAnswer = String(question.options[correctIdx]);
+                }
                 
-                // Compare student answer index with correct index
-                const studentIdx = parseInt(studentAnswer);
-                if (studentIdx === correctIdx) {
+                const studentIdx = Number.parseInt(studentAnswer, 10);
+                const studentOption = (!Number.isNaN(studentIdx) && question.options[studentIdx] !== undefined)
+                    ? String(question.options[studentIdx])
+                    : '';
+
+                if (studentIdx === correctIdx || (studentOption && normalizeQuizText(studentOption) === normalizeQuizText(correctAnswer))) {
                     score++;
                     isCorrect = true;
                 }
@@ -1675,8 +2026,8 @@ function submitQuiz() {
                 });
             } else {
                 // Free text answer - flexible matching
-                const studentNorm = String(studentAnswer).toLowerCase().trim().replace(/[.,!?;:\s]+/g, ' ');
-                const correctNorm = String(correctAnswer).toLowerCase().trim().replace(/[.,!?;:\s]+/g, ' ');
+                const studentNorm = normalizeQuizText(studentAnswer);
+                const correctNorm = normalizeQuizText(correctAnswer);
                 
                 if (studentNorm === correctNorm) {
                     score++;
@@ -1694,11 +2045,15 @@ function submitQuiz() {
             correctAnswer = 'Not specified';
         }
         
+        const displayCorrectAnswer = correctAnswer && correctAnswer.trim().length > 0
+            ? correctAnswer
+            : 'Not specified';
+
         results.push({
             index: idx,
             question: question.question || String(question),
             studentAnswer: studentAnswer,
-            correctAnswer: correctAnswer,
+            correctAnswer: displayCorrectAnswer,
             isCorrect: isCorrect
         });
     });
@@ -1716,7 +2071,7 @@ function submitQuiz() {
             <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
                 <p style="margin: 5px 0;"><strong>${icon} Question ${result.index + 1}:</strong> ${result.question}</p>
                 <p style="margin: 5px 0;"><strong>Your Answer:</strong> ${result.studentAnswer}</p>
-                ${!result.isCorrect ? `<p style="margin: 5px 0; color: #28a745;"><strong>✓ Correct Answer:</strong> ${result.correctAnswer}</p>` : ''}
+                ${!result.isCorrect ? `<p style="margin: 5px 0; color: #28a745;"><strong>✓ Correct Answer:</strong> ${result.correctAnswer || 'Not specified'}</p>` : ''}
             </div>
         `;
     });

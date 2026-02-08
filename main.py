@@ -25,7 +25,6 @@ import db_exams
 import db_srs
 import db_utils
 import google.generativeai as genai
-from google.generativeai import types
 import whisper
 from gtts import gTTS
 try:
@@ -225,11 +224,9 @@ Student said: "{transcribed_text}"
 
     Keep it under 100 words, be supportive. Do not use any English words."""
         
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt
-        )
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(prompt)
         feedback_text = response.text.strip()
         return f"📝 Ta reponse: {transcribed_text}\n\n🤖 Retour du tuteur:\n{feedback_text}"
     
@@ -262,7 +259,8 @@ def evaluate_homework_ai(homework_text: str, audio_path: Optional[str] = None) -
         }
     
     try:
-        client = genai.Client(api_key=api_key)
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # STEP 1: Evaluate text submission
         text_eval_prompt = f"""You are a strict French language teacher evaluating homework.
@@ -472,10 +470,7 @@ Make sure:
 - Speaking scenario is realistic and engaging
 - Homework requires both writing and audio recording"""
         
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=lesson_prompt
-        )
+        response = model.generate_content(lesson_prompt)
         
         try:
             lesson_data = json.loads(response.text.strip())
@@ -526,7 +521,8 @@ def generate_exam_ai(level: str, week_number: int) -> Dict[str, Any]:
         }
     
     try:
-        client = genai.Client(api_key=api_key)
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         exam_prompt = f"""You are creating a French language exam for level {level}, week {week_number}.
 
@@ -558,10 +554,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
 
 Make questions realistic and fair."""
         
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=exam_prompt
-        )
+        response = model.generate_content(exam_prompt)
         
         try:
             exam_data = json.loads(response.text.strip())
@@ -609,7 +602,8 @@ def grade_exam_ai(questions: List[Dict[str, Any]], student_answers: Dict[str, st
         }
     
     try:
-        client = genai.Client(api_key=api_key)
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Format questions and answers for grading
         grading_data = []
@@ -650,10 +644,7 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
 
 Pass if overall >= 70% AND all critical topics >= 70%."""
         
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=grade_prompt
-        )
+        response = model.generate_content(grade_prompt)
         
         try:
             grading_result = json.loads(response.text.strip())

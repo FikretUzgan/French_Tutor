@@ -8,10 +8,12 @@ Handles curriculum loading, prompt building, API calls, and fallback logic.
 import json
 import logging
 import random
+import re
 from typing import Dict, Optional, Any, Tuple
 from datetime import datetime, timezone
 import google.generativeai as genai
 from pathlib import Path
+import os
 
 import curriculum_loader
 import prompt_builders
@@ -19,6 +21,21 @@ import db
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Configure Gemini API key
+_API_KEY_CONFIGURED = False
+
+def _ensure_api_configured():
+    """Ensure Gemini API key is configured before making API calls."""
+    global _API_KEY_CONFIGURED
+    if not _API_KEY_CONFIGURED:
+        api_key = os.getenv('GEMINI_API_KEY')
+        if api_key:
+            genai.configure(api_key=api_key)
+            _API_KEY_CONFIGURED = True
+            logger.info("Gemini API key configured from GEMINI_API_KEY environment variable")
+        else:
+            logger.warning("GEMINI_API_KEY environment variable not set")
 
 
 class LessonGenerationError(Exception):
@@ -125,16 +142,16 @@ def generate_lesson_from_curriculum(
             variation_seed=variation_seed
         )
         
-        # Validate token budget
+        # Validate token budget (but don't fail, just warn)
         token_info = prompt_builders.validate_prompt_token_budget(
             system_prompt=system_prompt,
             lesson_prompt=lesson_prompt,
-            max_total_tokens=3000
+            max_total_tokens=4000  # Increased from 3000 to 4000
         )
         logger.info(f"Token usage: {token_info['total_tokens']} / {token_info['max_allowed']}")
         
         if not token_info['fits_budget']:
-            logger.warning(f"Prompt exceeds token budget: {token_info['warning']}")
+            logger.warning(f"Prompt token usage: {token_info['total_tokens']} (budget: {token_info['max_allowed']})")
             # For now, continue anyway - Gemini can handle more
         
         # Step 5: Call Gemini API with dynamic temperature based on attempt
@@ -169,10 +186,11 @@ def generate_lesson_from_curriculum(
         return lesson_dict, True
         
     except Exception as e:
-        logger.error(f"Error generating lesson: {str(e)}", exc_info=True)
+        error_msg = str(e)
+        logger.error(f"Error generating lesson: {error_msg}", exc_info=True)
         
         if fallback_on_error:
-            logger.info("Using fallback lesson")
+            logger.warning(f"Falling back to curriculum-based lesson. Error was: {error_msg}")
             fallback_lesson = _create_fallback_lesson(
                 week_number=week_number,
                 day_number=day_number,
@@ -207,10 +225,11 @@ def _call_gemini_for_lesson(
     lesson_prompt: str,
     temperature: float = 0.7,
     max_tokens: int = 2000,
-    timeout_seconds: int = 30
+    timeout_seconds: int = 30,
+    max_retries: int = 2
 ) -> Tuple[str, float]:
     """
-    Call Gemini API to generate a lesson.
+    Call Gemini API to generate a lesson with retry logic.
     
     Args:
         system_prompt: System context prompt
@@ -218,6 +237,7 @@ def _call_gemini_for_lesson(
         temperature: Sampling temperature (0.0-2.0, default 0.7 for balance)
         max_tokens: Maximum tokens in response
         timeout_seconds: API timeout
+        max_retries: Number of retries if response is empty
     
     Returns:
         Tuple of (lesson_json_string, duration_seconds)
@@ -228,32 +248,44 @@ def _call_gemini_for_lesson(
     import time
     
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        # Ensure API is configured
+        _ensure_api_configured()
         
-        # Combine prompts
-        full_prompt = f"{system_prompt}\n\n{lesson_prompt}"
-        
-        start_time = time.time()
-        
-        # Make the API call
-        response = model.generate_content(
-            full_prompt,
-            generation_config={
-                'temperature': temperature,
-                'max_output_tokens': max_tokens,
-                'top_p': 0.95,
-                'top_k': 64,
-            }
-        )
-        
-        duration = time.time() - start_time
-        
-        logger.info(f"Gemini API call completed in {duration:.2f}s")
-        
-        # Extract response text
-        response_text = response.text
-        
-        return response_text, duration
+        for attempt in range(max_retries + 1):
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            
+            # Combine prompts
+            full_prompt = f"{system_prompt}\n\n{lesson_prompt}"
+            
+            start_time = time.time()
+            
+            # Make the API call
+            response = model.generate_content(
+                full_prompt,
+                generation_config={
+                    'temperature': temperature,
+                    'max_output_tokens': max_tokens,
+                    'top_p': 0.95,
+                    'top_k': 64,
+                }
+            )
+            
+            duration = time.time() - start_time
+            
+            # Extract response text
+            response_text = response.text if response else ""
+            
+            # Check if response is empty
+            if response_text and response_text.strip():
+                logger.info(f"Gemini API call completed in {duration:.2f}s (attempt {attempt + 1})")
+                return response_text, duration
+            else:
+                if attempt < max_retries:
+                    logger.warning(f"Empty response from Gemini (attempt {attempt + 1}/{max_retries + 1}), retrying...")
+                    time.sleep(1)  # Brief delay before retry
+                else:
+                    logger.error(f"Gemini returned empty response after {max_retries + 1} attempts")
+                    raise Exception("Gemini API returned empty response")
         
     except Exception as e:
         logger.error(f"Gemini API call failed: {str(e)}")
@@ -320,6 +352,21 @@ def _validate_lesson_json(response_text: str) -> Dict[str, Any]:
         questions = quiz.get('questions', [])
         if len(questions) < 3:
             raise ValueError(f"Quiz has only {len(questions)} questions; expected 4-5")
+
+        # Normalize quiz question text and answers
+        for question in questions:
+            _normalize_quiz_question(question)
+            
+            # Validate listening questions have audio_text
+            if _is_listening_question(question) and not question.get("audio_text"):
+                raise ValueError("Listening quiz question missing audio_text")
+            
+            # Warn about fill-in-the-blank questions without base verb (but don't fail)
+            if _is_fill_blank_question(question) and not question.get("base_verb"):
+                logger.warning(
+                    f"Fill-in-the-blank question missing base verb. "
+                    f"Question: {question.get('question', 'N/A')}"
+                )
         
         # Validate homework section
         homework = lesson_dict.get('homework', {})
@@ -335,6 +382,90 @@ def _validate_lesson_json(response_text: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Lesson validation failed: {str(e)}")
         raise
+
+
+def _extract_answer_from_question_text(question_text: str) -> Tuple[str, Optional[str]]:
+    if not question_text:
+        return "", None
+
+    separators = ["→", "->", "=>"]
+    for sep in separators:
+        if sep in question_text:
+            parts = question_text.split(sep)
+            clean_text = parts[0].strip()
+            extracted = sep.join(parts[1:]).strip()
+            return clean_text, extracted if extracted else None
+
+    return question_text.strip(), None
+
+
+def _normalize_quiz_question(question: Dict[str, Any]) -> None:
+    question_text = question.get("question") or question.get("question_text") or ""
+    clean_text, extracted_answer = _extract_answer_from_question_text(question_text)
+
+    if clean_text:
+        question["question"] = clean_text
+
+    correct_answer = question.get("correct_answer")
+    if (correct_answer is None or str(correct_answer).strip() == "") and extracted_answer:
+        question["correct_answer"] = extracted_answer
+
+    # For fill-in-the-blank questions: extract and store base verb(s)
+    if _is_fill_blank_question(question):
+        base_verb = _extract_base_verb_from_question(question_text)
+        if base_verb:
+            question["base_verb"] = base_verb
+
+    audio_text = question.get("audio_text") or question.get("listen_text") or question.get("tts_text")
+    if not audio_text and _is_listening_question(question):
+        quoted = re.search(r"[\"“”'‘’]([^\"“”'‘’]+)[\"“”'‘’]", question_text)
+        if quoted:
+            question["audio_text"] = quoted.group(1).strip()
+        else:
+            # Fallback: use trailing clause after ':' if present
+            if ":" in question_text:
+                tail = question_text.split(":", 1)[1].strip()
+                if tail:
+                    question["audio_text"] = tail
+
+    options = question.get("options")
+    correct_answer = question.get("correct_answer")
+    if isinstance(options, list) and options and correct_answer is not None:
+        try:
+            idx = int(correct_answer)
+        except (ValueError, TypeError):
+            idx = None
+        if idx is not None and 0 <= idx < len(options):
+            question["correct_answer"] = options[idx]
+
+
+def _is_listening_question(question: Dict[str, Any]) -> bool:
+    question_type = str(question.get("type") or "").lower()
+    question_text = str(question.get("question") or question.get("question_text") or "").lower()
+    return "listen" in question_type or "audio" in question_type or "listen" in question_text
+
+
+def _is_fill_blank_question(question: Dict[str, Any]) -> bool:
+    question_type = str(question.get("type") or "").lower()
+    return "fill" in question_type or "fill_blank" in question_type or "fillblank" in question_type
+
+
+def _extract_base_verb_from_question(question_text: str) -> Optional[str]:
+    """
+    Extract base verb(s) from parentheses in fill-in-the-blank question.
+    Expected format: "Elle _____ (avoir) un chat." → returns "avoir"
+    """
+    if not question_text:
+        return None
+    
+    # Look for verb in parentheses
+    match = re.search(r'\(([^)]+)\)', question_text)
+    if match:
+        verb = match.group(1).strip()
+        # Clean up common patterns like "avoir, être" → keep as is
+        return verb if verb else None
+    
+    return None
 
 
 def _create_fallback_lesson(
@@ -365,6 +496,7 @@ def _create_fallback_lesson(
     logger.info(f"Creating fallback lesson for Week {week_number}, Day {day_number}")
     
     timestamp = datetime.now(timezone.utc).isoformat()
+    curriculum_file = f'wk{week_number}.md'
     
     # If curriculum is available, use its data
     if curriculum_data:
@@ -386,9 +518,43 @@ def _create_fallback_lesson(
         level = student_level
     
     scaffolding_steps = grammar.get('scaffolding', []) or []
-    explanation = scaffolding_steps[0] if scaffolding_steps else 'Review the grammar target in the curriculum file.'
-    if explanation.lower().startswith('explanation:'):
-        explanation = explanation.split(':', 1)[1].strip()
+    
+    # Build a comprehensive explanation from scaffolding steps
+    explanation_parts = []
+    
+    if scaffolding_steps:
+        # Extract meaningful steps to build explanation
+        for i, step in enumerate(scaffolding_steps):
+            if isinstance(step, dict):
+                explanation_parts.append(step.get('explanation', str(step)))
+            elif isinstance(step, str):
+                # Skip short titles/references (< 50 chars)
+                if len(step) > 50:
+                    explanation_parts.append(step)
+    
+    # If we have reasonable explanations, use them; otherwise create a basic one
+    if explanation_parts and any(len(p) > 100 for p in explanation_parts):
+        # Join explanations with paragraph breaks
+        explanation = "\n\n".join([p for p in explanation_parts if len(p) > 100])
+    else:
+        # Create a fallback explanation from grammar target info
+        form = grammar.get('form', 'this grammar structure')
+        complexity = grammar.get('complexity', 5)
+        explanation = f"""**Grammar Target: {form}** (Complexity: {complexity}/10)
+
+This is an important grammar concept for your current level. To understand {form} better:
+
+1. **Definition & Purpose**: {form} is used toexpress specific ideas in French. Understanding when and how to use it is crucial for effective communication at this level.
+
+2. **Common Patterns**: Look for {form} in the provided examples. Notice how it changes based on the subject, context, and tense.
+
+3. **Practice**: Complete the exercises below to practice using {form}. Pay attention to how natives speakers use this structure.
+
+4. **Real-World Usage**: You'll encounter {form} in everyday conversations, written texts, and media.
+
+5. **Next Steps**: Once you're comfortable with this structure, you'll be able to use it naturally in your own French expression.
+
+For a complete in-depth explanation, please refer to your curriculum file (wk{week_number}.md)."""
 
     quiz_questions = []
     for idx, q in enumerate(assessment.get('questions', []) or []):

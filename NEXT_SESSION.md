@@ -6,6 +6,29 @@
 
 ## 🎯 Priority Tasks for Next Session
 
+## ⚠️ Known Issues (Session 3) with Root Causes
+
+1. **Quiz scoring shows 0/5 even when answers are correct**
+    - **Root cause:** `submitQuiz()` scoring logic likely mismatches `correct_answer` format (index vs string) and/or comparison normalization still fails in some cases.
+
+2. **Speaking practice not embedded in lesson modal**
+    - **Root cause:** Current UI flow switches tabs and closes modal instead of rendering speaking content inside the lesson modal.
+
+3. **Audio-based quiz questions missing (no Listen button)**
+    - **Root cause:** Quiz renderer does not include TTS controls for question text or options; no audio UI implemented for quiz questions.
+
+4. **Grammar explanations still shallow (single sentence)**
+    - **Root cause:** Prompt still allows short outputs; no minimum length or follow-up expansion step enforced.
+
+5. **Vocabulary cards missing Listen buttons on 1-2 items (varies per lesson)**
+    - **Root cause:** Inconsistent vocab item structure from AI (missing `word`/`front` or empty text), causing renderer to skip button.
+
+6. **Grammar sentences lack Listen buttons**
+    - **Root cause:** Grammar section examples do not render audio controls; feature not implemented for grammar examples.
+
+7. **Quiz questions reveal answers (multiple forms shown in prompt)**
+    - **Root cause:** AI is embedding answer variants directly in question text; prompt rules need stricter enforcement or post-processing cleanup.
+
 ### 1. Interactive Lesson Enhancements
 - [ ] Store generated lesson JSON in DB for cross-attempt comparison
   - Add `lesson_content` JSON column to `lesson_generation_history` table
