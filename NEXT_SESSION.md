@@ -1,10 +1,72 @@
 # Next Session To-Do List
-**Last Updated:** 2026-02-09  
-**Current Status:** Grammar Explanations Fixed ✅ | Base Verb Validation Added ✅
+**Last Updated:** 2026-02-12  
+**Current Status:** Week 1 Curriculum Created ✅ | Pushed to Git ✅
 
 ---
 
-## 🎯 Priority Tasks for Next Session
+## 📚 CURRICULUM GENERATION PROGRESS
+
+### Completed:
+✅ **Week 1 (A1.1 - Days 1-5)** - Created, committed, and pushed
+  - Day 1: Être (basic)
+  - Day 2: Être (plural)
+  - Day 3: Avoir
+  - Day 4: Regular -ER verbs
+  - Day 5: Articles & gender
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_1_A1.1.md`
+
+### Next Task:
+🎯 **CREATE WEEK 2 CURRICULUM**
+
+**User command:** "Bir sonraki haftaya başla" (Start the next week)
+
+When user says this, automatically:
+1. Create Week 2 (A1.1 - Days 6-10) curriculum file
+2. Follow the same detailed format as Week 1
+3. Grammar topics for Week 2:
+   - Day 6: Regular -IR verbs (finir, choisir)
+   - Day 7: Regular -RE verbs (vendre, attendre)
+   - Day 8: Negation (ne...pas)
+   - Day 9: Basic questions (est-ce que, inversion)
+   - Day 10: Numbers 1-20
+4. Vocabulary: 5 words/day × 5 days = 25 words
+5. Commit with message: "Add Week 2 (A1.1) detailed curriculum - Days 6-10"
+6. Push to remote
+7. Update NEXT_SESSION.md for Week 3
+
+---
+
+## 🗓️ 52-WEEK CURRICULUM PLAN
+
+**Structure:**
+- 52 weeks total (1 year)
+- Each week = 5 days of lessons
+- Each week file = detailed format (like Phase_1_Example_Week_15.md)
+- Vocabulary: 5 words/day
+- Speaking Tier progression: 1 → 2 → 3
+
+**Month 1 (Weeks 1-4) - A1.1:**
+- ✅ Week 1: être, avoir, -ER verbs, articles
+- ⏳ Week 2: -IR/-RE verbs, negation, questions, numbers
+- ⏳ Week 3: Adjectives, agreement, possessives
+- ⏳ Week 4: Review + Month 1 exam
+
+**Month 2 (Weeks 5-8) - A1.2:**
+- Passé composé (avoir/être)
+- Futur proche
+- Time expressions
+
+---
+
+## ⚠️ CRITICAL: Package Dependencies - DO NOT CHANGE
+
+### Google Generative AI Package
+**USE:** `google-generativeai` (working)  
+**NEVER USE:** `google.genai` (breaks the application)
+
+---
+
+## 🎯 Secondary Tasks (After Week 2)
 
 ### 1. **HIGH PRIORITY: Fix Gemini JSON Parsing Issues** 🔴
 - Current state: ~60% of lessons fall back to curriculum-based template
