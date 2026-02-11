@@ -15,24 +15,32 @@
   - Day 5: Articles & gender
   - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_1_A1.1.md`
 
-### Next Task:
-🎯 **CREATE WEEK 2 CURRICULUM**
+✅ **Week 2 (A1.1 - Days 6-10)** - Created, committed, and pushed
+  - Day 6: Regular -IR verbs (finir, choisir)
+  - Day 7: Regular -RE verbs (vendre, attendre)
+  - Day 8: Negation (ne...pas)
+  - Day 9: Basic questions (est-ce que, inversion)
+  - Day 10: Numbers 1-20
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_2_A1.1.md`
 
-**User command:** "Bir sonraki haftaya başla" (Start the next week)
+### Next Task:
+🎯 **CREATE WEEK 3 CURRICULUM**
+
+**User command:** "Bir sonraki haftaya başla" OR "Next week please"
 
 When user says this, automatically:
-1. Create Week 2 (A1.1 - Days 6-10) curriculum file
-2. Follow the same detailed format as Week 1
-3. Grammar topics for Week 2:
-   - Day 6: Regular -IR verbs (finir, choisir)
-   - Day 7: Regular -RE verbs (vendre, attendre)
-   - Day 8: Negation (ne...pas)
-   - Day 9: Basic questions (est-ce que, inversion)
-   - Day 10: Numbers 1-20
-4. Vocabulary: 5 words/day × 5 days = 25 words
-5. Commit with message: "Add Week 2 (A1.1) detailed curriculum - Days 6-10"
+1. Create Week 3 (A1.1 - Days 11-15) curriculum file
+2. Follow the same detailed format as Weeks 1-2
+3. Grammar topics for Week 3:
+   - Day 11: Adjectives (basic descriptive adjectives)
+   - Day 12: Adjective agreement (masculine/feminine, singular/plural)
+   - Day 13: Adjective placement (before/after noun)
+   - Day 14: Possessive adjectives (mon, ma, mes, ton, ta, etc.)
+   - Day 15: Colors and physical descriptions
+4. Vocabulary: 5 words/day × 5 days = 25 words (focus: adjectives, colors, descriptions)
+5. Commit with message: "Add Week 3 (A1.1) detailed curriculum - Days 11-15"
 6. Push to remote
-7. Update NEXT_SESSION.md for Week 3
+7. Update NEXT_SESSION.md for Week 4
 
 ---
 
@@ -47,8 +55,8 @@ When user says this, automatically:
 
 **Month 1 (Weeks 1-4) - A1.1:**
 - ✅ Week 1: être, avoir, -ER verbs, articles
-- ⏳ Week 2: -IR/-RE verbs, negation, questions, numbers
-- ⏳ Week 3: Adjectives, agreement, possessives
+- ✅ Week 2: -IR/-RE verbs, negation, questions, numbers
+- ⏳ Week 3: Adjectives, agreement, possessives, colors
 - ⏳ Week 4: Review + Month 1 exam
 
 **Month 2 (Weeks 5-8) - A1.2:**
