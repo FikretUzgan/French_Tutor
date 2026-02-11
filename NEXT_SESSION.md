@@ -58,6 +58,48 @@ When user says this, automatically:
 
 ---
 
+## 🎨 TEACHING STYLE PREFERENCES (User Specified)
+
+### ✅ FAVOR: Babbel Style
+- **Scene/dialogue-first approach:** Start with realistic conversations, then extract grammar
+- **Detailed explicit grammar:** Use 5-paragraph teacher format with tables, examples
+- **Cultural context notes:** Include "Cultural Note" sections explaining French customs/usage
+- **Pronunciation guidance:** Provide phonetic breakdowns for all new vocabulary
+- **Structured lessons:** 25-30 min format with clear sections (like current Week 1)
+- **Spaced repetition:** Vocabulary reappears automatically across lessons
+- **Practical scenarios:** Real-world contexts (restaurant, travel, work, etc.)
+
+### ✅ ALSO LIKE: Busuu Elements
+- **Visual aids:** Use tables, color-coded conjugations, infographics
+- **Context-based explanations:** "You'll use this when ordering at a café"
+- **Structured vocabulary:** Images/audio presentation before grammar
+- **Bullet-point focused:** Concise, scannable grammar rules
+- **Social/speaking practice:** Community-style peer review concepts
+
+### ❌ AVOID: Duolingo Style
+- **No micro-lessons:** Keep 30-min structured format (not 2-5 min quick games)
+- **No heavy gamification:** Avoid streaks, XP points, leagues, competition elements
+- **No implicit learning:** Always provide explicit grammar rules upfront
+- **No minimal explanations:** Don't let grammar "emerge" without clear teaching
+- **No image-matching games:** Focus on practical conversation over matching exercises
+
+### Applied to Week 1 ✅
+- ✅ Explicit 5-paragraph grammar explanations (Babbel style)
+- ✅ Cultural notes included each day
+- ✅ Real-world dialogue examples (Scene-based)
+- ✅ Pronunciation provided for all vocabulary
+- ✅ 30-min structured lessons with clear sections
+- ✅ Practical scenarios (meeting people, introductions, etc.)
+
+### For Future Weeks:
+- Continue Babbel/Busuu structured approach
+- Emphasize dialogue-first scenarios
+- Include more cultural context specific to each grammar topic
+- Use visual tables and color-coding where helpful
+- Avoid gamification language (no "earn XP" or "level up")
+
+---
+
 ## ⚠️ CRITICAL: Package Dependencies - DO NOT CHANGE
 
 ### Google Generative AI Package
