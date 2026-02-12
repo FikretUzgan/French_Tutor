@@ -14,6 +14,8 @@
 
 **User will say:** "commit ve push işini seans sonunda söyleyeyim" (I'll tell you about commit/push at end of session)
 
+**TTS guardrail (do not override):** Preserve `addTTSButtonsToExamples()` enhancements in [static/app.js](static/app.js) so listen buttons appear for dialogue, arrow, and quoted French patterns. Avoid reverting this when refactoring UI or lesson rendering.
+
 ---
 
 ## 📋 PENDING ISSUES (Session 6 - 2026-02-12)
