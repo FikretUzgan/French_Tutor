@@ -1,6 +1,6 @@
 # Next Session To-Do List
 **Last Updated:** 2026-02-12  
-**Current Status:** Week 9 Curriculum Created ✅ | Month 3 Started (A2.1) ✅ | New Curriculum System Live ✅
+**Current Status:** Week 13 Curriculum Created ✅ | Month 4 Started (A2.2) ✅ | New Curriculum System Live ✅
 
 ---
 
@@ -118,27 +118,67 @@
   - **CEFR:** A2.1 level begins
   - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_9_A2.1.md`
 
-### Next Task:
-🎯 **CREATE WEEK 10 CURRICULUM (A2.1 - Passé Composé vs. Imparfait)**
+✅ **Week 10 (A2.1 - Days 46-50)** - Created (NOT YET COMMITTED)
+  - Day 46: PC vs. Imparfait (Introduction - When to use each tense)
+  - Day 47: PC vs. Imparfait (Completed actions vs. ongoing/background)
+  - Day 48: PC vs. Imparfait (Interruptions - one action interrupts another)
+  - Day 49: PC vs. Imparfait (Narrative building - telling complete stories)
+  - Day 50: Week 10 Review & Assessment
+  - **NEW:** 25 vocabulary words (cumulative: **250 words total**) 🎉
+  - **CEFR:** A2.1 (Month 3 continues)
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_10_A2.1.md`
 
-**User command:** "Bir sonraki haftaya başla" OR "week 10"
+✅ **Week 11 (A2.1 - Days 51-55)** - Created (NOT YET COMMITTED)
+  - Day 51: Comparatives (plus/moins/aussi + adjectives)
+  - Day 52: Comparatives (plus/moins/autant + nouns + verbs)
+  - Day 53: Superlatives (le/la/les plus, le/la/les moins)
+  - Day 54: Equality & Irregular Comparatives (meilleur/pire/mieux)
+  - Day 55: Week 11 Review & Assessment
+  - **NEW:** 25 vocabulary words (cumulative: **275 words total**) 🎉
+  - **CEFR:** A2.1 (Month 3 continues)
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_11_A2.1.md`
+
+✅ **Week 12 (A2.1 - Days 56-60)** - Created (NOT YET COMMITTED)
+  - Day 56: Relative Pronouns (qui/que) - basics
+  - Day 57: Relative Pronoun "où" - place/time
+  - Day 58: Relative Pronouns review + complex sentences
+  - Day 59: Month 3 Comprehensive Review (Weeks 9-12)
+  - Day 60: Month 3 Exam & Assessment (A2.1 complete)
+  - **NEW:** 25 vocabulary words (cumulative: **300 words total**) 🎉
+  - **CEFR:** A2.1 (Month 3 ends)
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_12_A2.1.md`
+
+✅ **Week 13 (A2.2 - Days 61-65)** - Created (NOT YET COMMITTED) **MONTH 4 BEGINS!** 🎉
+  - Day 61: Futur simple formation (regular verbs)
+  - Day 62: Futur simple irregular verbs
+  - Day 63: Futur simple usage (predictions, plans)
+  - Day 64: Futur simple practice (time markers, contrast with futur proche)
+  - Day 65: Week 13 Review & Assessment
+  - **NEW:** 25 vocabulary words (cumulative: **325 words total**) 🎉
+  - **CEFR:** A2.2 (Month 4 begins)
+  - **Speaking Tier:** 2→3 transition (guided to freer conversation)
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_13_A2.2.md`
+
+### Next Task:
+🎯 **CREATE WEEK 14 CURRICULUM (A2.2 - Conditionnel Présent)**
+
+**User command:** "Bir sonraki haftaya başla" OR "week 14"
 
 When user says this, automatically:
 1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md` for general overview (ONCE per session only)
-2. Create Week 10 (A2.1 - Days 46-50) curriculum file
-3. Follow the same detailed format as Weeks 1-9
-4. Grammar topics for Week 10:
-   - Day 46: PC vs. Imparfait (Introduction - When to use each tense)
-   - Day 47: PC vs. Imparfait (Completed actions vs. ongoing/background)
-   - Day 48: PC vs. Imparfait (Interruptions - one action interrupts another)
-   - Day 49: PC vs. Imparfait (Narrative building - telling complete stories)
-   - Day 50: Week 10 Review & Assessment
-5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 250 words)
-6. **CEFR Level:** A2.1 (Month 3 continues)
-7. **Speaking Tier:** Continue 2→3 transition (guided to freer conversation)
+2. Create Week 14 (A2.2 - Days 66-70) curriculum file
+3. Follow the same detailed format as Weeks 1-13
+4. Grammar topics for Week 14:
+  - Day 66: Conditionnel présent formation
+  - Day 67: Conditionnel présent usage (polite requests)
+  - Day 68: Conditionnel présent (hypotheticals)
+  - Day 69: Si-clauses (present + futur / imparfait + conditionnel)
+  - Day 70: Week 14 Review & Assessment
+5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 350 words)
+6. **CEFR Level:** A2.2 (Month 4 continues)
+7. **Speaking Tier:** 3 (freer conversation with minimal scaffolding)
 8. **WAIT** for user to request commit/push at end of session
-9. Update NEXT_SESSION.md for Week 11
-7. Update NEXT_SESSION.md for Week 9 (Month 3 begins - A2.1)
+9. Update NEXT_SESSION.md for Week 15
 
 ---
 
@@ -165,11 +205,19 @@ When user says this, automatically:
 - ✅ Week 8: Possessives, Demonstratives, Complex Negation + Month 2 exam
 - **Vocabulary:** 100 words (Total: 200)
 
-**Month 3 (Weeks 9-12) - A2.1:** 🔄 IN PROGRESS
+**Month 3 (Weeks 9-12) - A2.1:** ✅ COMPLETE
 - ✅ Week 9: Imparfait (introduction, irregular verbs, usage)
-- ⏳ Week 10: Passé Composé vs. Imparfait
-- ⏳ Week 11: Comparatives & Superlatives
-- ⏳ Week 12: Relative Pronouns + Month 3 exam
+- ✅ Week 10: Passé Composé vs. Imparfait
+- ✅ Week 11: Comparatives & Superlatives
+- ✅ Week 12: Relative Pronouns + Month 3 Exam
+- **Vocabulary:** 100 words (Total: 300) ✅
+
+**Month 4 (Weeks 13-16) - A2.2:** 🔄 IN PROGRESS
+- ✅ Week 13: Futur simple (formation, irregular verbs, usage, vs. futur proche)
+- ⏳ Week 14: Conditionnel présent (formation, polite requests, hypotheticals, si-clauses)
+- ⏳ Week 15: Pronouns Y & EN (location & quantity replacement)
+- ⏳ Week 16: Reflexive verbs, indirect speech + Month 4 Exam
+- **Vocabulary:** 100 words (Total: 400)
 
 ---
 
@@ -215,11 +263,9 @@ When user says this, automatically:
 
 ---
 
-## ⚠️ CRITICAL: Package Dependencies - DO NOT CHANGE
+## ⚠️ CRITICAL: Package Dependencies
 
-### Google Generative AI Package
-**USE:** `google-generativeai` (working)  
-**NEVER USE:** `google.genai` (breaks the application)
+- ✅ **Closed:** Google Generative AI migration complete. Now using `google-genai` only (old SDK removed).
 
 ---
 
@@ -336,12 +382,12 @@ When user says this, automatically:
   - Ensure fresh conversation starters
 
 #### Technical Debt
-- [ ] **URGENT**: Migrate from deprecated `google.generativeai` to `google.genai`
-  - Update lesson_generator.py, main.py imports
-  - Test all API calls with new library
-  - Update requirements.txt
+- [x] **COMPLETED & VERIFIED (Session 6 - 2026-02-12)**: Migrated from deprecated `google.generativeai` to `google-genai`
+  - ✅ All files updated (lesson_generator.py, main.py, api_helpers.py)
+  - ✅ Old SDK removed from requirements.txt
+  - ✅ Tested and confirmed working
   - See: https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
-
+  
 - [ ] Database version control strategy
   - Decide: .gitignore, schema-only commits, or migrations (alembic)
   - Add DB backup script
@@ -353,7 +399,7 @@ When user says this, automatically:
 
 ## ⚠️ Known Issues & Status (Updated 2026-02-12)
 
-### ✅ RESOLVED (Session 4 - 2026-02-09)
+### ✅ RESOLVEDSee: https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md (Session 4 - 2026-02-09)
 1. **Quiz scoring shows 0/5 even when answers are correct**
    - Fixed via multi-part normalization, answer extraction, fuzzy matching
 
@@ -536,3 +582,67 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 - Debug Gemini JSON issues (simplify vocab section or add JSON validation)
 - Test accuracy of generated grammar explanations (quality vs detail)
 - Consider migrating away from deprecated google.generativeai library
+
+### Session 6 (2026-02-12) - Part 1: Week 13 Curriculum Generation
+**Date:** 2026-02-12  
+**Focus:** Generate Week 13 curriculum (A2.2 - Futur Simple)
+
+**Completed:**
+- ✅ Created Week 13 curriculum (Days 61-65)
+  - Day 61: Futur simple formation (regular verbs)
+  - Day 62: Futur simple irregular verbs (être, avoir, aller, faire, pouvoir, vouloir, voir, venir, savoir, devoir)
+  - Day 63: Futur simple usage (predictions, promises, formal plans, si-clauses)
+  - Day 64: Futur simple vs. futur proche (time markers, contrast)
+  - Day 65: Week 13 Review & Assessment (20-question quiz)
+- ✅ 25 new vocabulary words (301-325)
+- ✅ Cumulative total: 325 words
+- ✅ Speaking tier: 2→3 transition
+- ✅ File location: Research/NEW_CURRICULUM_REDESIGNED/Week_13_A2.2.md
+- ✅ Updated NEXT_SESSION.md
+
+### Session 6 (2026-02-12) - Part 2: SDK Migration (google-generativeai → google-genai) ✅ COMPLETE
+**Date:** 2026-02-12  
+**Focus:** Migrate from deprecated `google-generativeai` to official `google-genai` SDK
+
+**Completed:**
+- ✅ **requirements.txt** - Migrated to google-genai only (old SDK removed after testing)
+- ✅ **lesson_generator.py** - Full migration:
+  - Changed `import google.generativeai as genai` → `from google import genai` + `from google.genai import types`
+  - Replaced `genai.configure()` with `genai.Client()` pattern
+  - Updated `genai.GenerativeModel()` → `client.models.generate_content()`
+  - Created `_get_genai_client()` function for client management
+- ✅ **main.py** - Full migration:
+  - Updated import statement
+  - Migrated 7 API call sites to new client-based API
+  - All functions now use `client.models.generate_content(model='gemini-2.5-flash', contents=...)`
+- ✅ **api_helpers.py** - Full migration:
+  - Renamed `get_gemini_model()` → `get_gemini_client()`
+  - Updated global `genai` → `genai_client`
+  - Changed `call_gemini_json()` to use client pattern
+- ✅ **NEXT_SESSION.md** - Updated documentation
+- ✅ **Testing** - User confirmed all AI features working correctly
+- ✅ **Cleanup** - Old SDK removed from requirements.txt
+
+**Migration Result:**
+- Migration successful, all features tested and working
+- Old SDK completely removed after verification
+- Application now using official googleapis SDK exclusively
+
+**Key API Changes Implemented:**
+```python
+# OLD SDK (deprecated) - REMOVED
+import google.generativeai as genai
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-2.5-flash')
+response = model.generate_content(prompt)
+
+# NEW SDK (official) - NOW IN USE
+from google import genai
+from google.genai import types
+client = genai.Client(api_key=api_key)
+response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents=prompt,
+    config=types.GenerateContentConfig(temperature=0.7, max_output_tokens=4000)
+)
+```
