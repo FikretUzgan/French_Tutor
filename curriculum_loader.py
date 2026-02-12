@@ -1,8 +1,14 @@
 """
 Curriculum Loader Module
 
-Handles parsing of curriculum markdown files from New_Curriculum/
-Extracts structured data for lesson generation.
+Handles parsing of curriculum markdown files from:
+- New_Curriculum/ (old weekly format - DEPRECATED)
+- Research/NEW_CURRICULUM_REDESIGNED/ (new daily format - PRIMARY)
+
+NEW FORMAT (Redesigned):
+- Files: Week_X_A1.X.md (e.g., Week_1_A1.1.md)
+- Structure: Week overview + DAY 1-5 sections
+- Each day: Metadata, Grammar (5-paragraph), Vocabulary (5 words), Examples (50 with content identifiers)
 """
 
 import re
@@ -10,7 +16,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 
 
-CURRICULUM_DIR = Path(__file__).parent / "New_Curriculum"
+CURRICULUM_DIR = Path(__file__).parent / "New_Curriculum"  # Old format
+REDESIGNED_CURRICULUM_DIR = Path(__file__).parent / "Research" / "NEW_CURRICULUM_REDESIGNED"  # New format
 
 
 def load_curriculum_file(week_number: int) -> Dict[str, Any]:
@@ -500,3 +507,286 @@ def validate_curriculum(curriculum_data: Dict[str, Any]) -> tuple[bool, List[str
         errors.append("Assessment checkpoint questions not found")
     
     return len(errors) == 0, errors
+
+
+# =============================================================================
+# NEW CURRICULUM SYSTEM (Research/NEW_CURRICULUM_REDESIGNED/)
+# =============================================================================
+
+def load_redesigned_curriculum_day(week_number: int, day_number: int) -> Dict[str, Any]:
+    """
+    Load and parse a SINGLE DAY from the redesigned curriculum format.
+    
+    Args:
+        week_number: Week number (1-52)
+        day_number: Day number (1-7)
+    
+    Returns:
+        Dictionary containing parsed day lesson data:
+        {
+            'week_number': int,
+            'day_number': int,
+            'cefr_level': str,
+            'grammar_topic': str,
+            'vocabulary_domain': str,
+            'content_identifiers': [str],
+            'speaking_tier': int,
+            'duration': str,
+            'grammar_explanation': str (5-paragraph format),
+            'vocabulary': [{'word': str, 'type': str, 'english': str, 'pronunciation': str, 'example': str}],
+            'examples': [{'content_identifiers': [str], 'text': str, 'task': str, 'answer': str}],
+            'filepath': str
+        }
+    
+    Raises:
+        FileNotFoundError: If the curriculum file doesn't exist
+        ValueError: If the day section is not found
+    """
+    # Determine filename pattern: Week_X_A1.X.md
+    # Week 1-4: A1.1, Week 5-8: A1.2, etc.
+    cefr_level = _determine_cefr_level(week_number)
+    filename = f"Week_{week_number}_{cefr_level}.md"
+    filepath = REDESIGNED_CURRICULUM_DIR / filename
+    
+    if not filepath.exists():
+        raise FileNotFoundError(f"Redesigned curriculum file not found: {filepath}")
+    
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Calculate overall day number
+    # Week 1 → Day 1-5, Week 2 → Day 6-10, Week 3 → Day 11-15, etc.
+    overall_day_number = (week_number - 1) * 5 + day_number
+    
+    # Extract the DAY section using overall day number
+    day_pattern = rf"##\s+DAY\s+{overall_day_number}\s*-[^\n]+\n(.*?)(?=\n##\s+DAY\s+\d+|$)"
+    day_match = re.search(day_pattern, content, re.DOTALL | re.IGNORECASE)
+    
+    if not day_match:
+        raise ValueError(f"Day {overall_day_number} (Week {week_number} Day {day_number}) not found in {filepath}")
+    
+    day_content = day_match.group(1)
+    
+    # Parse metadata
+    metadata = _parse_day_metadata(day_content)
+    
+    # Parse grammar explanation (5-paragraph format)
+    grammar_explanation = _parse_day_grammar_explanation(day_content)
+    
+    # Parse vocabulary (5 words)
+    vocabulary = _parse_day_vocabulary(day_content)
+    
+    # Parse examples (50 examples with content identifiers)
+    examples = _parse_day_examples(day_content)
+    
+    return {
+        'week_number': week_number,
+        'day_number': day_number,
+        'cefr_level': metadata.get('cefr_level', cefr_level),
+        'grammar_topic': metadata.get('grammar_topic', ''),
+        'vocabulary_domain': metadata.get('vocabulary_domain', ''),
+        'content_identifiers': metadata.get('content_identifiers', []),
+        'speaking_tier': metadata.get('speaking_tier', 1),
+        'duration': metadata.get('duration', '30 minutes'),
+        'grammar_explanation': grammar_explanation,
+        'vocabulary': vocabulary,
+        'examples': examples,
+        'filepath': str(filepath)
+    }
+
+
+def _determine_cefr_level(week_number: int) -> str:
+    """Determine CEFR level based on week number (Month 1-12 mapping)."""
+    if 1 <= week_number <= 4:
+        return "A1.1"
+    elif 5 <= week_number <= 8:
+        return "A1.2"
+    elif 9 <= week_number <= 16:
+        return "A2.1"
+    elif 17 <= week_number <= 24:
+        return "A2.2"
+    elif 25 <= week_number <= 32:
+        return "B1.1"
+    elif 33 <= week_number <= 40:
+        return "B1.2"
+    elif 41 <= week_number <= 48:
+        return "B2.1"
+    else:  # 49-52
+        return "B2.2"
+
+
+def _parse_day_metadata(day_content: str) -> Dict[str, Any]:
+    """Parse metadata section from a day."""
+    metadata = {}
+    
+    # CEFR Level
+    cefr_match = re.search(r"\*\*CEFR Level:\*\*\s+([A-B][12]\.[12])", day_content)
+    if cefr_match:
+        metadata['cefr_level'] = cefr_match.group(1)
+    
+    # Grammar Topic
+    grammar_match = re.search(r"\*\*Grammar Topic:\*\*\s+([^\n]+)", day_content)
+    if grammar_match:
+        metadata['grammar_topic'] = grammar_match.group(1).strip()
+    
+    # Vocabulary Domain
+    vocab_match = re.search(r"\*\*Vocabulary Domain:\*\*\s+([^\n]+)", day_content)
+    if vocab_match:
+        metadata['vocabulary_domain'] = vocab_match.group(1).strip()
+    
+    # Content Identifiers (comma-separated list)
+    content_match = re.search(r"\*\*Content Identifiers:\*\*\s+([^\n]+)", day_content)
+    if content_match:
+        identifiers_str = content_match.group(1).strip()
+        metadata['content_identifiers'] = [i.strip() for i in identifiers_str.split(',')]
+    
+    # Speaking Tier
+    tier_match = re.search(r"\*\*Speaking Tier:\*\*\s+(\d+)", day_content)
+    if tier_match:
+        metadata['speaking_tier'] = int(tier_match.group(1))
+    
+    # Duration
+    duration_match = re.search(r"\*\*Duration:\*\*\s+([^\n]+)", day_content)
+    if duration_match:
+        metadata['duration'] = duration_match.group(1).strip()
+    
+    return metadata
+
+
+def _parse_day_grammar_explanation(day_content: str) -> str:
+    """
+    Parse the 5-paragraph grammar explanation.
+    Returns the full text of the grammar section (FIXED content).
+    """
+    # Find GRAMMAR SECTION
+    grammar_pattern = r"###\s+GRAMMAR SECTION[^\n]*\n+(.*?)(?=\n###\s+VOCABULARY SECTION|$)"
+    grammar_match = re.search(grammar_pattern, day_content, re.DOTALL | re.IGNORECASE)
+    
+    if grammar_match:
+        return grammar_match.group(1).strip()
+    
+    return "Grammar explanation not found."
+
+
+def _parse_day_vocabulary(day_content: str) -> List[Dict[str, str]]:
+    """
+    Parse the 5 vocabulary words from VOCABULARY SECTION.
+    
+    Returns:
+        List of dicts with keys: word, type, english, pronunciation, example, context
+    """
+    vocab_items = []
+    
+    # Find VOCABULARY SECTION
+    vocab_pattern = r"###\s+VOCABULARY SECTION[^\n]*\n+(.*?)(?=\n###\s+EXAMPLES SECTION|$)"
+    vocab_match = re.search(vocab_pattern, day_content, re.DOTALL | re.IGNORECASE)
+    
+    if not vocab_match:
+        return []
+    
+    vocab_section = vocab_match.group(1)
+    
+    # Parse each word block (Word 1:, Word 2:, etc.)
+    word_blocks = re.findall(
+        r"\*\*Word\s+\d+:\s+([^\*]+?)\*\*\s*\n(.*?)(?=\n\*\*Word\s+\d+:|$)",
+        vocab_section,
+        re.DOTALL
+    )
+    
+    for word, details in word_blocks:
+        word = word.strip()
+        
+        # Extract type
+        type_match = re.search(r"-\s+Type:\s+([^\n]+)", details)
+        word_type = type_match.group(1).strip() if type_match else ""
+        
+        # Extract English
+        english_match = re.search(r"-\s+English:\s+([^\n]+)", details)
+        english = english_match.group(1).strip() if english_match else ""
+        
+        # Extract pronunciation
+        pron_match = re.search(r"-\s+Pronunciation:\s+([^\n]+)", details)
+        pronunciation = pron_match.group(1).strip() if pron_match else ""
+        
+        # Extract example sentence
+        example_match = re.search(r'-\s+\*\*Example sentence:\*\*\s+["\"]([^"\"]+)["\"]', details)
+        example = example_match.group(1).strip() if example_match else ""
+        
+        # Extract context
+        context_match = re.search(r"-\s+Context:\s+([^\n]+)", details)
+        context = context_match.group(1).strip() if context_match else ""
+        
+        vocab_items.append({
+            'word': word,
+            'type': word_type,
+            'english': english,
+            'pronunciation': pronunciation,
+            'example': example,
+            'context': context
+        })
+    
+    return vocab_items
+
+
+def _parse_day_examples(day_content: str) -> List[Dict[str, Any]]:
+    """
+    Parse the 50 example questions from EXAMPLES SECTION.
+    
+    Returns:
+        List of dicts with keys: content_identifiers (list), text, task, answer, number
+    """
+    examples = []
+    
+    # Find EXAMPLES SECTION
+    examples_pattern = r"###\s+EXAMPLES SECTION[^\n]*\n+(.*?)(?=\n###\s+[A-Z]+\s+SECTION|$)"
+    examples_match = re.search(examples_pattern, day_content, re.DOTALL | re.IGNORECASE)
+    
+    if not examples_match:
+        return []
+    
+    examples_section = examples_match.group(1)
+    
+    # Parse numbered examples with pattern:
+    # 1. **[content_id1, content_id2]**
+    #    - Sentence/Task: "..."
+    #    - Answer: ...
+    
+    # Alternative simpler pattern - just capture numbered items with brackets
+    example_blocks = re.findall(
+        r"(\d+)\.\s+\*\*\[([^\]]+)\]\*\*\s*\n(.*?)(?=\n\d+\.\s+\*\*\[|$)",
+        examples_section,
+        re.DOTALL
+    )
+    
+    for number, identifiers_str, details in example_blocks:
+        # Parse content identifiers
+        identifiers = [i.strip() for i in identifiers_str.split(',')]
+        
+        # Try to extract different fields
+        # Could be: Audio, Sentence, Task, Question, Answer
+        text = ""
+        task = ""
+        answer = ""
+        
+        # Look for "Sentence:", "Task:", "Question:", "Audio:", etc.
+        sentence_match = re.search(r'-\s+(?:Sentence|Text|Audio|Question):\s+["\']([^"\']+)["\']', details)
+        if sentence_match:
+            text = sentence_match.group(1).strip()
+        
+        task_match = re.search(r'-\s+Task:\s+["\']([^"\']+)["\']', details)
+        if task_match:
+            task = task_match.group(1).strip()
+        
+        answer_match = re.search(r"-\s+Answer:\s+(.+?)(?=\n|$)", details)
+        if answer_match:
+            answer = answer_match.group(1).strip()
+        
+        examples.append({
+            'number': int(number),
+            'content_identifiers': identifiers,
+            'text': text,
+            'task': task,
+            'answer': answer
+        })
+    
+    return examples

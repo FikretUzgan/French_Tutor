@@ -662,15 +662,15 @@ h2 {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: 16px;
+    padding: 8px;
 }
 
 .lesson-modal-content {
     background: white;
     border-radius: 12px;
-    max-width: 700px;
-    width: 100%;
-    max-height: 85vh;
+    max-width: 1600px;
+    width: 95%;
+    max-height: 95vh;
     overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     position: relative;
@@ -692,6 +692,37 @@ h2 {
 .lesson-modal-content .modal-close:hover {
     color: #764ba2;
     transform: scale(1.2);
+}
+
+/* TTS Inline Buttons */
+.btn-tts-inline, .btn-listen-inline {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    vertical-align: middle;
+}
+
+.btn-tts-inline:hover, .btn-listen-inline:hover {
+    background: #764ba2;
+    transform: scale(1.05);
+}
+
+.btn-tts-inline:active, .btn-listen-inline:active {
+    transform: scale(0.95);
+}
+
+.muted {
+    color: #999;
+    font-size: 0.9em;
 }
 
 .lesson-header {
@@ -1047,7 +1078,7 @@ h2 {
 
 /* Interactive Lesson Flow Styles */
 .lesson-flow-modal {
-    max-height: 90vh;
+    max-height: 98vh;
 }
 
 .lessonflow-header {
@@ -1076,7 +1107,7 @@ h2 {
 }
 
 .lesson-section-interactive {
-    padding: 24px;
+    padding: 20px 40px;
     min-height: 400px;
     display: flex;
     flex-direction: column;
@@ -1092,10 +1123,11 @@ h2 {
 
 .grammar-explanation {
     background: #f5f5ff;
-    padding: 16px;
+    padding: 20px 24px;
     border-radius: 8px;
     margin-bottom: 16px;
     border-left: 4px solid #667eea;
+    line-height: 1.7;
 }
 
 .grammar-examples {

@@ -179,7 +179,7 @@ async function setupLessonGeneration() {
     // Generate button handler
     generateBtn.addEventListener('click', async () => {
         try {
-            statusMsg.textContent = 'Generating lesson...';
+            statusMsg.textContent = 'Loading lesson from curriculum...';
             statusMsg.classList.add('loading');
             statusMsg.style.display = 'block';
             
@@ -191,35 +191,37 @@ async function setupLessonGeneration() {
                 throw new Error('Please select a valid week and day.');
             }
             
-            const response = await fetch(`${API_BASE}/api/lessons/generate`, {
+            // Use NEW CURRICULUM SYSTEM endpoint: /api/lessons/load
+            const response = await fetch(`${API_BASE}/api/lessons/load`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     week: weekValue,
                     day: dayValue,
-                    student_level: levelValue,
                     user_id: 1
                 })
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `HTTP ${response.status}`);
             }
             
             const data = await response.json();
             
             if (data.success && data.lesson) {
-                statusMsg.textContent = '✅ Lesson generated successfully!';
+                statusMsg.textContent = '✅ Lesson loaded successfully!';
                 statusMsg.classList.remove('loading');
                 statusMsg.classList.add('success');
                 
                 // Store current lesson info for homework
                 AppState.currentLesson = {
                     id: data.lesson_id || data.lesson.lesson_id,
-                    title: data.lesson.theme || 'Lesson',
+                    title: data.lesson.grammar_topic || 'Lesson',
                     week: weekValue,
                     day: dayValue,
-                    level: data.lesson.level
+                    level: data.lesson.cefr_level,
+                    lessonData: data.lesson  // Store full lesson data
                 };
                 
                 // Update homework form
@@ -239,62 +241,120 @@ async function setupLessonGeneration() {
 }
 
 function displayGeneratedLesson(lesson) {
-    // Convert generated lesson structure to interactive lesson format
-    const grammarExamples = (lesson.grammar?.examples || []).map(ex => {
-        if (typeof ex === 'string') {
-            return ex;
-        }
-        if (ex && ex.french && ex.english) {
-            return `${ex.french} - ${ex.english}`;
-        }
-        return String(ex);
-    });
-
-    const vocabItems = (lesson.vocabulary?.words || []).map(item => {
-        if (typeof item === 'string') {
-            return { front: item, back: '', pronunciation: '' };
-        }
-        return {
-            front: item.word || String(item),
-            back: item.definition || '',
-            pronunciation: item.pronunciation_tip || ''
-        };
-    });
-
-    const speakingTargets = lesson.speaking?.target_phrases
-        || lesson.speaking?.example_interaction
-        || (lesson.speaking?.success_criteria ? [lesson.speaking.success_criteria] : []);
-
-    const speakingPrompt = lesson.speaking?.scenario_prompt
-        || lesson.speaking?.prompt
-        || lesson.speaking?.scenario_domain
-        || '';
-
-    AppState.lessonScenarioPrompt = speakingPrompt;
-    AppState.lessonScenarioTargets = Array.isArray(speakingTargets) ? speakingTargets : [];
-    SCENARIO_TARGETS.lesson = AppState.lessonScenarioTargets;
-
-    const interactiveLesson = {
-        title: lesson.theme || 'Lesson',
-        level: lesson.level,
-        content: {
-            grammar: {
-                explanation: lesson.grammar?.explanation || '',
-                examples: grammarExamples,
-                conjugation: lesson.grammar?.conjugation || []
-            },
-            vocabulary: vocabItems,
-            speaking: {
-                prompt: speakingPrompt,
-                targets: Array.isArray(speakingTargets) ? speakingTargets : []
-            },
-            quiz: lesson.quiz || {}
-        }
-    };
+    // NEW CURRICULUM SYSTEM - Use redesigned format
+    // lesson.grammar_explanation: HTML string (already formatted)
+    // lesson.vocabulary: array of {word, type, english, pronunciation, example}
+    // lesson.quiz_questions: array of questions with content_identifiers
     
-    // Create and display interactive modal
-    const modal = createLessonModal(interactiveLesson);
-    document.body.appendChild(modal);
+    // Check if this is the NEW curriculum format
+    const isNewFormat = lesson.grammar_explanation && typeof lesson.grammar_explanation === 'string';
+    
+    if (isNewFormat) {
+        // NEW FORMAT (Research/NEW_CURRICULUM_REDESIGNED/)
+        const vocabItems = (lesson.vocabulary || []).map(item => ({
+            front: item.word || '',
+            back: item.english || '',
+            pronunciation: item.pronunciation || '',
+            example: item.example || '',
+            type: item.type || ''
+        }));
+        
+        const quizQuestions = (lesson.quiz_questions || []).map(q => ({
+            ...q,
+            content_ids: q.content_identifiers || [],
+            question_type: q.question_type || 'unknown'
+        }));
+
+        const interactiveLesson = {
+            title: lesson.grammar_topic || 'Lesson',
+            level: lesson.cefr_level || 'A1.1',
+            week: lesson.week,
+            day: lesson.day,
+            content_identifiers: lesson.content_identifiers || [],
+            speaking_tier: lesson.speaking_tier || 1,
+            content: {
+                grammar: {
+                    explanation: lesson.grammar_explanation || '',  // Already HTML
+                    topic: lesson.grammar_topic || '',
+                    examples: [],  // Examples are in quiz_questions
+                    conjugation: []
+                },
+                vocabulary: vocabItems,
+                speaking: {
+                    prompt: `Speaking practice: ${lesson.grammar_topic}`,
+                    targets: [`Use ${lesson.grammar_topic}`, 'Practice pronunciation'],
+                    tier: lesson.speaking_tier || 1
+                },
+                quiz: {
+                    questions: quizQuestions,
+                    total_available: lesson.total_available_questions || 50,
+                    content_identifiers: lesson.content_identifiers || []
+                }
+            }
+        };
+        
+        // Create and display interactive modal
+        const modal = createLessonModal(interactiveLesson);
+        document.body.appendChild(modal);
+        
+    } else {
+        // OLD FORMAT (fallback for legacy lessons)
+        const grammarExamples = (lesson.grammar?.examples || []).map(ex => {
+            if (typeof ex === 'string') {
+                return ex;
+            }
+            if (ex && ex.french && ex.english) {
+                return `${ex.french} - ${ex.english}`;
+            }
+            return String(ex);
+        });
+
+        const vocabItems = (lesson.vocabulary?.words || []).map(item => {
+            if (typeof item === 'string') {
+                return { front: item, back: '', pronunciation: '' };
+            }
+            return {
+                front: item.word || String(item),
+                back: item.definition || '',
+                pronunciation: item.pronunciation_tip || ''
+            };
+        });
+
+        const speakingTargets = lesson.speaking?.target_phrases
+            || lesson.speaking?.example_interaction
+            || (lesson.speaking?.success_criteria ? [lesson.speaking.success_criteria] : []);
+
+        const speakingPrompt = lesson.speaking?.scenario_prompt
+            || lesson.speaking?.prompt
+            || lesson.speaking?.scenario_domain
+            || '';
+
+        AppState.lessonScenarioPrompt = speakingPrompt;
+        AppState.lessonScenarioTargets = Array.isArray(speakingTargets) ? speakingTargets : [];
+        SCENARIO_TARGETS.lesson = AppState.lessonScenarioTargets;
+
+        const interactiveLesson = {
+            title: lesson.theme || 'Lesson',
+            level: lesson.level,
+            content: {
+                grammar: {
+                    explanation: lesson.grammar?.explanation || '',
+                    examples: grammarExamples,
+                    conjugation: lesson.grammar?.conjugation || []
+                },
+                vocabulary: vocabItems,
+                speaking: {
+                    prompt: speakingPrompt,
+                    targets: Array.isArray(speakingTargets) ? speakingTargets : []
+                },
+                quiz: lesson.quiz || {}
+            }
+        };
+        
+        // Create and display interactive modal
+        const modal = createLessonModal(interactiveLesson);
+        document.body.appendChild(modal);
+    }
 }
 
 function updateHomeworkLessonDisplay() {
@@ -405,6 +465,22 @@ function applyLessonScenarioToSpeakingTab() {
             AppState.returnLessonModal = null;
         }
         returnBox.style.display = 'none';
+    });
+}
+
+function addTTSButtonsToExamples(text) {
+    // Pattern: "Verb (translation) → French sentence. (English translation)"
+    // Example: "Parler (to speak) → J'ai parlé français. (I spoke French.)"
+    
+    // Match pattern: text → french_sentence (english)
+    const pattern = /([^→\n]+)→\s*([^(]+)\s*\(([^)]+)\)/g;
+    
+    return text.replace(pattern, (match, before, frenchSentence, englishTranslation) => {
+        const french = frenchSentence.trim();
+        const ttsText = french.replace(/<[^>]*>/g, '').trim(); // Remove any HTML tags
+        const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+        
+        return `${before.trim()} → <strong>${french}</strong> <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button> <span class="muted">(${englishTranslation.trim()})</span>`;
     });
 }
 
@@ -1481,7 +1557,9 @@ function createInteractiveGrammar(grammarContent) {
         const paragraphs = grammarContent.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
         html += '<div class="grammar-explanation">';
         paragraphs.forEach(p => {
-            html += `<p>${p}</p>`;
+            // Add TTS buttons to example sentences
+            const processedParagraph = addTTSButtonsToExamples(p);
+            html += `<p>${processedParagraph}</p>`;
         });
         html += '</div>';
         hasContent = true;
@@ -1491,7 +1569,9 @@ function createInteractiveGrammar(grammarContent) {
             const paragraphs = grammarContent.explanation.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
             html += '<div class="grammar-explanation">';
             paragraphs.forEach(p => {
-                html += `<p>${p}</p>`;
+                // Add TTS buttons to example sentences
+                const processedParagraph = addTTSButtonsToExamples(p);
+                html += `<p>${processedParagraph}</p>`;
             });
             html += '</div>';
             hasContent = true;

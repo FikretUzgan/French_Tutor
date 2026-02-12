@@ -650,3 +650,213 @@ For a complete in-depth explanation, please refer to your curriculum file (wk{we
     }
     
     return fallback_lesson
+
+
+# =============================================================================
+# NEW CURRICULUM SYSTEM (Research/NEW_CURRICULUM_REDESIGNED/)
+# =============================================================================
+
+def generate_lesson_from_redesigned_curriculum(
+    week_number: int,
+    day_number: int,
+    user_id: int = 1
+) -> Dict[str, Any]:
+    """
+    Generate a lesson from the NEW redesigned curriculum format.
+    
+    This function uses FIXED curriculum content (no AI generation needed).
+    The curriculum files already contain:
+    - Grammar explanations (5-paragraph format) ✅
+    - Vocabulary (5 words with examples) ✅
+    - Examples (50 questions with content identifiers) ✅
+    
+    AI is only used for:
+    - Speaking scenario generation
+    - Homework evaluation
+    - Exam grading
+    
+    Args:
+        week_number: Week number (1-52)
+        day_number: Day number (1-7)
+        user_id: Student user ID (default 1)
+    
+    Returns:
+        Complete lesson dictionary ready for frontend display
+    
+    Example output structure:
+    {
+        'lesson_id': 'week_1_day_1',
+        'week': 1,
+        'day': 1,
+        'cefr_level': 'A1.1',
+        'grammar_topic': 'Verb être (I am, You are)',
+        'grammar_explanation': '...(5-paragraph HTML)...',
+        'vocabulary': [...5 words...],
+        'quiz_questions': [...8-10 selected from 50...],
+        'speaking_tier': 1,
+        'duration': '30 minutes'
+    }
+    """
+    import quiz_parser  # Import here to avoid circular dependency
+    
+    # Load curriculum day
+    try:
+        day_data = curriculum_loader.load_redesigned_curriculum_day(week_number, day_number)
+    except (FileNotFoundError, ValueError) as e:
+        logger.error(f"Failed to load redesigned curriculum: {e}")
+        raise LessonGenerationError(f"Curriculum not found for Week {week_number} Day {day_number}")
+    
+    # Get quiz questions (8-10 randomly selected from 50)
+    quiz_questions = quiz_parser.get_quiz_questions(week_number, day_number, count=8)
+    
+    # Format quiz questions for display
+    formatted_questions = [
+        quiz_parser.format_question_for_display(q) for q in quiz_questions
+    ]
+    
+    # Build lesson dictionary
+    lesson = {
+        'lesson_id': f"week_{week_number}_day_{day_number}",
+        'week': week_number,
+        'day': day_number,
+        'cefr_level': day_data.get('cefr_level', 'A1.1'),
+        'grammar_topic': day_data.get('grammar_topic', ''),
+        'vocabulary_domain': day_data.get('vocabulary_domain', ''),
+        'content_identifiers': day_data.get('content_identifiers', []),
+        'speaking_tier': day_data.get('speaking_tier', 1),
+        'duration': day_data.get('duration', '30 minutes'),
+        
+        # FIXED content from curriculum
+        'grammar_explanation': _format_grammar_as_html(day_data.get('grammar_explanation', '')),
+        'vocabulary': day_data.get('vocabulary', []),
+        
+        # Quiz (selected randomly)
+        'quiz_questions': formatted_questions,
+        'total_available_questions': len(day_data.get('examples', [])),  # 50
+        
+        # Metadata
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'source': 'redesigned_curriculum',
+        'curriculum_file': day_data.get('filepath', ''),
+        'is_ai_generated': False  # Content is FIXED, not AI-generated
+    }
+    
+    # Store in database
+    try:
+        db.store_generated_lesson(
+            user_id=user_id,
+            lesson_id=lesson['lesson_id'],
+            week=week_number,
+            day=day_number,
+            curriculum_file=day_data.get('filepath', ''),
+            status='loaded_from_curriculum',
+            api_duration_seconds=0  # No API call
+        )
+    except Exception as e:
+        logger.warning(f"Failed to store lesson in database: {e}")
+    
+    return lesson
+
+
+def _format_grammar_as_html(grammar_text: str) -> str:
+    """
+    Convert markdown-style grammar explanation to HTML.
+    
+    Handles:
+    - Bold text: **text** → <strong>text</strong>
+    - Tables (markdown) → HTML tables
+    - Bullet points → <ul><li>
+    - Section headers: #### → <h4>
+    """
+    if not grammar_text:
+        return "<p>Grammar explanation not available.</p>"
+    
+    html = grammar_text
+    
+    # Convert markdown headers
+    html = re.sub(r'####\s+(.+)', r'<h4>\1</h4>', html)
+    html = re.sub(r'###\s+(.+)', r'<h3>\1</h3>', html)
+    html = re.sub(r'##\s+(.+)', r'<h2>\1</h2>', html)
+    
+    # Convert bold
+    html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', html)
+    
+    # Convert markdown tables to HTML
+    html = _convert_markdown_tables_to_html(html)
+    
+    # Convert lists (lines starting with -)
+    lines = html.split('\n')
+    in_list = False
+    result_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        
+        if stripped.startswith('- ') or stripped.startswith('• '):
+            if not in_list:
+                result_lines.append('<ul>')
+                in_list = True
+            item_text = stripped[2:].strip() if stripped[0] in ['-', '•'] else stripped
+            result_lines.append(f'  <li>{item_text}</li>')
+        else:
+            if in_list:
+                result_lines.append('</ul>')
+                in_list = False
+            
+            # Wrap non-empty lines in <p> if not already HTML
+            if stripped and not stripped.startswith('<'):
+                result_lines.append(f'<p>{stripped}</p>')
+            else:
+                result_lines.append(line)
+    
+    if in_list:
+        result_lines.append('</ul>')
+    
+    return '\n'.join(result_lines)
+
+
+def _convert_markdown_tables_to_html(text: str) -> str:
+    """Convert markdown tables to HTML tables."""
+    # Pattern: | header | header |
+    #          |--------|--------|
+    #          | cell   | cell   |
+    
+    table_pattern = r'(\|.+\|\n\|[-:\s|]+\|\n(?:\|.+\|\n?)+)'
+    
+    def replace_table(match):
+        table_md = match.group(1)
+        lines = [line.strip() for line in table_md.split('\n') if line.strip()]
+        
+        if len(lines) < 2:
+            return table_md  # Invalid table
+        
+        # Parse header
+        header_cells = [cell.strip() for cell in lines[0].split('|') if cell.strip()]
+        
+        # Parse rows (skip separator line[1])
+        rows = []
+        for line in lines[2:]:
+            cells = [cell.strip() for cell in line.split('|') if cell.strip()]
+            if cells:
+                rows.append(cells)
+        
+        # Build HTML
+        html = ['<table class="grammar-table">']
+        html.append('  <thead>')
+        html.append('    <tr>')
+        for cell in header_cells:
+            html.append(f'      <th>{cell}</th>')
+        html.append('    </tr>')
+        html.append('  </thead>')
+        html.append('  <tbody>')
+        for row in rows:
+            html.append('    <tr>')
+            for cell in row:
+                html.append(f'      <td>{cell}</td>')
+            html.append('    </tr>')
+        html.append('  </tbody>')
+        html.append('</table>')
+        
+        return '\n'.join(html)
+    
+    return re.sub(table_pattern, replace_table, text)

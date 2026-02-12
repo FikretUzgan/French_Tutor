@@ -1,6 +1,6 @@
 # Next Session To-Do List
 **Last Updated:** 2026-02-12  
-**Current Status:** Week 3 Curriculum Created ✅
+**Current Status:** Week 8 Curriculum Created ✅ | Month 2 Complete ✅ | New Curriculum System Live ✅
 
 ---
 
@@ -13,6 +13,24 @@
 4. Update NEXT_SESSION.md when week is complete
 
 **User will say:** "commit ve push işini seans sonunda söyleyeyim" (I'll tell you about commit/push at end of session)
+
+---
+
+## 📋 PENDING ISSUES (Session 6 - 2026-02-12)
+
+### 🔴 HIGH PRIORITY - UI/CSS
+- [ ] **Modal width not updating in browser** (Cache/CSS conflict issue)
+  - **Problem:** ui-enhancements.css override style.css (max-width: 600px vs 1600px)
+  - **Status:** CSS files updated but browser still shows old width (600px modal)
+  - **Solution needed:** 
+    - Possible: Combine CSS files or add !important to force override
+    - Or: Restart server to force CSS reload for all browsers
+    - Or: Add CSS version hash to force cache bust (`style.css?v=2`)
+  - **Files affected:** 
+    - `static/style.css` (updated to 1600px)
+    - `static/ui-enhancements.css` (updated to 1600px)
+    - `static/app.js` (TTS buttons added to examples)
+  - **Testing:** Browser hard refresh (Ctrl+Shift+R) didn't work - need server restart or CSS versioning
 
 ---
 
@@ -52,24 +70,63 @@
   - **MONTH 1 COMPLETE!** ✅ 100 vocabulary words achieved
   - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_4_A1.1.md`
 
-### Next Task:
-🎯 **CREATE WEEK 5 CURRICULUM (MONTH 2 - A1.2 BEGINS!)**
+✅ **Week 5 (A1.2 - Days 21-25)** - Created (NOT YET COMMITTED) **MONTH 2 BEGINS!**
+  - Day 21: Passé Composé with Avoir (introduction)
+  - Day 22: Regular Past Participles (extensive practice)
+  - Day 23: Irregular Past Participles (avoir, être, faire, prendre, voir, boire)
+  - Day 24: More Irregular Past Participles (dire, écrire, lire, mettre, pouvoir, vouloir, savoir, devoir)
+  - Day 25: Week 5 Review & Assessment
+  - **NEW:** 25 vocabulary words (cumulative: 125 words total)
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_5_A1.2.md`
 
-**User command:** "Bir sonraki haftaya başla" OR "week 5"
+✅ **Week 6 (A1.2 - Days 26-30)** - Created (NOT YET COMMITTED)
+  - Day 26: Passé Composé with ÊTRE (introduction, movement verbs)
+  - Day 27: Complete DR MRS VANDERTRAMP list (17 verbs)
+  - Day 28: Agreement rules with ÊTRE (4 forms: -é, -ée, -és, -ées)
+  - Day 29: Reflexive verbs in Passé Composé (all use ÊTRE)
+  - Day 30: Week 6 Review & Mixed Practice (AVOIR vs. ÊTRE)
+  - **NEW:** 25 vocabulary words (cumulative: 150 words total) 🎉
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_6_A1.2.md`
+
+✅ **Week 7 (A1.2 - Days 31-35)** - Created (NOT YET COMMITTED)
+  - Day 31: Futur Proche (aller + infinitive) - Introduction
+  - Day 32: Futur Proche practice (plans, intentions, predictions)
+  - Day 33: Time expressions for future (demain, la semaine prochaine, bientôt, dans X temps)
+  - Day 34: Futur Proche vs. Present (near future vs. habitual actions)
+  - Day 35: Week 7 Review & Assessment
+  - **NEW:** 25 vocabulary words (cumulative: 175 words total) 🎉
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_7_A1.2.md`
+
+✅ **Week 8 (A1.2 - Days 36-40)** - Created (NOT YET COMMITTED) **MONTH 2 COMPLETE!** 🎉
+  - Day 36: Possessive Adjectives (mon, ma, mes, ton, ta, tes, son, sa, ses, notre, votre, leur)
+  - Day 37: Demonstrative Adjectives (ce, cet, cette, ces) + -ci/-là
+  - Day 38: Complex Negation Review (ne...plus, ne...jamais, ne...rien, ne...personne)
+  - Day 39: Month 2 Grammar Review (All A1.2 grammar - PC, Futur Proche, Possessives, Demonstratives, Negation)
+  - Day 40: Month 2 Comprehensive Exam & Assessment (A1.2 Complete!)
+  - **NEW:** 25 vocabulary words (cumulative: **200 words total - MONTH 2 COMPLETE!**) 🎉🎊
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_8_A1.2.md`
+
+### Next Task:
+🎯 **CREATE WEEK 9 CURRICULUM (A2.1 - MONTH 3 BEGINS)**
+
+**User command:** "Bir sonraki haftaya başla" OR "week 9"
 
 When user says this, automatically:
 1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md` for general overview (ONCE per session only)
-2. Create Week 5 (A1.2 - Days 21-25) curriculum file
-3. Follow the same detailed format as Weeks 1-4
-4. Grammar topics for Week 5:
-   - Day 21: Passé Composé with Avoir (introduction)
-   - Day 22: Past Participles (regular forms)
-   - Day 23: Irregular Past Participles (avoir, être, faire)
-   - Day 24: Passé Composé (more irregular verbs)
-   - Day 25: Week 5 Review
-5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 125 words)
-6. **WAIT** for user to request commit/push at end of session
-7. Update NEXT_SESSION.md for Week 6
+2. Create Week 9 (A2.1 - Days 41-45) curriculum file
+3. Follow the same detailed format as Weeks 1-8
+4. Grammar topics for Week 9:
+   - Day 41: Imparfait (Introduction - Formation with -ER/-IR/-RE verbs)
+   - Day 42: Imparfait (Common irregular verbs: être, avoir, faire)
+   - Day 43: Imparfait (Usage - descriptions, habits in past, background actions)
+   - Day 44: Imparfait (More practice - weather, age, time in past)
+   - Day 45: Week 9 Review & Assessment
+5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 225 words)
+6. **CEFR Level:** A2.1 (Month 3 begins!)
+7. **Speaking Tier:** Start transitioning 2→3 (guided to freer conversation)
+8. **WAIT** for user to request commit/push at end of session
+9. Update NEXT_SESSION.md for Week 10
+7. Update NEXT_SESSION.md for Week 9 (Month 3 begins - A2.1)
 
 ---
 
@@ -82,16 +139,25 @@ When user says this, automatically:
 - Vocabulary: 5 words/day
 - Speaking Tier progression: 1 → 2 → 3
 
-**Month 1 (Weeks 1-4) - A1.1:**
+**Month 1 (Weeks 1-4) - A1.1:** ✅ COMPLETE
 - ✅ Week 1: être, avoir, -ER verbs, articles
 - ✅ Week 2: -IR/-RE verbs, negation, questions, numbers
-- ⏳ Week 3: Adjectives, agreement, possessives, colors
-- ⏳ Week 4: Review + Month 1 exam
+- ✅ Week 3: Adjectives, agreement, possessives, colors
+- ✅ Week 4: Review + Month 1 exam
+- **Vocabulary:** 100 words
 
-**Month 2 (Weeks 5-8) - A1.2:**
-- Passé composé (avoir/être)
-- Futur proche
-- Time expressions
+**Month 2 (Weeks 5-8) - A1.2:** ✅ COMPLETE
+- ✅ Week 5: Passé composé (avoir)
+- ✅ Week 6: Passé composé (être)
+- ✅ Week 7: Futur proche
+- ✅ Week 8: Possessives, Demonstratives, Complex Negation + Month 2 exam
+- **Vocabulary:** 100 words (Total: 200)
+
+**Month 3 (Weeks 9-12) - A2.1:** 🔄 IN PROGRESS
+- ⏳ Week 9: Imparfait (introduction)
+- ⏳ Week 10: Passé Composé vs. Imparfait
+- ⏳ Week 11: Comparatives & Superlatives
+- ⏳ Week 12: Relative Pronouns + Month 3 exam
 
 ---
 
@@ -145,126 +211,191 @@ When user says this, automatically:
 
 ---
 
-## 🎯 Secondary Tasks (After Week 2)
+## 🎯 Program Implementation Tasks (Updated 2026-02-12)
 
-### 1. **HIGH PRIORITY: Fix Gemini JSON Parsing Issues** 🔴
-- Current state: ~60% of lessons fall back to curriculum-based template
-- Root cause: Gemini responses contain malformed JSON on complex prompts
-- Actions:
-  - [ ] Log raw Gemini responses to identify which fields are malformed
-  - [ ] Simplify vocabulary section (include only top 10 words per lesson, not all 21)
-  - [ ] Implement JSON repair logic (auto-fix common Gemini formatting errors)
-  - [ ] Add structured prompting hints (e.g., "ensure valid JSON escaping")
-- Goal: Reduce fallback rate to <10%
+### **Phase 2B: NEW CURRICULUM SYSTEM Integration** (Current Sprint) 🔴
 
-### 2. **MEDIUM PRIORITY: Prompt Optimization** 🟡
-- [ ] Reduce token usage by simplifying curriculum formatting in prompts
-- [ ] Add JSON schema validation before passing to users
-- [ ] Test prompt variations with different token budgets (3500, 4500, etc.)
-- [ ] Profile which sections of prompt are most token-hungry
+#### CRITICAL - Curriculum System Refactor
+0. **NEW_CURRICULUM_REDESIGNED Integration** (quiz_parser.py + curriculum_loader.py)
+   - [ ] Update curriculum_loader.py to parse NEW_CURRICULUM_REDESIGNED/Week_X_A1.X.md format
+   - [ ] Parse DAY sections with metadata (CEFR, Grammar Topic, Content Identifiers, Speaking Tier)
+   - [ ] Extract 5-paragraph grammar explanations (pre-written, no AI generation needed)
+   - [ ] Parse 5 vocabulary words/day with example sentences
+   - [ ] Parse 50 example sentences per day (10 shown randomly in quiz)
+   - [ ] Extract content_identifiers from each example: [listening, dialogue, conjugation, fill_blank] etc.
+   - [ ] Function: `parse_day_curriculum(week, day) → DayLessonData`
+   - Function: `parse_quiz_examples(week, day) → List[ExampleQuestion]` (50 total, select 8-10 randomly)
 
-### 3. **Documentation & Testing**
-- [ ] Document grammar explanation quality expectations
-- [ ] Test generated lessons across all 52 weeks for consistency
-- [ ] Create test suite for fallback lesson generation
+#### HIGH PRIORITY - Core Functionality
+1. **Quiz Question Parser** (quiz_parser.py)
+   - [ ] Parse 50 pre-written quiz questions per day from curriculum markdown files
+   - [ ] Extract question metadata: type, answer key, content_identifier
+   - [ ] Validate all questions have required fields
+   - [ ] Function: `parse_quiz_questions(week, day) → List[QuizQuestion]`
 
-## ⚠️ Known Issues (Session 4) with Root Causes
+2. **Quiz Display Logic** (Frontend + Backend)
+   - [ ] Select 8 questions from 50-question fixed bank per day
+   - [ ] Ensure content_identifier variety (mix of exercise types)
+   - [ ] Track shown_questions in lesson_progress table
+   - [ ] Randomize order of selected questions
+   - [ ] Display questions with immediate feedback
 
-1. **Quiz scoring shows 0/5 even when answers are correct** ✅ FIXED
-    - Resolved via multi-part normalization, answer extraction, fuzzy matching
+3. **Database Schema Updates**
+   - [ ] ALTER TABLE lessons ADD COLUMN content_identifiers TEXT (JSON array)
+   - [ ] ALTER TABLE lessons ADD COLUMN speaking_tier INTEGER DEFAULT 1
+   - [ ] ALTER TABLE lesson_progress ADD COLUMN shown_questions TEXT (JSON array)
+   - [ ] Create migration script for existing data
 
-2. **Speaking practice not embedded in lesson modal** ✅ FIXED
-    - Now hides modal instead of destroying, preserves lesson scenario
+4. **AI Evaluation Prompts** (Speaking/Homework/Exam)
+   - [ ] Speaking Tier 1: Script adherence + basic pronunciation scoring
+   - [ ] Speaking Tier 2: Grammar accuracy + scenario completion scoring
+   - [ ] Speaking Tier 3: Fluency + complexity + naturalness scoring
+   - [ ] Test evaluation prompts with sample transcriptions
+   - [ ] Validate response format (JSON with scores + feedback)
 
-3. **Audio-based quiz questions missing (no Listen button)** ✅ FIXED  
-    - Added `audio_text` field with TTS support for listening questions
+#### MEDIUM PRIORITY - Quality & Performance
+5. **Fix Gemini JSON Parsing Issues** (~60% fallback rate)
+   - [ ] Log raw Gemini responses to identify malformed fields
+   - [ ] Simplify vocabulary section (top 10 words instead of all 21)
+   - [ ] Implement JSON repair logic for common formatting errors
+   - [ ] Add structured prompting hints for valid JSON escaping
+   - Goal: Reduce fallback rate to <10%
 
-4. **Grammar explanations showing \"Tableau...\" instead of detailed content** ✅ FIXED
-    - Root cause: Missing API key config in lesson_generator.py
-    - Now generates structured 5-paragraph explanations (both AI and fallback)
-    - Fallback includes: Definition, Patterns, Practice, Real-World Usage, Next Steps
+6. **Prompt Optimization**
+   - [ ] Reduce token usage (simplify curriculum formatting in prompts)
+   - [ ] Add JSON schema validation before passing to users
+   - [ ] Test prompt variations with different token budgets
+   - [ ] Profile which sections are most token-hungry
 
-5. **Fill-in-the-blank questions are impossible to answer** ✅ FIXED
-    - Now validates base verb included in parentheses: `Elle _____ (avoir) un chat.`
-    - Students clearly see what verb to conjugate
+#### LOW PRIORITY - Documentation
+7. **Testing & Validation**
+   - [ ] Document grammar explanation quality expectations
+   - [ ] Test generated lessons across all 52 weeks for consistency
+   - [ ] Create test suite for fallback lesson generation
+   - [ ] Curriculum file validation (all 52 files consistent structure)
 
-6. **Gemini returning invalid/malformed JSON** ⚠️ ACTIVE
-    - **Root cause:** Prompt exceeds effective context window (~60% fallback rate)
-    - **Workaround:** Improved fallback provides quality explanations
-    - **Solution in progress:** Simplify vocabulary section or implement JSON repair
+---
 
-### 1. Interactive Lesson Enhancements
-- [ ] Store generated lesson JSON in DB for cross-attempt comparison
-  - Add `lesson_content` JSON column to `lesson_generation_history` table
-  - Enable lesson replay without regeneration
-  - Support comparison between attempts (e.g., "Show me attempt 2 vs attempt 3")
+### **Phase 2C: Homework & Monthly Exam System** (Next Sprint - Weeks 10-12) 🟡
 
-- [ ] "More Explanation" and "More Examples" interactive buttons in grammar section
-  - Frontend: Add buttons to grammar display modal
-  - Backend: Create `POST /api/lessons/{lesson_id}/expand-grammar` endpoint
-  - AI: Generate additional 3-5 examples on demand (different from original)
+1. **Homework Blocking System**
+   - [ ] Implement homework submission requirement (text + audio)
+   - [ ] Block next lesson until homework submitted
+   - [ ] AI grading with text/audio evaluation
+   - [ ] Pass criteria: text_score ≥70% AND audio_score ≥60%
+   - [ ] Re-submission workflow for failed homework
 
-- [ ] Grammar reference tab with curated fixed content per topic
-  - Create `grammar_reference/` directory with fixed markdown per topic
-  - Map curriculum grammar targets to reference files
-  - Display in read-only tab alongside dynamic lesson
+2. **Monthly Comprehensive Exams** (Days 20, 40, 60, 80, etc.)
+   - [ ] Parse monthly exam content from curriculum files
+   - [ ] 4 sections: Listening (25pts), Reading (25pts), Writing (25pts), Speaking (25pts)
+   - [ ] AI evaluation for writing + speaking sections
+   - [ ] Pass threshold: 50/100 points
+   - [ ] Generate weakness report from exam results
 
-### 2. Quiz & Speaking Improvements
-- [ ] Quiz question bank pooling from previous generations
+3. **Weakness Tracking Refinement**
+   - [ ] Track errors by content_identifier type
+   - [ ] Generate monthly report (top 5 weak topics with accuracy %)
+   - [ ] Prioritize weak content types in review sessions
+   - [ ] Content-identifier-aware SRS scheduling
+
+---
+
+### **Backlog: Future Enhancements** (Post Phase 2) 🟢
+
+#### Interactive Lesson Features
+- [ ] "More Explanation" and "More Examples" buttons in grammar section
+  - Generate ADDITIONAL explanation on demand (supplements fixed content)
+  - Create `POST /api/lessons/{lesson_id}/expand-grammar` endpoint
+  
+- [ ] Grammar Reference Tab
+  - Fixed, curated content per topic (tenses, pronouns, negation)
+  - Searchable by CEFR level and content type
+  - Reliable fallback when AI output insufficient
+
+#### Quiz & Speaking Improvements
+- [ ] Quiz question bank pooling (avoid immediate repeats)
   - Store quiz questions separately in DB
-  - Track question usage per user to avoid immediate repeats
-  - Reuse best questions across different lesson attempts
+  - Track question usage per user
+  - Reuse best questions across attempts
 
-- [ ] Speaking scenario history to avoid AI repeating the same opening
-  - Cache last 5 speaking scenarios per user/week in DB
+- [ ] Speaking scenario history (avoid AI repetition)
+  - Cache last 5 speaking scenarios per user/week
   - Pass to AI prompt: "Do NOT use these opening lines: {history}"
-  - Ensure fresh conversation starters each attempt
+  - Ensure fresh conversation starters
 
-### 3. Technical Debt & Dependencies
+#### Technical Debt
 - [ ] **URGENT**: Migrate from deprecated `google.generativeai` to `google.genai`
-  - Update `lesson_generator.py`, `main.py` imports
+  - Update lesson_generator.py, main.py imports
   - Test all API calls with new library
-  - Update `requirements.txt`
+  - Update requirements.txt
   - See: https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
 
-- [ ] Decide database version control strategy
-  - Option A: Add `french_tutor.db` to `.gitignore` (local only)
-  - Option B: Commit schema-only DB, ignore data changes
-  - Option C: Use migrations (alembic) and track schema separately
-  - **Recommendation**: Option A + add DB backup script
+- [ ] Database version control strategy
+  - Decide: .gitignore, schema-only commits, or migrations (alembic)
+  - Add DB backup script
+
+- [ ] Performance optimization
+  - Cache curriculum files in memory
+  - Batch processing for AI evaluation requests
+  - Database indexing for content_identifier queries
+
+## ⚠️ Known Issues & Status (Updated 2026-02-12)
+
+### ✅ RESOLVED (Session 4 - 2026-02-09)
+1. **Quiz scoring shows 0/5 even when answers are correct**
+   - Fixed via multi-part normalization, answer extraction, fuzzy matching
+
+2. **Speaking practice not embedded in lesson modal**
+   - Fixed: Now hides modal instead of destroying, preserves lesson scenario
+
+3. **Audio-based quiz questions missing (no Listen button)**
+   - Fixed: Added `audio_text` field with TTS support for listening questions
+
+4. **Grammar explanations showing "Tableau..." instead of detailed content**
+   - Fixed: Added API key config to lesson_generator.py
+   - Fixed: Structured 5-paragraph explanations (both AI and fallback)
+
+5. **Fill-in-the-blank questions impossible to answer**
+   - Fixed: Validates base verb included in parentheses format
+
+### 🔄 ACTIVE ISSUES
+6. **Gemini returning invalid/malformed JSON (~60% fallback rate)**
+   - Root cause: Prompt exceeds effective context window
+   - Workaround: Improved fallback provides quality explanations
+   - Solution: See Phase 2B Item #5 (Simplify vocab section + JSON repair)
+
+7. **Quiz question parsing not yet implemented**
+   - Status: Planned for Phase 2B
+   - Current: No quiz questions loaded from curriculum files
+   - Target: Parse 50 questions/day from markdown files
+
+8. **Content identifier distribution not tracked**
+   - Status: Database schema update pending (Phase 2B)
+   - Impact: Cannot analyze exercise type variety or effectiveness
+
+9. **Speaking tier evaluation prompts need refinement**
+   - Status: Planned for Phase 2B
+   - Current: AI evaluation exists but not tier-specific
+   - Target: 3 distinct scoring rubrics (Tier 1/2/3)
 
 ---
 
-## ✅ Recently Completed (2026-02-09)
+## 📊 Current Development Phase: Phase 2A → 2B Transition
 
-### Grammar & Quiz Fixes (Session 4)
-- ✅ Fixed grammar explanations: Now show detailed 5-part structure (was showing "Tableau...")
-- ✅ Configured Gemini API key in lesson_generator.py (was missing, causing API failures)
-- ✅ Increased token budget (3000 → 4000) for fuller responses
-- ✅ Added retry logic for empty API responses
-- ✅ Improved fallback lesson generation with pedagogical explanations
-- ✅ Implemented `base_verb` validation for fill-in-the-blank questions
-- ✅ Base verb extracted from parentheses format: `Elle _____ (avoir) un chat.`
-- ✅ Relaxed validation from error → warning for graceful degradation
-- ✅ All changes committed to git
+### ✅ Phase 2A: Fixed Curriculum Loading (COMPLETE)
+- curriculum_loader.py operational
+- Week/day selector UI functional
+- Month 1 (Weeks 1-4) curriculum files complete
+- Grammar/vocabulary/examples display working
 
-### Earlier Work (Session 3, 2026-02-08)
-- ✅ Quiz scoring fixed (multi-part normalization + fuzzy matching)
-- ✅ Speaking practice embedded in lesson modal
-- ✅ Audio text extraction for listening questions
-- ✅ Dynamic Lesson Generation System complete
-- ✅ All 52 curriculum weeks created and validated
+### 🔄 Phase 2B: Quiz Display & AI Evaluation (IN PROGRESS - Weeks 7-9)
+- See "Program Implementation Tasks" section above for detailed sprint plan
+- Current focus: Quiz parser, content identifiers, AI evaluation prompts
 
----
-
-## 📋 Backlog (Lower Priority)
-
-- [ ] Performance optimization (cache curriculum files in memory)
-- [ ] Rate limiting enforcement in API (currently logged but not enforced)
-- [ ] Lesson quality analytics dashboard (track generation success rates)
-- [ ] Multi-language support for UI (currently English only)
-- [ ] Mobile responsive design improvements
-- [ ] Export lesson history as PDF for offline review
+### 🕒 Phase 2C: Homework & Monthly Exams (UPCOMING - Weeks 10-12)
+- Homework blocking system
+- DELF-aligned monthly comprehensive exams
+- Weakness tracking by content type
 
 ---
 
@@ -278,6 +409,101 @@ When user says this, automatically:
 ---
 
 ## 📝 Session Notes
+
+### Session 5 (2026-02-12) - Part 1
+**Date:** 2026-02-12  
+**Focus:** Review Implementation Plan and SRS, consolidate program to-do list  
+**Completed:**
+- Read full Implementation_Plan.md (550 lines) - Phase 2A complete, Phase 2B in progress
+- Read French_Tutor_SRS.md (Software Requirements Specification) - Fixed curriculum + AI evaluation approach
+- Updated NEXT_SESSION.md with consolidated, prioritized program tasks
+- Organized tasks by Phase 2B (current sprint), Phase 2C (next sprint), and Backlog (future)
+- Clarified current development phase: Phase 2A → 2B transition
+
+**Key Findings:**
+- Phase 2B critical path: Quiz parser, content identifiers, AI evaluation prompts, DB schema updates
+- Phase 2C upcoming: Homework blocking, monthly exams (DELF-aligned), weakness tracking
+- Active issue: Gemini JSON parsing ~60% fallback rate (needs simplification + JSON repair)
+- Architecture clarity: Fixed curriculum files (no AI content generation) + AI evaluation only
+
+### Session 5 (2026-02-12) - Part 2: NEW CURRICULUM SYSTEM Implementation ✅
+**Date:** 2026-02-12  
+**Focus:** Implement new curriculum system using Research/NEW_CURRICULUM_REDESIGNED/ format
+
+**Completed:**
+- ✅ **curriculum_loader.py** - Added functions for redesigned curriculum:
+  - `load_redesigned_curriculum_day(week, day)` - Parse NEW_CURRICULUM_REDESIGNED format
+  - `_parse_day_metadata()` - Extract CEFR level, grammar topic, content identifiers, speaking tier
+  - `_parse_day_grammar_explanation()` - Extract 5-paragraph grammar (FIXED content)
+  - `_parse_day_vocabulary()` - Extract 5 words with examples
+  - `_parse_day_examples()` - Extract 50 quiz questions with content identifiers
+  
+- ✅ **quiz_parser.py** - NEW FILE created:
+  - `get_quiz_questions(week, day, count=8)` - Randomly select 8-10 from 50 available
+  - `_select_diverse_questions()` - Ensure variety of content identifier types
+  - `_determine_primary_type()` - Classify question by main content identifier
+  - `format_question_for_display()` - Add UI-specific fields (audio, answer_type)
+  - `get_content_identifier_stats()` - Analytics for question type distribution
+
+- ✅ **lesson_generator.py** - New function added:
+  - `generate_lesson_from_redesigned_curriculum()` - Load FIXED curriculum (no AI generation)
+  - `_format_grammar_as_html()` - Convert markdown to HTML (tables, lists, bold)
+  - Uses pre-written grammar explanations (5-paragraph format)
+  - Grammar already exists in curriculum → No token usage!
+
+- ✅ **main.py** - New API endpoint:
+  - `/api/lessons/load` - NEW SYSTEM endpoint (uses redesigned curriculum)
+  - `/api/lessons/generate` - Marked as DEPRECATED (old system)
+  - Error handling for missing curriculum files (Week 8+ not yet created)
+
+- ✅ **static/app.js** - Frontend updated:
+  - Changed endpoint from `/api/lessons/generate` → `/api/lessons/load`
+  - `displayGeneratedLesson()` - Supports both OLD and NEW formats
+  - Detects new format by checking `grammar_explanation` field
+  - Shows content identifiers in quiz questions
+  - Displays vocabulary with example sentences
+
+- ✅ **TEST_NEW_CURRICULUM.md** - Created comprehensive test guide
+
+**System Architecture (NEW):**
+```
+User clicks "Load Lesson"
+    ↓
+Frontend calls /api/lessons/load (week=1, day=1)
+    ↓
+Backend: lesson_generator.generate_lesson_from_redesigned_curriculum()
+    ↓
+curriculum_loader.load_redesigned_curriculum_day() → Parse Week_1_A1.1.md
+    ├─ Grammar (5-paragraph) ✅ FIXED content
+    ├─ Vocabulary (5 words) ✅ With example sentences
+    └─ Examples (50 questions) ✅ Content identifiers
+    ↓
+quiz_parser.get_quiz_questions() → Select 8 random from 50
+    ↓
+Return lesson JSON to frontend
+    ↓
+Display: Grammar + Vocab + Quiz (with content identifier badges)
+```
+
+**Key Benefits:**
+1. **No AI for content** → Grammar explanations are FIXED (pre-written)
+2. **Content identifiers** → Every question tagged: [listening], [conjugation], etc.
+3. **Diversity guaranteed** → 50 questions/day, show 8-10 randomly selected
+4. **No token usage** → No API calls for lesson content
+5. **Reliable quality** → Hand-written grammar explanations (5-paragraph format)
+
+**Testing Status:**
+- Ready to test: Weeks 1-7 (35 lessons available)
+- Each day: Grammar + 5 vocab + 50 quiz questions
+- Content identifiers working
+- See TEST_NEW_CURRICULUM.md for detailed test instructions
+
+**Next steps:**
+- Test the program (uvicorn main:app --reload)
+- Verify content identifiers display in UI
+- Continue Week 8-52 curriculum creation
+- Add content identifier badges to quiz UI
+- Implement database schema for content_weaknesses tracking
 
 ### Session 4 (2026-02-09)
 **Date:** 2026-02-09  

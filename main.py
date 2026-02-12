@@ -1718,7 +1718,12 @@ async def submit_srs_review(request: SRSReviewRequest):
 @app.post("/api/lessons/generate")
 async def generate_lesson(request: LessonGenerateRequest):
     """
-    Generate a dynamic lesson from curriculum using Gemini AI.
+    Generate a dynamic lesson from curriculum using Gemini AI (DEPRECATED).
+    
+    ⚠️ DEPRECATED: Use /api/lessons/load instead for NEW CURRICULUM SYSTEM.
+    
+    This endpoint uses the OLD curriculum format (New_Curriculum/wkX.md).
+    For the redesigned curriculum (Research/NEW_CURRICULUM_REDESIGNED/), use /api/lessons/load.
     
     Args:
         week: Week number (1-52)
@@ -1774,6 +1779,77 @@ async def generate_lesson(request: LessonGenerateRequest):
         raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
     except lesson_generator.LessonGenerationError as e:
         raise HTTPException(status_code=500, detail=f"Lesson generation failed: {str(e)}")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.post("/api/lessons/load")
+async def load_lesson_from_redesigned_curriculum(request: LessonGenerateRequest):
+    """
+    Load a lesson from the NEW CURRICULUM SYSTEM (Research/NEW_CURRICULUM_REDESIGNED/).
+    
+    ✅ NEW SYSTEM - Uses FIXED curriculum content (no AI generation).
+    
+    The redesigned curriculum contains:
+    - Pre-written grammar explanations (5-paragraph format)
+    - Pre-defined vocabulary (5 words/day with examples)
+    - Pre-created quiz questions (50/day, 8-10 shown randomly)
+    - Content identifiers for each question type
+    
+    Args:
+        week: Week number (1-52)
+        day: Day number (1-7)
+        user_id: Student ID (default 1)
+    
+    Returns:
+        Complete lesson JSON ready for display:
+        {
+            'lesson_id': str,
+            'week': int,
+            'day': int,
+            'cefr_level': str,
+            'grammar_topic': str,
+            'grammar_explanation': str (HTML formatted),
+            'vocabulary': list (5 words),
+            'quiz_questions': list (8-10 selected),
+            'speaking_tier': int,
+            'content_identifiers': list
+        }
+    """
+    try:
+        # Validate input
+        if not (1 <= request.week <= 52):
+            raise HTTPException(status_code=400, detail="Week must be 1-52")
+        if not (1 <= request.day <= 7):
+            raise HTTPException(status_code=400, detail="Day must be 1-7")
+        
+        # Load lesson from redesigned curriculum
+        lesson_dict = lesson_generator.generate_lesson_from_redesigned_curriculum(
+            week_number=request.week,
+            day_number=request.day,
+            user_id=request.user_id
+        )
+        
+        return {
+            "success": True,
+            "lesson": lesson_dict,
+            "lesson_id": lesson_dict['lesson_id'],
+            "source": "redesigned_curriculum",
+            "message": f"Lesson loaded successfully: Week {request.week} Day {request.day}"
+        }
+        
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Curriculum file not found for Week {request.week} Day {request.day}. "
+                   f"Only Weeks 1-7 are currently available."
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid input: {str(e)}")
+    except lesson_generator.LessonGenerationError as e:
+        raise HTTPException(status_code=500, detail=f"Lesson loading failed: {str(e)}")
     except Exception as e:
         import traceback
         traceback.print_exc()
