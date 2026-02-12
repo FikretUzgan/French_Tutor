@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Definition: What is Être?**
 
@@ -128,9 +128,7 @@ The verb **être** means "to be" in English. It is THE most important verb in Fr
 
 ### EXAMPLES SECTION (Curriculum)
 
-**50 example sentences PRE-CREATED (10 randomly selected during lesson)**
 
-**Today's 10 examples (être focus - beginner level):**
 
 1. **[listening, dialogue, gist]** 
    - Audio: "Bonjour! Je suis Marie."
@@ -219,9 +217,7 @@ Student repeats after AI: "Bonjour! Je suis Marie. Et toi?"
 
 ### QUIZ (5 min)
 
-**50 quiz questions PRE-CREATED (5-8 randomly selected per daily quiz)**
 
-**Today's 8 sample quiz questions:**
 
 1. **[multiple_choice, être conjugation]**
    - Question: "Je _____ Marie."
@@ -288,7 +284,7 @@ In France, "Bonjour" is used during the day (morning/afternoon) when meeting som
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Être - Complete Conjugation (All Forms)**
 
@@ -394,9 +390,7 @@ Yesterday we learned je suis, tu es, il/elle est. Today we complete the conjugat
 
 ### EXAMPLES SECTION (Curriculum)
 
-**50 example sentences PRE-CREATED (10 randomly selected during lesson)**
 
-**Today's 10 examples (être - plural forms):**
 
 1. **[listening, dialogue, gist]** 
    - Audio: "Vous êtes français? Oui, nous sommes français."
@@ -484,7 +478,6 @@ Student repeats.
 
 ### QUIZ (5 min)
 
-**8 sample quiz questions for Day 2:**
 
 1. **[multiple_choice, être nous]**
    - Question: "Nous _____ étudiants."
@@ -551,7 +544,7 @@ In French, "tu" is informal (friends, family, children) and "vous" is formal (st
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Definition: What is Avoir?**
 
@@ -660,7 +653,6 @@ The verb **avoir** means "to have" in English. It is the second most important v
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (avoir focus):**
 
 1. **[listening, dialogue]** 
    - Audio: "J'ai 20 ans. Et toi?"
@@ -798,7 +790,7 @@ Unlike English where we say "I am 20 years old," French uses avoir: "J'ai 20 ans
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What are -ER Verbs?**
 
@@ -922,7 +914,6 @@ Most French verbs end in **-ER** in their infinitive form (the base form, like "
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (-ER verbs):**
 
 1. **[listening, dialogue]** 
    - Audio: "Je parle français. Tu parles anglais?"
@@ -1060,7 +1051,7 @@ French people appreciate when foreigners try to speak French, even if it's just 
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What are Articles?**
 
@@ -1173,7 +1164,6 @@ Unfortunately, there's no perfect rule! You must **memorize** the gender with ea
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (articles & gender):**
 
 1. **[listening, article recognition]** 
    - Audio: "J'ai un livre et une table."

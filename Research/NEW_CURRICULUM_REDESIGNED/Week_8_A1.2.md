@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why Possessive Adjectives Matter**
 
@@ -191,7 +191,7 @@ French speakers use possessive adjectives much more frequently than articles whe
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Possessive Adjectives - Ownership & Family**
 
@@ -384,7 +384,7 @@ Write 3 sentences about your family using possessive adjectives.
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What Are Demonstrative Adjectives?**
 
@@ -548,7 +548,7 @@ In French stores, salespeople often use demonstrative adjectives to help guide c
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Demonstrative Adjectives - Pointing & Indicating**
 
@@ -737,7 +737,7 @@ Translate to French:
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Beyond Basic Negation**
 
@@ -912,7 +912,7 @@ French speakers use these negations frequently for emphasis and clarity. Saying 
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Complex Negations - Plus, Jamais, Rien, Personne**
 

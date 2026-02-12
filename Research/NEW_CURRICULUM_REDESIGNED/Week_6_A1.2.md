@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. A Special Group of Verbs - The ÊTRE Exception**
 
@@ -219,7 +219,7 @@ To remember which verbs use ÊTRE, French students worldwide use the mnemonic **
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Passé Composé with ÊTRE - Movement Verbs**
 
@@ -384,7 +384,7 @@ Then, we came to my place for dinner.)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. The Complete ÊTRE Verb Family**
 
@@ -591,7 +591,7 @@ B: Je suis rentré à 18h. Je suis resté à la maison le reste de la soirée.
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: All DR MRS VANDERTRAMP Verbs**
 
@@ -741,7 +741,7 @@ Then, I went home at 7pm.)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why Agreement Matters with ÊTRE**
 
@@ -929,7 +929,7 @@ STEP 2: What is the subject?
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Agreement Practice - All Forms**
 
@@ -1088,7 +1088,7 @@ STEP 2: What is the subject?
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Reflexive Verbs - A Quick Review**
 
@@ -1295,7 +1295,7 @@ B: Nous nous sommes amusés au parc. On a joué au foot.
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Reflexive Verbs in Passé Composé**
 

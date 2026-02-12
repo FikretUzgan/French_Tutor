@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why the Futur Proche Matters**
 
@@ -219,7 +219,7 @@ The futur proche is incredibly easy to form - it's even simpler than passé comp
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Futur Proche - Immediate Future Plans**
 
@@ -396,7 +396,7 @@ The futur proche is incredibly easy to form - it's even simpler than passé comp
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Expanding Your Future-Talking Skills**
 
@@ -582,7 +582,7 @@ A: Un roman français. Ça va être difficile, mais je vais essayer!
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Futur Proche - Plans, Intentions & Predictions**
 
@@ -737,7 +737,7 @@ Je vais aussi essayer de commencer à apprendre le piano - c'est ma nouvelle ré
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. The Importance of Time Markers**
 
@@ -953,7 +953,7 @@ B: Bien sûr! Je vais t'appeler samedi prochain.
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Futur Proche with Various Time Expressions**
 
@@ -1104,7 +1104,7 @@ On va voir!
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Understanding the Key Difference**
 
@@ -1270,7 +1270,7 @@ B: Non, ce vendredi je vais manger à la maison. Je vais préparer un repas spé
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Present Tense (Habits) vs. Futur Proche (Specific Future)**
 

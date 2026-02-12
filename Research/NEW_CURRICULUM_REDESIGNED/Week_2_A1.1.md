@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What are -IR Verbs?**
 
@@ -150,9 +150,7 @@ The second family of regular verbs in French ends in **-IR** in their infinitive
 
 ### EXAMPLES SECTION (Curriculum)
 
-**50 example sentences PRE-CREATED (10 randomly selected during lesson)**
 
-**Today's 10 examples (-IR verbs focus):**
 
 1. **[listening, dialogue]** 
    - Audio: "Je finis mon travail à 18h."
@@ -235,7 +233,6 @@ Student repeats phrase for practice.
 
 ### QUIZ (5 min)
 
-**8 sample quiz questions:**
 
 1. **[multiple_choice]**
    - "Je _____ mon travail."
@@ -298,7 +295,7 @@ In France, the standard workday is often 9h-17h or 10h-18h (with a lunch break).
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What are -RE Verbs?**
 
@@ -424,7 +421,6 @@ The third and final family of regular French verbs ends in **-RE** in their infi
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (-RE verbs):**
 
 1. **[listening, dialogue]** 
    - Audio: "J'attends le bus depuis 5 minutes."
@@ -563,7 +559,7 @@ Public transport is widely used in French cities. "J'attends le bus" or "J'atten
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What is Negation in French?**
 
@@ -678,7 +674,6 @@ When avoir is negative, **un/une/des** changes to **de** (or **d'** before a vow
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (negation focus):**
 
 1. **[listening, dialogue]** 
    - Audio: "Je n'aime pas le café. Je préfère le thé."
@@ -818,7 +813,7 @@ French culture values politeness, especially when refusing offers. Instead of ju
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Three Ways to Ask Questions in French**
 
@@ -955,7 +950,6 @@ All three mean the exact same thing! Example: "Do you speak French?"
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (questions):**
 
 1. **[listening, question type]** 
    - Audio: "Tu parles français?" ↗
@@ -1093,7 +1087,7 @@ In France, it's polite to use "vous" with strangers and add "s'il vous plaît" (
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why Numbers Matter**
 
@@ -1219,7 +1213,6 @@ Numbers are essential in daily French life: telling your age, giving phone numbe
 
 ### EXAMPLES SECTION (Curriculum)
 
-**Today's 10 examples (numbers 1-20):**
 
 1. **[listening, number recognition]** 
    - Audio: "J'ai quinze ans."

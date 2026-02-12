@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why Does French Have Gender?**
 
@@ -150,7 +150,7 @@ The article tells you the gender:
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Gender Recognition & Practice**
 
@@ -283,7 +283,7 @@ B: Le livre est rouge. (The book is red.)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What is Number in French?**
 
@@ -416,7 +416,7 @@ In French, nouns can be **singular** (one item) or **plural** (more than one). J
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Singular → Plural Transformations**
 
@@ -550,7 +550,7 @@ B: Oui, il y a dix chaises. (Yes, there are 10 chairs.)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What is Article Agreement?**
 
@@ -699,7 +699,7 @@ In French, articles must **agree** with the noun they accompany in BOTH gender (
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Article Agreement Practice (Gender + Number)**
 
@@ -835,7 +835,7 @@ B: Voici des gommes. (Here are some erasers.)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What is Adjective Agreement?**
 
@@ -990,7 +990,7 @@ In French, adjectives must **agree** with the noun they describe in BOTH gender 
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Adjective Placement & Agreement**
 
@@ -1244,7 +1244,7 @@ B: Oui, c'est très joli! (Yes, it's very pretty!)
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Comprehensive Week 3 Review**
 

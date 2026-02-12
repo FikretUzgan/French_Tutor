@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why the Passé Composé Matters**
 
@@ -190,7 +190,7 @@ The passé composé is a **compound tense** (two parts):
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Passé Composé with Avoir - Regular Verbs**
 
@@ -345,7 +345,7 @@ A: J'ai regardé le film à 20h.
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Building on Yesterday's Foundation**
 
@@ -497,7 +497,7 @@ Now that you understand the two-part structure of passé composé (avoir + past 
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Extended Regular Verbs in Passé Composé**
 
@@ -658,7 +658,7 @@ Prompts:
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. The Reality of Irregular Verbs**
 
@@ -899,7 +899,7 @@ Full conjugation:
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Irregular Past Participles in Context**
 
@@ -1057,7 +1057,7 @@ Full conjugation:
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Expanding Your Irregular Verb Arsenal**
 
@@ -1253,7 +1253,7 @@ B: Il a dit que j'ai bien travaillé. J'ai mis beaucoup d'efforts.
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Additional Irregular Past Participles**
 

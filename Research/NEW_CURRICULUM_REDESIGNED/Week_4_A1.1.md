@@ -26,7 +26,7 @@
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why Questions Matter in French**
 
@@ -197,7 +197,7 @@ Add **"Est-ce que"** (literally "Is it that") at the beginning of any statement 
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Three Question Methods + Question Words**
 
@@ -329,7 +329,7 @@ B: J'étudie le français et l'anglais.
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Beyond "Ne...Pas" - Why Complex Negation Matters**
 
@@ -480,7 +480,7 @@ You already know **ne...pas** (not), but French has several other negative expre
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Complex Negation Structures**
 
@@ -614,7 +614,7 @@ B: Non, je ne regrette rien! (No, I don't regret anything!)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. What is the Imperative Mood?**
 
@@ -807,7 +807,7 @@ The **imperative** is used to give **commands, instructions, suggestions, or req
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Imperative Forms (tu, nous, vous)**
 
@@ -938,7 +938,7 @@ Teacher: Répétez après moi. (Repeat after me.)
 
 ### GRAMMAR SECTION (10 min)
 
-#### Explanation (5-paragraph teacher format)
+#### Explanation
 
 **1. Why Time Expressions Matter**
 
@@ -1137,7 +1137,7 @@ Talking about **when** you do things is essential for daily life: appointments, 
 
 ---
 
-### EXAMPLES FROM CURRICULUM (10 shown from 50 total)
+### EXAMPLES FROM CURRICULUM
 
 **Pattern: Time Expressions & Daily Routines**
 

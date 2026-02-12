@@ -1,6 +1,6 @@
 # Next Session To-Do List
 **Last Updated:** 2026-02-12  
-**Current Status:** Week 8 Curriculum Created ✅ | Month 2 Complete ✅ | New Curriculum System Live ✅
+**Current Status:** Week 9 Curriculum Created ✅ | Month 3 Started (A2.1) ✅ | New Curriculum System Live ✅
 
 ---
 
@@ -106,26 +106,36 @@
   - **NEW:** 25 vocabulary words (cumulative: **200 words total - MONTH 2 COMPLETE!**) 🎉🎊
   - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_8_A1.2.md`
 
-### Next Task:
-🎯 **CREATE WEEK 9 CURRICULUM (A2.1 - MONTH 3 BEGINS)**
+✅ **Week 9 (A2.1 - Days 41-45)** - Created (NOT YET COMMITTED) **MONTH 3 BEGINS!** 🎉
+  - Day 41: Imparfait Formation (Regular -ER, -IR, -RE verbs)
+  - Day 42: Imparfait Irregular Verbs (être, avoir, faire + common irregulars)
+  - Day 43: Imparfait Usage (Descriptions, habits, ongoing actions)
+  - Day 44: Imparfait Practice (Weather, age, time, il y avait)
+  - Day 45: Week 9 Review & Assessment
+  - **NEW:** 25 vocabulary words (cumulative: **225 words total**) 🎉
+  - **CEFR:** A2.1 level begins
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_9_A2.1.md`
 
-**User command:** "Bir sonraki haftaya başla" OR "week 9"
+### Next Task:
+🎯 **CREATE WEEK 10 CURRICULUM (A2.1 - Passé Composé vs. Imparfait)**
+
+**User command:** "Bir sonraki haftaya başla" OR "week 10"
 
 When user says this, automatically:
 1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md` for general overview (ONCE per session only)
-2. Create Week 9 (A2.1 - Days 41-45) curriculum file
-3. Follow the same detailed format as Weeks 1-8
-4. Grammar topics for Week 9:
-   - Day 41: Imparfait (Introduction - Formation with -ER/-IR/-RE verbs)
-   - Day 42: Imparfait (Common irregular verbs: être, avoir, faire)
-   - Day 43: Imparfait (Usage - descriptions, habits in past, background actions)
-   - Day 44: Imparfait (More practice - weather, age, time in past)
-   - Day 45: Week 9 Review & Assessment
-5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 225 words)
-6. **CEFR Level:** A2.1 (Month 3 begins!)
-7. **Speaking Tier:** Start transitioning 2→3 (guided to freer conversation)
+2. Create Week 10 (A2.1 - Days 46-50) curriculum file
+3. Follow the same detailed format as Weeks 1-9
+4. Grammar topics for Week 10:
+   - Day 46: PC vs. Imparfait (Introduction - When to use each tense)
+   - Day 47: PC vs. Imparfait (Completed actions vs. ongoing/background)
+   - Day 48: PC vs. Imparfait (Interruptions - one action interrupts another)
+   - Day 49: PC vs. Imparfait (Narrative building - telling complete stories)
+   - Day 50: Week 10 Review & Assessment
+5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 250 words)
+6. **CEFR Level:** A2.1 (Month 3 continues)
+7. **Speaking Tier:** Continue 2→3 transition (guided to freer conversation)
 8. **WAIT** for user to request commit/push at end of session
-9. Update NEXT_SESSION.md for Week 10
+9. Update NEXT_SESSION.md for Week 11
 7. Update NEXT_SESSION.md for Week 9 (Month 3 begins - A2.1)
 
 ---
@@ -154,7 +164,7 @@ When user says this, automatically:
 - **Vocabulary:** 100 words (Total: 200)
 
 **Month 3 (Weeks 9-12) - A2.1:** 🔄 IN PROGRESS
-- ⏳ Week 9: Imparfait (introduction)
+- ✅ Week 9: Imparfait (introduction, irregular verbs, usage)
 - ⏳ Week 10: Passé Composé vs. Imparfait
 - ⏳ Week 11: Comparatives & Superlatives
 - ⏳ Week 12: Relative Pronouns + Month 3 exam
