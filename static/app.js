@@ -18,7 +18,9 @@ const AppState = {
     isWaitingForLevel: false,
     returnLessonModal: null,
     lessonScenarioPrompt: '',
-    lessonScenarioTargets: []
+    lessonScenarioTargets: [],
+    lastAudioBlob: null,
+    lastAudioText: ''
 };
 
 // Scenario targets mapping
@@ -56,16 +58,20 @@ function toDateKey(date) {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('French Tutor loaded');
-    (async () => {
-        await initializeAppMode();
-        checkHealth();
-        setupTabs();
-        setupSpeaking();
-        setupHomework();
-        setupVocabulary();
-        setupLessonGeneration();
-        loadProgress();
-    })();
+    try {
+        (async () => {
+            try { await initializeAppMode(); } catch (e) { console.error('initializeAppMode error:', e); }
+            try { checkHealth(); } catch (e) { console.error('checkHealth error:', e); }
+            try { setupTabs(); } catch (e) { console.error('setupTabs error:', e); }
+            try { setupSpeaking(); } catch (e) { console.error('setupSpeaking error:', e); }
+            try { setupHomework(); } catch (e) { console.error('setupHomework error:', e); }
+            try { setupVocabulary(); } catch (e) { console.error('setupVocabulary error:', e); }
+            try { setupLessonGeneration(); } catch (e) { console.error('setupLessonGeneration error:', e); }
+            try { loadProgress(); } catch (e) { console.error('loadProgress error:', e); }
+        })();
+    } catch (e) {
+        console.error('Error during app initialization:', e);
+    }
 });
 
 // Health check
@@ -99,29 +105,54 @@ async function checkHealth() {
 
 // Tab switching
 function setupTabs() {
+    if (!tabBtns || tabBtns.length === 0) {
+        console.warn('Tab buttons not found');
+        return;
+    }
+    
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const tabName = btn.dataset.tab;
-            
-            // Remove active class from all
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            
-            // Add active to clicked
-            btn.classList.add('active');
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            
-            // Load tab-specific data
-            if (tabName === 'progress') {
-                loadProgress();
-            } else if (tabName === 'vocabulary') {
-                loadVocabStats();
-            } else if (tabName === 'curriculum') {
-                loadCurriculumDashboard();
-            } else if (tabName === 'lessons') {
-                setupLessonGeneration();
-            } else if (tabName === 'speaking') {
-                applyLessonScenarioToSpeakingTab();
+            try {
+                const tabName = btn.dataset.tab;
+                
+                // Remove active class from all
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active to clicked
+                btn.classList.add('active');
+                const tabEl = document.getElementById(`${tabName}-tab`);
+                if (tabEl) {
+                    tabEl.classList.add('active');
+                }
+                
+                // Load tab-specific data
+                if (tabName === 'progress') {
+                    loadProgress();
+                } else if (tabName === 'vocabulary') {
+                    loadVocabStats();
+                } else if (tabName === 'curriculum') {
+                    loadCurriculumDashboard();
+                } else if (tabName === 'lessons') {
+                    setupLessonGeneration();
+                } else if (tabName === 'speaking') {
+                    applyLessonScenarioToSpeakingTab();
+                    // Trigger auto-generation of scenario for speaking tab
+                    const generateBtn = document.getElementById('generate-scenario-btn');
+                    if (generateBtn && !AppState.currentScenario) {
+                        // Auto-generate if no scenario yet
+                        setTimeout(() => {
+                            const event = new MouseEvent('click', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            });
+                            generateBtn.dispatchEvent(event);
+                        }, 100);
+                    }
+                }
+            } catch (e) {
+                console.error('Error in tab setup:', e);
             }
         });
     });
@@ -134,6 +165,12 @@ async function setupLessonGeneration() {
     const generateBtn = document.getElementById('generate-lesson-btn');
     const statusMsg = document.getElementById('lesson-status');
     const selectedDayDisplay = document.getElementById('selected-day-display');
+    
+    // Guard: if elements don't exist, exit gracefully
+    if (!weekSelect || !dayBtns.length || !generateBtn || !statusMsg || !selectedDayDisplay) {
+        console.warn('Lesson generation UI elements not found, skipping setup');
+        return;
+    }
     
     let selectedWeek = null;
     let selectedDay = 1; // Default to day 1
@@ -425,28 +462,8 @@ function applyLessonScenarioToSpeakingTab() {
         return;
     }
 
-    const scenarioSelect = document.getElementById('scenario-select');
-    const targetsList = document.getElementById('targets-list');
-
-    if (scenarioSelect) {
-        if (!scenarioSelect.querySelector('option[value="lesson"]')) {
-            const opt = document.createElement('option');
-            opt.value = 'lesson';
-            opt.textContent = '📘 Lesson Scenario';
-            scenarioSelect.prepend(opt);
-        }
-        if (AppState.lessonScenarioPrompt || AppState.lessonScenarioTargets.length > 0) {
-            scenarioSelect.value = 'lesson';
-        }
-    }
-
-    if (targetsList && (AppState.lessonScenarioPrompt || AppState.lessonScenarioTargets.length > 0)) {
-        const targets = AppState.lessonScenarioTargets.length > 0
-            ? AppState.lessonScenarioTargets
-            : ['Greetings', 'Basic introductions'];
-        targetsList.innerHTML = targets.map(t => `<li>${t}</li>`).join('');
-    }
-
+    // New design uses auto-generated scenarios, not fixed dropdowns
+    // Just make sure return box exists if coming from lesson
     let returnBox = document.getElementById('return-to-lesson');
     if (!returnBox) {
         returnBox = document.createElement('div');
@@ -469,10 +486,13 @@ function applyLessonScenarioToSpeakingTab() {
 }
 
 function addTTSButtonsToExamples(text) {
+    // Track which parts have already been processed to avoid duplicate buttons
+    let processedText = text;
+    
     // Pattern 1: Dialogue format - A: "French" (English) or - A: "French" (English)
     // Example: A: "C'est un stylo bleu." (It's a blue pen. - M)
     const dialoguePattern = /(-?\s*[A-Z]:\s*)"([^"]+)"\s*\(([^)]+)\)/g;
-    text = text.replace(dialoguePattern, (match, prefix, frenchText, englishTranslation) => {
+    processedText = processedText.replace(dialoguePattern, (match, prefix, frenchText, englishTranslation) => {
         const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
         const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
         return `${prefix}"<strong>${frenchText}</strong>" <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button> <span class="muted">(${englishTranslation.trim()})</span>`;
@@ -481,7 +501,7 @@ function addTTSButtonsToExamples(text) {
     // Pattern 2: Arrow format - text → French sentence (English translation)
     // Example: "Parler (to speak) → J'ai parlé français. (I spoke French.)"
     const arrowPattern = /([^→\n]+)→\s*([^(]+)\s*\(([^)]+)\)/g;
-    text = text.replace(arrowPattern, (match, before, frenchSentence, englishTranslation) => {
+    processedText = processedText.replace(arrowPattern, (match, before, frenchSentence, englishTranslation) => {
         const french = frenchSentence.trim();
         const ttsText = french.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
         const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
@@ -491,13 +511,27 @@ function addTTSButtonsToExamples(text) {
     // Pattern 3: Quoted French text without dialogue label - "French text" (English translation)
     // Example: "Je suis français." (I am French.)
     const quotedPattern = /(?<![A-Z]:\s*)"([^"]+)"\s*\(([^)]+)\)(?!\s*<button)/g;
-    text = text.replace(quotedPattern, (match, frenchText, englishTranslation) => {
+    processedText = processedText.replace(quotedPattern, (match, frenchText, englishTranslation) => {
         const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
         const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
         return `"<strong>${frenchText}</strong>" <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button> <span class="muted">(${englishTranslation.trim()})</span>`;
     });
     
-    return text;
+    // Pattern 4: Dialogue without parenthetical translation - A: French sentence (just capture French lines)
+    // Match lines like: "A: Je m'appelle Marie." or "B: Pourquoi pas?"
+    // But NOT if they already have a button
+    const simpleDialoguePattern = /(-?\s*[A-Z]:\s*)([A-Z][^?\n.!]*[?.!])(?!\s*<button)/g;
+    processedText = processedText.replace(simpleDialoguePattern, (match, prefix, frenchSentence) => {
+        const ttsText = frenchSentence.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
+        // Only add button if it looks like French (contains French letters or patterns)
+        if (/[àâäçéèêëïîôöûüœæ]|[aeiouy]'|que|pas|pas\?|ne |je |vous |tu /i.test(ttsText)) {
+            const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+            return `${prefix}<strong>${frenchSentence}</strong> <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button>`;
+        }
+        return match;
+    });
+    
+    return processedText;
 }
 
 function playLessonTTS(text) {
@@ -710,20 +744,86 @@ async function selectStartingLevel(level) {
 
 // Speaking Practice Setup
 function setupSpeaking() {
-    const scenarioSelect = document.getElementById('scenario-select');
+    const generateBtn = document.getElementById('generate-scenario-btn');
+    const tryAnotherBtn = document.getElementById('try-another-btn');
+    const scenarioDisplay = document.getElementById('scenario-display');
+    const scenarioText = document.getElementById('scenario-text');
+    const scenarioLocation = document.getElementById('scenario-location-text');
     const targetsList = document.getElementById('targets-list');
+    const targetBox = document.getElementById('targets-box');
+    const recordingBox = document.getElementById('recording-box');
     const pttBtn = document.getElementById('ptt-btn');
     const recordingStatus = document.getElementById('recording-status');
     let audioStream = null;
     
-    // Update targets when scenario changes
-    scenarioSelect.addEventListener('change', () => {
-        const scenarioValue = scenarioSelect.value;
-        const targets = scenarioValue === 'lesson'
-            ? (AppState.lessonScenarioTargets.length > 0 ? AppState.lessonScenarioTargets : ['Greetings', 'Basic introductions'])
-            : (SCENARIO_TARGETS[scenarioValue] || []);
-        targetsList.innerHTML = targets.map(t => `<li>${t}</li>`).join('');
-    });
+    // Guard: if elements don't exist, exit gracefully
+    if (!generateBtn || !tryAnotherBtn || !pttBtn || !recordingStatus) {
+        console.warn('Speaking practice UI elements not found, skipping setup');
+        return;
+    }
+    
+    // Initialize AppState for scenarios
+    AppState.currentScenario = null;
+    AppState.currentScenarioLocation = null;
+    AppState.currentTargets = [];
+    
+    // Generate scenario button
+    generateBtn.addEventListener('click', generateNewScenario);
+    tryAnotherBtn.addEventListener('click', generateNewScenario);
+    
+    async function generateNewScenario() {
+        try {
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            
+            const response = await fetch(`${API_BASE}/api/speaking/random-scenario`);
+            const data = await response.json();
+            
+            if (data.error) {
+                alert('Failed to generate scenario: ' + data.error);
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎲 Generate Random Scenario';
+                return;
+            }
+            
+            // Store current scenario in AppState
+            AppState.currentScenario = data.scenario;
+            AppState.currentScenarioLocation = data.location;
+            
+            // Extract target phrases from scenario text (look for numbered items like "1.", "2.", etc.)
+            const targetMatches = data.scenario.match(/\d+\.\s+([^:]+):/g);
+            AppState.currentTargets = targetMatches
+                ? targetMatches.map(t => t.replace(/^\d+\.\s+/, '').replace(/:$/, '').trim())
+                : [];
+            
+            // Display scenario
+            scenarioLocation.textContent = data.location;
+            scenarioText.textContent = data.scenario;
+            scenarioDisplay.style.display = 'block';
+            
+            // Display targets
+            if (AppState.currentTargets.length > 0) {
+                targetsList.innerHTML = AppState.currentTargets
+                    .map(t => `<li>${t}</li>`)
+                    .join('');
+                targetBox.style.display = 'block';
+            }
+            
+            // Show recording and try another button
+            recordingBox.style.display = 'block';
+            tryAnotherBtn.style.display = 'block';
+            
+            generateBtn.disabled = false;
+            generateBtn.textContent = '🎲 Generate Random Scenario';
+            recordingStatus.textContent = 'Hold button or press SPACE to record';
+            
+        } catch (error) {
+            alert('Failed to generate scenario: ' + error.message);
+            generateBtn.disabled = false;
+            generateBtn.textContent = '🎲 Generate Random Scenario';
+            console.error('Scenario generation error:', error);
+        }
+    }
     
     // Push-to-Talk: Mouse events
     pttBtn.addEventListener('mousedown', startRecording);
@@ -751,6 +851,11 @@ function setupSpeaking() {
     });
     
     async function startRecording() {
+        if (!AppState.currentScenario) {
+            alert('Please generate a scenario first');
+            return;
+        }
+        
         if (AppState.isRecording) return; // Prevent multiple simultaneous recordings
         
         try {
@@ -793,9 +898,10 @@ function setupSpeaking() {
     
     async function processAudio(audioBlob) {
         try {
-            // Transcribe audio
+            // Transcribe audio with target phrases as hints
             const formData = new FormData();
             formData.append('audio_file', audioBlob, 'recording.wav');
+            formData.append('target_phrases', AppState.currentTargets.join(','));  // Send hints for better accuracy
             
             const transcribeResponse = await fetch(`${API_BASE}/api/audio/transcribe`, {
                 method: 'POST',
@@ -803,32 +909,36 @@ function setupSpeaking() {
             });
             const { transcription } = await transcribeResponse.json();
             
-            // Get AI feedback
-            const scenarioValue = scenarioSelect.value;
-            const scenario = scenarioValue === 'lesson'
-                ? (AppState.lessonScenarioPrompt || 'Lesson speaking practice')
-                : scenarioValue;
-            const targets = scenarioValue === 'lesson'
-                ? (AppState.lessonScenarioTargets.length > 0 ? AppState.lessonScenarioTargets : ['Greetings', 'Basic introductions'])
-                : (SCENARIO_TARGETS[scenarioValue] || []);
-            
+            // Get AI's response (as conversation partner)
             const feedbackResponse = await fetch(`${API_BASE}/api/speaking/feedback`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    scenario: scenario,
-                    targets: targets,
+                    scenario: AppState.currentScenarioLocation,
+                    targets: AppState.currentTargets,
                     transcribed_text: transcription
                 })
             });
             const { feedback } = await feedbackResponse.json();
             
-            // Display feedback
-            document.getElementById('feedback-content').textContent = feedback;
-            document.getElementById('feedback-box').style.display = 'block';
-            recordingStatus.textContent = '✅ Done!';
+            // Display conversation exchange
+            const feedbackBox = document.getElementById('feedback-box');
+            const feedbackContent = document.getElementById('feedback-content');
             
-            // Setup TTS playback
+            feedbackContent.innerHTML = `
+                <div class="dialogue-exchange">
+                    <div class="dialogue-student">
+                        <strong>You:</strong> ${transcription}
+                    </div>
+                    <div class="dialogue-ai">
+                        <strong>AI:</strong> ${feedback}
+                    </div>
+                </div>
+            `;
+            feedbackBox.style.display = 'block';
+            recordingStatus.textContent = '✅ AI responded!';
+            
+            // Setup TTS playback for AI's response
             setupTTSPlayback(feedback);
             
         } catch (error) {
@@ -836,27 +946,45 @@ function setupSpeaking() {
             console.error('Audio processing error:', error);
         }
     }
+    
+    // Auto-generate first scenario when speaking tab is opened
+    // (This will be called when setupTabs triggers tab change)
 }
 
 function setupTTSPlayback(text) {
     const playBtn = document.getElementById('play-tts-btn');
-    playBtn.onclick = async () => {
+    
+    // Create a function that plays audio (either stored or fetched)
+    async function playAudio() {
         try {
-            const response = await fetch(`${API_BASE}/api/tts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: text, lang: 'fr' })
-            });
+            // Check if we have cached audio for this text
+            if (!AppState.lastAudioBlob || AppState.lastAudioText !== text) {
+                // Fetch fresh audio
+                const response = await fetch(`${API_BASE}/api/tts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, lang: 'fr' })
+                });
+                
+                AppState.lastAudioBlob = await response.blob();
+                AppState.lastAudioText = text;
+            }
             
-            const blob = await response.blob();
-            const audioUrl = URL.createObjectURL(blob);
+            // Play the audio
+            const audioUrl = URL.createObjectURL(AppState.lastAudioBlob);
             const audio = new Audio(audioUrl);
             audio.play();
             
         } catch (error) {
             console.error('TTS error:', error);
         }
-    };
+    }
+    
+    // Set button to call playAudio function
+    playBtn.onclick = playAudio;
+    
+    // Auto-play immediately
+    playAudio();
 }
 
 // Homework Setup
@@ -1856,6 +1984,7 @@ function setupEmbeddedSpeaking(container, speakingContent) {
         try {
             const formData = new FormData();
             formData.append('audio_file', audioBlob, 'recording.wav');
+            formData.append('target_phrases', targets.join(','));  // Send hints for better accuracy
 
             const transcribeResponse = await fetch(`${API_BASE}/api/audio/transcribe`, {
                 method: 'POST',
