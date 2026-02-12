@@ -177,6 +177,8 @@ Uzun soluklu, kişiselleştirilmiş, CEFR standartlarına uygun bir Fransızca �
 │    \- Anlık feedback                     │  
 └─────────────────────────────────────────┘
 
+**TTS UI Guardrail:** Render a listen button for every eligible French sentence (dialogue, arrow examples, quoted French, quiz prompts/options, and vocabulary cards). Do not remove or downgrade this behavior during UI refactors.
+
   * Hedef: 100 kelime/ay (5 kelime/gün × 20 gün)
 
 **FR-011: Homework System**
