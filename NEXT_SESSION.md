@@ -1,6 +1,18 @@
 # Next Session To-Do List
 **Last Updated:** 2026-02-12  
-**Current Status:** Week 1 Curriculum Created ✅ | Pushed to Git ✅
+**Current Status:** Week 3 Curriculum Created ✅
+
+---
+
+## 🔄 WORKFLOW FOR EACH SESSION
+
+**IMPORTANT:** At the start of EVERY new session:
+1. **Read Phase_2_Detailed_12Month_Plan.md FIRST** (general overview - only once per session)
+2. Then create the requested week curriculum
+3. **DO NOT commit/push** until user explicitly requests it at end of session
+4. Update NEXT_SESSION.md when week is complete
+
+**User will say:** "commit ve push işini seans sonunda söyleyeyim" (I'll tell you about commit/push at end of session)
 
 ---
 
@@ -23,24 +35,41 @@
   - Day 10: Numbers 1-20
   - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_2_A1.1.md`
 
-### Next Task:
-🎯 **CREATE WEEK 3 CURRICULUM**
+✅ **Week 3 (A1.1 - Days 11-15)** - Created (NOT YET COMMITTED)
+  - Day 11: Gender in French (Masculine/Feminine)
+  - Day 12: Number (Singular/Plural)
+  - Day 13: Article Agreement (Gender + Number)
+  - Day 14: Adjective Placement & Agreement
+  - Day 15: Week 3 Review & Assessment
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_3_A1.1.md`
 
-**User command:** "Bir sonraki haftaya başla" OR "Next week please"
+✅ **Week 4 (A1.1 - Days 16-20)** - Created (NOT YET COMMITTED)
+  - Day 16: Question Formation (intonation, est-ce que, inversion)
+  - Day 17: Complex Negation (ne...plus, jamais, rien, personne)
+  - Day 18: Imperatives & Commands
+  - Day 19: Time Expressions & Daily Routines
+  - Day 20: Month 1 Comprehensive Review & Exam
+  - **MONTH 1 COMPLETE!** ✅ 100 vocabulary words achieved
+  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_4_A1.1.md`
+
+### Next Task:
+🎯 **CREATE WEEK 5 CURRICULUM (MONTH 2 - A1.2 BEGINS!)**
+
+**User command:** "Bir sonraki haftaya başla" OR "week 5"
 
 When user says this, automatically:
-1. Create Week 3 (A1.1 - Days 11-15) curriculum file
-2. Follow the same detailed format as Weeks 1-2
-3. Grammar topics for Week 3:
-   - Day 11: Adjectives (basic descriptive adjectives)
-   - Day 12: Adjective agreement (masculine/feminine, singular/plural)
-   - Day 13: Adjective placement (before/after noun)
-   - Day 14: Possessive adjectives (mon, ma, mes, ton, ta, etc.)
-   - Day 15: Colors and physical descriptions
-4. Vocabulary: 5 words/day × 5 days = 25 words (focus: adjectives, colors, descriptions)
-5. Commit with message: "Add Week 3 (A1.1) detailed curriculum - Days 11-15"
-6. Push to remote
-7. Update NEXT_SESSION.md for Week 4
+1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md` for general overview (ONCE per session only)
+2. Create Week 5 (A1.2 - Days 21-25) curriculum file
+3. Follow the same detailed format as Weeks 1-4
+4. Grammar topics for Week 5:
+   - Day 21: Passé Composé with Avoir (introduction)
+   - Day 22: Past Participles (regular forms)
+   - Day 23: Irregular Past Participles (avoir, être, faire)
+   - Day 24: Passé Composé (more irregular verbs)
+   - Day 25: Week 5 Review
+5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 125 words)
+6. **WAIT** for user to request commit/push at end of session
+7. Update NEXT_SESSION.md for Week 6
 
 ---
 

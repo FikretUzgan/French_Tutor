@@ -4,9 +4,9 @@
 
 ## **AI French Tutor \- "Le Professeur Strict"**
 
-**Version:** 1.0  
- **Date:** 06.02.2026  
-**Project Duration:** 9 months (A1 → B2)
+**Version:** 2.0 (Updated for Fixed Curriculum Approach)  
+ **Date:** 12.02.2026  
+**Project Duration:** 12 months (52 weeks, A1.1 → B2.2 + Specialization Paths)
 
 ---
 
@@ -26,7 +26,7 @@ Uzun soluklu, kişiselleştirilmiş, CEFR standartlarına uygun bir Fransızca �
 
 ### **1.3 Solution**
 
-Generative AI destekli, her seferinde farklı sorular üreten, öğrenci performansına göre adapte olan, gramer odaklı, okuma hedefli bir öğretmen sistemi.
+**Fixed Curriculum + AI Evaluation** yaklaşımı: Manuel hazırlanmış, kaliteli 52-haftalık müfredat (Week_1-52.md) tüm ders içeriğini sağlar (grammar, vocabulary, examples, quiz questions). AI sadece interaktif değerlendirme için kullanılır (speaking practice feedback, homework grading, exam scoring). Bu yaklaşım tutarlı içerik kalitesi, öğrenme çıktılarının öngörülebilirliği ve AI API maliyetlerinin düşüklüğünü garanti eder.
 
 ---
 
@@ -36,10 +36,11 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 
 **FR-001: CEFR Level System**
 
-* Seviyeler: A1.1, A1.2, A2.1, A2.2, B1.1, B1.2, B2.1, B2.2  
-* Her seviye: 4-5 hafta  
-* Toplam süre: \~36 hafta (9 ay)
-* Tempo: A1 hizli ilerler, A2/B1 dengeli, B2 daha yavas ve daha fazla tekrar
+* Seviyeler: A1.1, A1.2, A2.1, A2.2, B1.1, B1.2, B2.1, B2.2 + Specialization Paths  
+* Yapı: 52 hafta (12 ay), 5 gün/hafta = 20 gün/ay
+* Vocabulary: 5 kelime/gün × 20 gün/ay = 100 kelime/ay × 12 ay = **1,200 toplam kelime**
+* Monthly exams: Ayda 1 comprehensive exam (Days 20, 40, 60, 80, 100, 120, 140, 160)
+* Tempo: A1 hizli ilerler (Month 1-2), A2/B1 dengeli (Month 3-6), B2 daha yavas ve daha fazla tekrar (Month 7-8), Specialization paths (Month 9-12)
 
 **FR-002: Study Schedule**
 
@@ -57,120 +58,86 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 
 ---
 
-### 2.1.2 Dynamic Lesson Generation System
+### 2.1.2 Fixed Curriculum Loading System
 
-**FR-004: Curriculum-Driven Lesson Generation**
+**FR-004: Curriculum Content Loading (Fixed Content Approach)**
 
-* **Purpose:** Generate lessons dynamically from structured curriculum files instead of static database storage
-* **Inputs:** Week number (1-52), day number (1-7), student level, student weaknesses
+* **Purpose:** Load pre-authored lesson content from curriculum files (NO AI generation for lessons)
+* **Inputs:** Week number (1-52), day number (1-5)
 * **Process:**
-  1. Load curriculum file (`New_Curriculum/wk{N}.md`) for requested week
-  2. Parse curriculum structure: learning outcomes, grammar target, vocabulary set, speaking scenario, homework task
-  3. Build system prompt (roles, course scope, big picture)
-  4. Build lesson generation prompt (curriculum context + student profile)
-  5. Call Gemini API with complete context
-  6. Validate and return generated lesson JSON
+  1. Load curriculum file (`Research/NEW_CURRICULUM_REDESIGNED/Week_{N}_*.md`) for requested week
+  2. Parse fixed content: metadata, pre-written grammar (400+ words), vocabulary (5 words), examples (50), speaking prompts (fixed), quiz questions (50, pre-written)
+  3. Extract content_identifiers from metadata for quiz question selection
+  4. Return lesson object with all fixed content (NO AI generation)
 
-* **Output:** Complete lesson JSON with:
-  * Grammar section (explanation, form, 5+ examples, conjugation table, error focus)
-  * Vocabulary section (21 words with translations, examples, pronunciation tips)
-  * Speaking section (scenario prompt, targets, expected elements)
-  * Quiz section (3-5 questions with explanations)
-  * Homework section (prompt, requirements, rubric, estimated time)
-  * Session metadata (duration estimates, pace recommendations)
+* **Output:** Complete lesson object with:
+  * Grammar section (pre-written 5-paragraph structure, 400+ words, conjugation tables)
+  * Vocabulary section (5 words with French/English, gender, example sentences)
+  * Examples section (50 pre-written progressive sentences)
+  * Speaking section (fixed tier-appropriate prompts from curriculum)
+  * Quiz section (50 pre-written questions, 8 shown per attempt)
+  * Metadata (content_identifiers, speaking_tier, day number)
 
 * **Key Benefits:**
-  * No lesson storage limit (infinite content generation)
-  * No week restriction (students can start at any week)
-  * Fresh examples each time (prevents memorization)
-  * Curriculum-aligned (AI follows structured weekly plans)
-  * Personalized (adapts to student weaknesses and level)
+  * Consistent content quality (manually authored by curriculum experts)
+  * Predictable learning outcomes (no AI hallucination risk)
+  * Low API costs (AI used only for evaluation, not content generation)
+  * Scalable (52 curriculum files serve unlimited students)
+  * Transparent (all content reviewable before deployment)
 
-**FR-005: Curriculum File Structure**
+**FR-005: Curriculum File Structure (Fixed Content Files)**
 
-* Location: `New_Curriculum/wk{1-52}.md` (52-week progression A1.1 → B2.2)
-* Required sections:
-  * Learning Outcomes (CEFR descriptors for the week)
-  * Grammar Target (form, complexity, prerequisites, 7-step scaffolding sequence)
-  * Vocabulary Set (21 words with semantic domain)
-  * Speaking Scenario (domain, prompt in French, AI role, targets)
-  * Reading/Listening Component (type, content description, comprehension tasks)
-  * Homework Assignment (type, task description, detailed rubric with pass criteria)
+* Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_{N}_*.md` (52 files, Week 1-52)
+* Each file contains: **5 days (Monday-Friday)** of complete lesson content
+* Required sections per day:
+  * **Metadata:** Day number, grammar topic, content_identifiers (exercise types), speaking_tier (1/2/3)
+  * **Grammar Section:** Pre-written 5-paragraph explanation (400+ words minimum)
+  * **Vocabulary:** 5 words with French/English, gender, plural, example sentences
+  * **Examples:** 50 pre-written progressive sentences (statements, questions, negatives)
+  * **Speaking Prompts:** Fixed tier-appropriate prompts (script-based → guided → free)
+  * **Quiz Questions:** 50 pre-written questions with answer keys (multiple formats)
+* Monthly exam structure: Day 20, 40, 60, 80, 100, 120, 140, 160 = comprehensive exams (4 sections)
+* Consistency: All 52 files follow identical markdown structure for curriculum_loader.py parsing
 
-* Consistency Requirement: All files must follow same markdown format for reliable parsing
+**FR-006: AI Evaluation Prompts (Speaking/Homework/Exam Feedback Only)**
 
-**FR-006: System Prompt (Big Picture Context)**
+* **Purpose:** AI evaluates student performance, DOES NOT generate content
+* **Use Cases:**
+  1. **Speaking Practice Evaluation:** Analyze STT transcription → score pronunciation/grammar/fluency
+  2. **Homework Grading:** Evaluate text+audio submission → provide detailed feedback
+  3. **Exam Scoring:** Score written/speaking exam sections → generate rubric-based results
 
-* **Content:** Explains to AI:
-  * Its role as rigorous French tutor ("strict professor")
-  * Course scope (52 weeks, A1 → B2, CEFR-aligned)
-  * Student context (current level, completed weeks, known weaknesses)
-  * Course philosophy (grammar-focused, practical scenarios, error correction)
-  * Constraints (follow curriculum exactly, provide specific feedback, maintain difficulty)
+* **Evaluation Framework:**
+  * Speaking Tier 1 (Months 1-2): Script adherence (0-100), basic pronunciation (0-100)
+  * Speaking Tier 2 (Months 3-6): Grammar accuracy (0-100), scenario completion (0-100)
+  * Speaking Tier 3 (Months 7-12): Fluency (0-100), complexity (0-100), naturalness (0-100)
+  
+* **Token cost:** ~500-1000 tokens per evaluation call (MUCH lower than content generation)
+* **API usage:** Only when student submits speaking/homework/exam (not every lesson view)
 
-* **Used in:** Every lesson generation call
-* **Token cost:** ~300 tokens per call
-* **Purpose:** Frames all subsequent AI responses with consistent perspective and constraints
+**FR-007: Quiz Question Selection Logic (Fixed Bank, Not Generated)**
 
-**FR-007: Lesson Generation Prompt (Main Curriculum-to-Lesson Transformation)**
+* **Purpose:** Select 8 questions from 50-question fixed bank per day
+* **Selection Algorithm:**
+  1. Parse 50 pre-written quiz questions from curriculum file
+  2. Extract question metadata: type (multiple_choice, fill_blank, conjugation), answer key, content_identifier
+  3. Filter by content_identifier variety (ensure mix of exercise types per attempt)
+  4. Track shown_questions in lesson_progress table to avoid repeats
+  5. Randomize order of selected 8 questions
+  6. Display questions with immediate feedback (correct/incorrect)
 
-* **Content:** Instructs AI to:
-  * Transform curriculum metadata into structured lesson JSON
-  * Include all vocabulary words from curriculum in examples
-  * Provide 8+ progressive examples for grammar (statements, questions, negatives)
-  * Follow mandatory 5-paragraph grammar explanation structure:
-    1. Definition & importance (3-4 sentences)
-    2. English comparison & common difficulties (3-4 sentences)
-    3. Full conjugation/form breakdown per pronoun (6-8 sentences)
-    4. Real-world usage scenarios (3-4 sentences, 2+ scenarios)
-    5. Common pitfalls with corrections (3-4 sentences, 2+ errors)
-  * Minimum 400 words, 20 sentences per grammar explanation
-  * Adapt difficulty if student has related weaknesses
-  * Use variation instructions to produce different content per attempt
-  * Return ONLY valid JSON (no markdown, no extra text)
+* **Question Formats (all pre-written in curriculum files):**
+  * Multiple choice (4 options with distractors)
+  * Fill-in-blank (conjugation, vocabulary)
+  * Translation (EN→FR, FR→EN)
+  * Error detection (identify grammar mistakes)
+  
+* **Benefits:**
+  * Consistent difficulty (questions manually calibrated)
+  * No AI generation errors (all questions human-verified)
+  * Variety across attempts (50-question pool → 15+ unique quiz sets)
 
-* **Dynamic Content Variation System:**
-  * Each generation tracked with `attempt_number` (auto-incrementing per week/day)
-  * `variation_seed` provides deterministic randomization for content selection
-  * Attempt-specific variation instructions:
-    - Attempt 1: Foundation — basic contexts, recognition-focused quiz
-    - Attempt 2: Deeper — different verbs/adjectives, production-focused quiz
-    - Attempt 3: Nuances — edge cases, error detection quiz
-    - Attempt 4+: Complete mastery — mixed types, creative scenarios
-  * 6 context pools × 6 adjective pools × 12 scenario pools = high variation
-  * Temperature escalation: 0.8 → 0.95 → 1.1 → 1.25 (more creative each attempt)
-
-* **Input Variables:**
-  * Curriculum JSON (parsed from wk{N}.md)
-  * Learning outcomes for the week
-  * Grammar target with scaffolding steps
-  * Vocabulary set (all words)
-  * Speaking scenario requirements
-  * Homework task and rubric
-  * Student level and weaknesses
-  * attempt_number and variation_seed
-
-* **Output:** Valid JSON with lesson structure (see FR-004)
-* **Token cost:** ~2000-4000 tokens per call
-* **Failure modes & handling:**
-  * Invalid JSON → Parse error, show user "Lesson generation failed, please retry"
-  * Missing sections → Validate response schema before returning
-  * Hallucinated content → Prompt includes "Do NOT deviate from curriculum"
-
-**FR-008: Weakness Personalization Subprompt (Adaptive Scaffolding)**
-
-* **Content:** When student has documented weaknesses:
-  * Add extra examples specifically targeting the weakness
-  * Provide clear English parallels for confusing topics
-  * Include focused homework exercise for weakness topic
-  * Test weakness explicitly in quiz question
-  * Mark weakness in speaking targets for conscious attention
-
-* **Trigger:** Only included if `student_weaknesses[]` is non-empty
-* **Combined with:** LESSON_GENERATION_PROMPT as additional instruction
-* **Purpose:** Provide extra scaffolding while maintaining rigor (not lowering standards)
-
-**FR-009: Homework Evaluation Prompt (Automatic Grading Logic)**
+**FR-008: Homework Evaluation Prompt (AI Grading with Fixed Rubric)****
 
 * **Content:** Instructs AI to evaluate student homework against rubric:
   * Score text for grammar, vocabulary, content quality (0-100)
@@ -210,7 +177,7 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 │    \- Anlık feedback                     │  
 └─────────────────────────────────────────┘
 
-* Hedef: 27 kelime/hafta (3 kelime x 9 oturum)
+  * Hedef: 100 kelime/ay (5 kelime/gün × 20 gün)
 
 **FR-011: Homework System**
 
@@ -238,23 +205,23 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 * **Audio Evaluation (Telaffuz Değerlendirmesi):**
   * AI kullanıcının teslim ettiği metni okuyup okumadığını kontrol eder
 
-**FR-013: On-Demand Grammar Expansion (Future Improvement)**
+**FR-013: On-Demand Grammar Expansion (Optional Future Feature)**
 
-* **Purpose:** Allow learners to request more grammar explanation or examples on demand
+* **Purpose:** Allow learners to request ADDITIONAL grammar explanation beyond fixed curriculum content
 * **UI Controls:**
   * "More Explanation" button within lesson grammar section
   * "More Examples" button within lesson grammar section
 * **Behavior:**
-  * Triggers AI to expand only the grammar section (no full lesson regeneration)
-  * Appends additional explanation paragraphs and 4-6 new examples
-  * Preserves the current lesson state and navigation
+  * Calls AI to generate SUPPLEMENTARY explanation (does NOT replace fixed content)
+  * Appends AI-generated examples to existing curriculum content
+  * Preserves original fixed curriculum content
 * **Constraints:**
-  * Must stay aligned with the selected week/day curriculum
-  * Must remain at the learner's CEFR level
-  * Must avoid repeating existing examples
-* **Fallback:** If AI expansion fails, show a friendly error and keep existing content
+  * Must stay aligned with the current day's grammar topic
+  * Must avoid repeating examples from curriculum file
+  * Clear indication this is "AI-generated supplement" (not curriculum content)
+* **Fallback:** If AI expansion fails, show friendly error and keep existing curriculum content
 
-**FR-014: Grammar Reference Tab (Future Improvement)**
+**FR-014: Grammar Reference Tab (Fixed Content Library)****
 
 * **Purpose:** Provide a fixed, searchable grammar reference separate from dynamic lessons
 * **Content:** Curated, non-AI grammar explanations organized by topic (tenses, pronouns, negation, questions, etc.)
@@ -289,27 +256,29 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
 
 * **Purpose:** In-lesson practice with immediate feedback, multiple retries allowed
 * **Duration:** 10 minutes per lesson (Section 3 of lesson structure)
-* **Flow Architecture (Token-efficient for free tier):**
-  1. **Scenario presented:** AI generates speaking scenario (text + TTS audio)
+* **Flow Architecture:**
+  1. **Scenario presented:** Load fixed speaking prompt from curriculum file (text + TTS audio)
   2. **Push-to-talk recording:** Student holds button to speak (sounddevice)
   3. **STT conversion:** Whisper.cpp converts speech → text locally
-  4. **Text-based AI evaluation:** Send transcribed text to Gemini API (not audio)
+  4. **AI evaluation:** Send transcribed text to Gemini API for speaking feedback
   5. **AI response:** Text feedback + suggestions in **French only**
   6. **TTS playback:** gTTS reads AI response aloud (symbols/emoji stripped)
-  7. **Retry allowed:** Student can attempt again with new scenario or same
+  7. **Retry allowed:** Student can attempt same prompt again or proceed
+  
+  * **Difference from Homework Audio:**
+  * Speaking practice: STT → text → AI evaluation (interactive feedback)
+  * Homework audio: Raw audio stored + STT comparison + AI grading (formal assessment)
   
 * **Key Design Decisions:**
-  * **No audio sent to AI:** Only STT transcription sent (saves tokens on free tier)
+  * **Fixed speaking prompts:** All scenarios pre-written in curriculum files (no AI generation)
+  * **AI evaluates only:** AI analyzes student's transcribed response, provides feedback
+  * **No audio sent to AI:** Only STT transcription sent (saves tokens)
   * **Local STT + cloud TTS:** Whisper runs locally, gTTS used for TTS
   * **Interactive, not evaluative:** Not stored in database, just practice
   * **Immediate feedback:** Real-time text + voice response
-  * **Multiple attempts:** Students can retry scenarios until satisfied
+  * **Multiple attempts:** Students can retry same prompt until satisfied
   * **French-only feedback:** Prevent mixed-language TTS output
   * **TTS sanitization:** Remove emoji/symbols so TTS reads only text
-  
-* **Difference from Homework Audio:**
-  * Speaking practice: STT → text → AI (text-based conversation)
-  * Homework audio: Raw audio stored + STT comparison for pronunciation scoring
   
 * **UI Pattern - Push-to-Talk (Walkie-Talkie Style):**
   * Single prominent "Push to Talk" button (microphone icon)
@@ -323,22 +292,23 @@ Generative AI destekli, her seferinde farklı sorular üreten, öğrenci perform
   * "Try again" button for retry with new scenario
   * No manual "Stop" button—purely press/hold activation
 
-**FR-014: Interactive Lesson Flow (Weekly Plan Driven)**
+**FR-015: Interactive Lesson Flow (Fixed Curriculum Content Display)**
 
-* **Purpose:** Start lesson uses the weekly plan as the source of truth for the session.
-* **Inputs:** Weekly plan (grammar target, vocabulary set, speaking scenario, mini-quiz).
+* **Purpose:** Display lesson content from curriculum files, no AI generation
+* **Inputs:** Week number, day number
 * **Flow:**
-  1. Load weekly plan by level and week number.
-  2. Present grammar explanation and examples from the plan.
-  3. Run vocabulary practice using plan vocabulary (FR->EN / EN->FR).
-  4. Run speaking scenario using plan prompt and targets.
-  5. Run mini-quiz using plan questions and immediate feedback.
-  6. Mark section completion (complete/skip/retry) and persist progress.
+  1. Load curriculum file (Week_{N}_*.md) and parse day content
+  2. Display pre-written grammar explanation (400+ words, 5-paragraph structure)
+  3. Display vocabulary (5 words with examples, TTS playback available)
+  4. Display 50 example sentences (progressive: statements, questions, negatives)
+  5. Load speaking prompt from curriculum (fixed, tier-appropriate)
+  6. Load quiz questions (select 8 from 50-question fixed bank)
+  7. Mark section completion (complete/skip) and persist progress
 * **Requirements:**
-  * AI must follow the weekly plan sequence and scope.
-  * User input is required at each section (response or skip).
-  * Responses are logged for progress tracking and weakness analysis.
-  * Lesson can resume from the last completed section.
+  * All content sourced from curriculum files (NO AI generation)
+  * User input required for quiz answers and speaking practice
+  * Responses logged for progress tracking and weakness analysis
+  * Lesson can resume from last completed section
 
 ---
 
@@ -466,25 +436,25 @@ The system provides three modes for vocabulary practice:
 - Incorrect answers tracked in weakness_tracking for adaptive learning
 - Real-time feedback with correct answer shown
 
-**FR-043: Lesson Review with Fresh Examples**
+**FR-043: Lesson Review with Question Rotation**
 
-Students can review previously completed lessons with AI-generated fresh content:
+Students can review previously completed lessons with different quiz questions:
 
 - **Review Trigger:** Student clicks "Review" button on lesson card
-- **AI Generation:** System calls generate_lesson_ai() with same topic but requests NEW examples
-- **Content Changes:**
-  - Same grammar topic and explanation
-  - NEW example sentences (different from original lesson)
-  - NEW vocabulary items (3 fresh words)
-  - NEW speaking practice prompt
-- **No Requirements:** Review lessons have NO homework and NO exam sections
-- **Use Case:** Re-learning grammar concepts without static repetition
-- **Tracking:** Review lessons marked with is_review=true flag and original_lesson_id reference
+- **Content Display:** Same fixed curriculum content (grammar, vocabulary, examples)
+- **Quiz Variation:** System selects DIFFERENT 8 questions from 50-question fixed bank
+  - Track which questions already shown in previous attempts
+  - Rotate to questions 9-16, 17-24, etc. on subsequent reviews
+  - Ensures variety without AI generation
+- **Speaking Practice:** Same fixed prompt (students can retry for better performance)
+- **No Requirements:** Review lessons have NO homework blocking
+- **Use Case:** Re-learning grammar concepts with different quiz questions
+- **Tracking:** Review sessions marked with is_review=true flag and question_ids_shown array
 
 **API Endpoints:**
 - GET /api/vocabulary/practice?mode=daily|weak|all&limit=10
 - POST /api/vocabulary/check (validates answer, returns feedback)
-- POST /api/lessons/{lesson_id}/review (generates fresh review lesson)
+- POST /api/lessons/{week}/{day}/review (loads same lesson with different quiz questions)
 
 **FR-044: Enhanced MCQ Distractors (Future Enhancement)**
 
@@ -743,119 +713,112 @@ B2 (Upper Intermediate) - 9 weeks
 ├── B2.1 (Week 28-31): Advanced Grammar, Idiomatic Expressions  
 └── B2.2 (Week 32-36): Literature Analysis, Complex Argumentation
 
-### **5.2 Weekly Theme Examples**
+### **5.2 Daily Lesson Examples (Fixed Curriculum Content)**
 
-**A1.1 Week 1:**
+**Month 1, Week 1, Day 1 (A1.1):**
+* Grammar: Être conjugation (pre-written 5-paragraph, 400+ words)
+* Vocabulary: je, tu, il/elle, nous, vous (5 words with examples)
+* Examples: 50 progressive sentences (Je suis étudiant., Tu es français?, ...)
+* Speaking: "Introduce yourself" (fixed Tier 1 script-based prompt)
+* Quiz: 8 questions from 50-question bank (conjugation, fill_blank)
 
-* Grammar: Être/Avoir conjugation  
-* Vocabulary: Bonjour, merci, au revoir  
-* Speaking: Se présenter (Introducing yourself)  
-* Homework: Write 5 sentences about yourself
+**Month 2, Week 5, Day 21 (A1.2):**
+* Grammar: Passé composé with avoir (pre-written with conjugation table)
+* Vocabulary: manger, parler, finir, choisir, regarder (5 words)
+* Examples: 50 sentences (J'ai mangé une pomme., ...)
+* Speaking: "Describe what you did yesterday" (Tier 1 guided)
+* Quiz: 8 questions from 50-question bank
 
-**A2.1 Week 10:**
-
-* Grammar: Imparfait vs Passé Composé  
-* Vocabulary: Weather expressions  
-* Speaking: Describe a childhood memory  
-* Homework: Write a short story (past tense)
-
-**B1.2 Week 24:**
-
-* Grammar: Subjonctif usage after "bien que", "pour que"  
-* Vocabulary: Political terms  
-* Speaking: Debate a social issue  
-* Homework: Write an opinion article (200 words)
+**Month 6, Week 24, Day 120 (B1.2 - Monthly Exam):**
+* Comprehensive exam (DELF-aligned, 4 sections)
+* Listening (25pts), Reading (25pts), Writing (25pts), Speaking (25pts)
+* Pass threshold: 50/100 points
+* Duration: 60-90 minutes
 
 ---
 
-## **6\. AI AGENT DESIGN**
+## **6. AI EVALUATION SYSTEM DESIGN (NOT Content Generation)**
 
-### **6.1 Lesson Planner Agent**
+### **6.1 Curriculum Loader (Fixed Content Parser)**
 
-python  
-class LessonPlannerAgent:  
-    """  
-    Generates personalized lessons based on:  
-    \- Current CEFR level  
-    \- Past performance  
-    ### **3.1 Performance  
-    - **NFR-001:** Ders yükleme süresi < 2 saniye  
-    - **NFR-002:** STT (Whisper) yanıt süresi < 3 saniye  
-    - **NFR-003:** TTS (gTTS) ses üretimi < 2 saniye
-      
-    ### **3.2 Usability  
-    - **NFR-010:** FastAPI tabanli web arayuzu (HTML/CSS/JS)  
-    - **NFR-011:** Responsive tasarım (1280×720 minimum)  
-    - **NFR-012:** Push-to-talk mikrofon butonu
-    │      FRONTEND (HTML/CSS/JS via FastAPI)             │  
-          
-    │           BUSINESS LOGIC (FastAPI)                  │  
-        \# 2\. Get learned vocabulary  
-    │  │   LessonPlanner (Prompt-based)           │      │  
-        learned\_vocab \= self.db.get\_vocabulary(user\_id)  
-    │ Gemini │    │ Whisper  │   │  gTTS   │    │   SQLite    │  
-          
-    │ (Free) │    │ (Lokal)  │   │ (Cloud)│    │   (Lokal)   │  
-        \# 3\. Get curriculum for this level  
-        curriculum \= self.load\_curriculum(level)  
-          
-    | Component | Technology | Justification |
-    | ----- | ----- | ----- |
-    | Frontend | FastAPI + HTML/CSS/JS (Vanilla) | Hızli, hafif, REST API tabanli |
-    | AI Agent | Gemini 2.5 Flash | Hizli, ucuz, free-tier uyumlu |
-    | STT | Whisper (base model) | Lokal, hızlı, Fransızca destekli |
-    | TTS | gTTS | Basit, stabil, Fransizca icin yeterli |
-        \# 4\. Generate lesson with Gemini  
-        prompt \= f"""  
-    * Dependencies yükle:
+```python
+class CurriculumLoader:
+    """
+    Loads pre-authored lesson content from curriculum files.
+    NO AI generation - all content pre-written in markdown files.
+    """
+    
+    def load_lesson(self, week, day):
+        # 1. Load curriculum file
+        file_path = f"Research/NEW_CURRICULUM_REDESIGNED/Week_{week}_*.md"
+        curriculum_text = self.read_file(file_path)
+        
+        # 2. Parse sections (markdown parsing)
+        metadata = self.parse_metadata(curriculum_text, day)
+        grammar = self.parse_grammar_section(curriculum_text, day)
+        vocabulary = self.parse_vocabulary(curriculum_text, day)  # 5 words
+        examples = self.parse_examples(curriculum_text, day)      # 50 sentences
+        speaking_prompt = self.parse_speaking(curriculum_text, day)
+        quiz_questions = self.parse_quiz(curriculum_text, day)    # 50 questions
+        
+        # 3. Return lesson object
+        return {
+            "week": week,
+            "day": day,
+            "grammar": grammar,                # Pre-written 400+ words
+            "vocabulary": vocabulary,          # Fixed 5 words
+            "examples": examples,              # Fixed 50 sentences
+            "speaking_prompt": speaking_prompt,# Fixed tier-appropriate prompt
+            "quiz_pool": quiz_questions,      # Fixed 50 questions
+            "content_identifiers": metadata["content_identifiers"],
+            "speaking_tier": metadata["speaking_tier"]
+        }
 
-    bash  
-     pip install fastapi uvicorn[standard] python-multipart python-dotenv google-genai  
-      pip install openai-whisper gTTS  
-      pip install chromadb sqlalchemy sounddevice scipy
-    * Whisper base model indir (auto-download)  
-    * gTTS icin local model gerekmez  
-    * Frontend CSS tema özelleştirme  
-        1\. Grammar topic (compare with English)  
-    # Run app  
-    uvicorn main:app --reload
-    GEMINI\_API\_KEY\=your\_api\_key\_here  
-    DATABASE\_PATH\=./data/student.db  
-    WHISPER\_MODEL\_PATH\=./models/ggml-medium.bin  
-        """  
-          
-        response \= self.llm.invoke(prompt)  
-        return json.loads(response)
+### **6.2 AI Evaluation Agent (Speaking/Homework/Exam Grading)**
 
-### **6.2 Exam Generator Agent**
-
-python  
-class ExamGeneratorAgent:  
-    """  
-    Creates unique exams each attempt.  
-    Avoids memorization by varying:  
-    \- Question phrasing  
-    \- Example sentences  
-    \- Distractors in multiple choice  
-    """  
-      
-    def generate\_exam(self, level, attempt\_number):  
-        topics \= self.get\_level\_topics(level)  
-          
-        prompt \= f"""  
-        Generate a French exam for {level} (attempt \#{attempt\_number}).  
-          
-        Include:  
-        \- 10 multiple choice (grammar/conjugation)  
-        \- 5 fill-in-the-blank (vocabulary)  
-        \- 3 translation questions (TR→FR)  
-        \- 1 reading passage \+ 3 questions  
-        \- 1 speaking scenario  
-          
-        IMPORTANT: Create entirely NEW questions, different from previous attempts.  
-        """  
-          
-        return self.llm.invoke(prompt)
+```python
+class AIEvaluator:
+    """
+    Evaluates student performance using Gemini API.
+    DOES NOT generate content - only evaluates student responses.
+    """
+    
+    def evaluate_speaking(self, student_transcript, speaking_tier, expected_targets):
+        # AI evaluates transcribed speaking response
+        prompt = f"""
+        Evaluate this French speaking response:
+        
+        Student transcript: "{student_transcript}"
+        Speaking tier: {speaking_tier}
+        Expected elements: {expected_targets}
+        
+        Provide:
+        - Grammar accuracy (0-100)
+        - Vocabulary usage (0-100)
+        - Fluency assessment for tier {speaking_tier}
+        - Specific corrections with explanations
+        """
+        
+        return self.gemini_api.evaluate(prompt)
+    
+    def evaluate_homework(self, text_submission, audio_transcript, rubric):
+        # AI grades homework against fixed rubric
+        prompt = f"""
+        Evaluate this French homework:
+        
+        Text submission: "{text_submission}"
+        Audio transcript: "{audio_transcript}"
+        Rubric: {rubric}
+        
+        Score:
+        - Text quality (grammar, vocabulary, content) → 0-100
+        - Pronunciation (audio vs text comparison) → 0-100
+        - Pass criteria: text >= 70 AND audio >= 60
+        
+        Provide detailed feedback with corrections.
+        """
+        
+        return self.gemini_api.evaluate(prompt)
 
 ### **6.3 Strict Teacher Prompts**
 
@@ -886,7 +849,7 @@ TEACHER\_PROMPTS \= {
     """  
 }
 
-## **7\. IMPLEMENTATION ROADMAP (9 Months)**
+## **7. IMPLEMENTATION ROADMAP (12 Months - 52 Weeks)**
 
 ### **Phase 1: Foundation (Weeks 1-4)**
 
@@ -896,10 +859,10 @@ TEACHER\_PROMPTS \= {
 * Virtual environment oluştur  
 * Dependencies yükle:
 
-bash  
- pip install fastapi uvicorn[standard] python-multipart python-dotenv google-genai  
-  pip install openai-whisper gTTS  
-  pip install chromadb sqlalchemy sounddevice scipy
+```bash
+pip install fastapi uvicorn[standard] python-multipart python-dotenv google-generativeai
+pip install openai-whisper gTTS
+pip install sqlalchemy sounddevice scipy
 
 * Proje klasör yapısı oluştur  
 * Git repo başlat
@@ -1169,16 +1132,20 @@ uvicorn main:app --reload
 
 ### **12.2 Environment Variables**
 
-bash  
-\# .env  
-GEMINI\_API\_KEY\=your\_api\_key\_here  
-DATABASE\_PATH\=./data/student.db  
-WHISPER\_MODEL\_PATH\=./models/ggml-medium.bin  
+```bash
+# .env
+GEMINI_API_KEY=your_api_key_here
+DATABASE_PATH=./data/student.db
+WHISPER_MODEL_PATH=./models/ggml-medium.bin
+```
+
 ---
 
-## **13\. SIGN-OFF**
+## **13. SIGN-OFF**
 
-**Project Owner:** \[Fikret Uzgan\]  
- **Start Date:** 06.02.2026  
- **Target Completion:** 06.11.2026 (9 months)
- **Status Update:** Curriculum integrated, Curriculum tab added, dev/end-user modes defined
+**Project Owner:** [Fikret Uzgan]  
+**Version:** 2.0 (Updated for Fixed Curriculum Approach)  
+**Start Date:** 06.02.2026  
+**Updated:** 12.02.2026  
+**Target Completion:** 06.02.2027 (12 months, 52 weeks)  
+**Status Update:** Fixed curriculum approach adopted - AI used for evaluation only (speaking/homework/exam feedback), not content generation. All 52 weeks of curriculum pre-authored in markdown files.

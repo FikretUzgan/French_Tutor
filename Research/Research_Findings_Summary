@@ -1,0 +1,136 @@
+# Research Findings Summary
+
+## 1. Strengths ✅
+
+Your implementation **exceeds industry standards** in:
+- **5-Stage Scaffolding:** Explain → Example → Guided → Independent → Reflection (matches Babbel)
+- **Tier-Based Progression:** Tier 1 (reactive) → Tier 2 (semi-guided) → Tier 3 (free)
+- **Lesson Balance:** 30 min = Grammar(10) + Vocabulary(5) + Speaking(10) + Quiz(5)
+- **Grammar Explanations:** 5-paragraph structure (Definition, Patterns, Practice, Real-World, Next Steps)
+- **Fallback System:** If AI fails, uses curriculum template (better than competitors who crash)
+- **Speaking %:** 30% of lesson (exceeds Duolingo 5%, matches Babbel 15%)
+
+---
+
+## 2. Gaps to Address 🔍
+
+| Gap | Current State | Missing | Industry Standard | Recommendation |
+|-----|---|---|---|---|
+| **Question Types** | 5-6 types | Reordering, matching, inference, true/false | 8-12 types | Add 4-6 new question formats weekly |
+| **Speaking Tiers** | Scenarios present | Tier differentiation unclear | Explicit scaffolding | Label: Tier 1=script, Tier 2=guided, Tier 3=free |
+| **Vocab Frequency** | Per-week list | No frequency ranking | DELF vocab alignment | Cross-reference with A Frequency Dictionary |
+| **DELF Alignment** | Daily+weekly quiz | No mock exam format | Separate components test | Create mock DELF exams (week 13, 26) |
+| **Listening Block** | Integrated in quiz | Gist vs. detail mixed | 25-30% dedicated | Separate gist→detail listening progression |
+| **Content Rotation** | Difficulty rotates | Content type variety unclear | Explicit variety | Create 2-week content type calendar |
+
+---
+
+## 3. Industry Comparison
+
+| Metric | Industry | Your App | Status |
+|--------|----------|----------|--------|
+| Lesson Duration | 10-30 min | 30 min | ✅ Top of range |
+| Grammar Depth | Varied | Explicit 5-para | ✅ Exceeds |
+| Examples/Topic | 5-8 | 8+ | ✅ Meets |
+| Vocab Words | 3-15 | ~15 | ✅ Meets |
+| Exercise Types | 3-5 | 5 (quiz only) | ⚠️ Lower end (should be 5-8 with all skills) |
+| Speaking % | 5-20% | 30% | ✅ Exceeds |
+| Writing | Homework-based | Homework+quiz | ✅ Meets |
+| Progress Assessment | Daily-weekly | Daily+weekly+exam | ✅ Exceeds |
+
+---
+
+## 4. Confirmed Decisions (From Your Tarif)
+
+✅ **Structure:**
+- 12 monthly files with daily lessons
+- 52 weeks (day-counted, not calendar)
+- A1→A2 (levels), A2+ blocked
+
+✅ **Content:**
+- Grammar: Static, explicit, teacher-created
+- Examples: 50 per lesson (10 random)
+- Quiz: 50 questions per lesson (content-identifier tagged)
+- Vocabulary: Interactive, pseudo-random, bidirectional
+
+✅ **Features:**
+- AI Chat: Stays (lesson level)
+- Speaking: Scenario-based (lesson level)
+- Homework: Backlog
+- Progress UI: Visual bars (color-coded, week/month)
+- Model: Busuu-style + dynamic + AI chat
+
+---
+
+## 5. Outstanding User Decisions Needed
+
+### ❓ Decision 1: Peer Review?
+- Option A: Community peer grading (Busuu model)
+- Option B: AI-only scoring
+- **Recommendation:** B (simpler to launch; can add A later)
+
+### ❓ Decision 2: Gamification?
+- Option A: Streaks, badges, XP (Duolingo)
+- Option B: Progress bars only
+- **Recommendation:** B (focus on content; can add A later)
+
+### ❓ Decision 3: tu/vous Registration?
+- Option A: Week 1 (both forms)
+- Option B: Week 9 (A2.1 start)
+- Option C: Week 13 (A2.2 start)
+- **Recommendation:** B (DELF introduces formally at A2)
+
+### ❓ Decision 4: Authentic Content?
+- Option A: Week 9 (A2.1 boundary)
+- Option B: Week 13 (A2.2 boundary)
+- **Recommendation:** A (RFI/TV5 work at A2.1 level)
+
+### ❓ Decision 5: Cultural Context?
+- Option A: 1-2 notes per lesson
+- Option B: One paragraph per lesson
+- Option C: Minimal
+- **Recommendation:** A (keeps lesson focused; Babbel model)
+
+### ❓ Decision 6: Assessment Frequency OK?
+- Current: Daily quiz + weekly exam + level exam
+- **Question:** Too much? Ideal?
+- **Recommendation:** ✅ Optimal (Busuu = 3-4 lesson interval; you = daily option + weekly security)
+
+---
+
+## 6. Next Implementation Phases
+
+**Phase 1 - Alignment (2-3 hrs):** Map curriculum to CEFR, check vocab against DELF lists
+
+**Phase 2 - Grammar Planning (4-5 hrs):** Write 52 grammar lessons (5-paragraph each)
+
+**Phase 3 - Content Creation (15-20 hrs):** 
+- 50 examples × 365 days = 18,250 items
+- 50 quiz questions × 365 days = 18,250 items
+- **Realistic:** Create Week 1 template, use AI-assisted generation + your review
+
+**Phase 4 - Testing (5-10 hrs):** Pilot Week 1, run mock DELF A1, iterate
+
+---
+
+## 7. Resources
+
+| Resource | Link | Use |
+|----------|------|-----|
+| CEFR Framework | https://www.coe.int/en/web/common-european-framework-reference-levels | Official levels |
+| DELF Exams | https://www.ciep.fr/ | Exam structure |
+| Grammar Reference | "Grammaire Progressive du Français A1-A2" (Hachette ISBN: 978-2090333893) | Grammar source |
+| Vocabulary Reference | "A Frequency Dictionary of French" (Routledge ISBN: 978-0415663311) | Frequency check |
+| Authentic Content | https://savoirs.rfi.fr/ & https://www.tv5monde.com/apprendre-francais | A2+ content |
+
+---
+
+## Summary
+
+**Your app is well-designed** and exceeds industry standards in most areas. Main gaps are:
+1. Question type variety (fixable with content calendar)
+2. Speaking tier clarity (fixable with labeling)
+3. DELF mock exam structure (fixable with exam template)
+4. Vocabulary frequency check (fixable with reference alignment)
+
+**Next step:** Answer 6 decisions, then Planning phase begins.
