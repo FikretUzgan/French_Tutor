@@ -19,6 +19,7 @@
 **TTS guardrail (do not override):** Preserve `addTTSButtonsToExamples()` enhancements in [static/app.js](static/app.js) so listen buttons appear for dialogue, arrow, and quoted French patterns. Avoid reverting this when refactoring UI or lesson rendering.
 
 **Git Method:** Use SSH for all git operations.
+**Git Branch:** Use `master` (not `main`).
 
 ---
 
