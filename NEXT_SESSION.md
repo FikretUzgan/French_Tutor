@@ -18,6 +18,8 @@
 
 **TTS guardrail (do not override):** Preserve `addTTSButtonsToExamples()` enhancements in [static/app.js](static/app.js) so listen buttons appear for dialogue, arrow, and quoted French patterns. Avoid reverting this when refactoring UI or lesson rendering.
 
+**Git Method:** Use SSH for all git operations.
+
 ---
 
 ## 📋 PENDING ISSUES (Session 6 - 2026-02-12)
@@ -164,7 +166,7 @@
 - **CEFR:** A2.1 (Month 3 ends)
 - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_12_A2.1.md`
 
-✅ **Week 13 (A2.2 - Days 61-65)** - Created (NOT YET COMMITTED) **MONTH 4 BEGINS!** 🎉
+✅ **Week 13 (A2.2 - Days 61-65)** - Created, committed, and pushed **MONTH 4 BEGINS!** 🎉
 
 - Day 61: Futur simple formation (regular verbs)
 - Day 62: Futur simple irregular verbs
@@ -176,7 +178,7 @@
 - **Speaking Tier:** 2→3 transition (guided to freer conversation)
 - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_13_A2.2.md`
 
-✅ **Week 14 (A2.2 - Days 66-70)** - Created (NOT YET COMMITTED)
+✅ **Week 14 (A2.2 - Days 66-70)** - Created, committed, and pushed
 
 - Day 66: Conditionnel présent formation
 - Day 67: Conditionnel présent usage (polite requests)
@@ -187,30 +189,76 @@
 - **CEFR:** A2.2 (Month 4 continues)
 - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_14_A2.2.md`
 
+✅ **Week 15 (A2.2 - Days 71-75)** - Created, committed, and pushed
+
+- Day 71: Pronoun Y (Location - à + place)
+- Day 72: Pronoun EN (Quantity - de + noun)
+- Day 73: Pronoun Y vs EN practice
+- Day 74: Advanced Pronoun Placement
+- Day 75: Week 15 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **375 words total**) 🎉
+- **CEFR:** A2.2 (Month 4 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_15_A2.2.md`
+
+✅ **Week 16 (A2.2 - Days 76-80)** - Created, committed, and pushed **MONTH 4 COMPLETE!** 🎉
+
+- Day 76: Reflexive Verbs (Review & Expansion)
+- Day 77: Indirect Speech (Introduction - il dit que...)
+- Day 78: Indirect Speech (Questions & Commands)
+- Day 79: Month 4 Comprehensive Review
+- Day 80: Month 4 Exam & Assessment (A2.2 Complete!)
+- **NEW:** 25 vocabulary words (cumulative: **400 words total**) 🎉
+- **CEFR:** A2.2 (Month 4 ends)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_16_A2.2.md`
+
+✅ **Week 17 (B1.1 - Days 81-85)** - Created, committed, and pushed **MONTH 5 BEGINS!** 🎉
+
+- Day 81: Passé Simple (Receptive - Reading focus)
+- Day 82: Passé Simple (Irregular verbs - Reading focus)
+- Day 83: Plus-que-parfait (Formation - had done)
+- Day 84: Plus-que-parfait (Usage & Concordance)
+- Day 85: Week 17 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **425 words total**) 🎉
+- **CEFR:** B1.1 (Month 5 begins)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_17_B1.1.md`
+
+✅ **Week 18 (B1.1 - Days 86-90)** - Created, committed, and pushed
+
+- Day 86: Subjonctif Introduction (Concept & Formation)
+- Day 87: Subjonctif Irregulars (Faire, Aller, Être, Avoir)
+- Day 88: Subjonctif Usage 1 (Will & Necessity)
+- Day 89: Subjonctif Usage 2 (Emotion & Doubt)
+- Day 90: Week 18 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **450 words total**) 🎉
+- **CEFR:** B1.1 (Month 5 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_18_B1.1.md`
+
+✅ **Week 19 (B1.1 - Days 91-95)** - Created, committed, and pushed
+
+- Day 91: Pronoms Relatifs Composés (Lequel, Duquel, Auquel)
+- Day 92: Pronoms Démonstratifs (Celui, Celle, Ceux, Celles)
+- Day 93: Pronoms Démonstratifs Composés (Celui-ci/Celui-là)
+- Day 94: La Mise en Relief (C'est...qui, C'est...que)
+- Day 95: Week 19 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **475 words total**) 🎉
+- **CEFR:** B1.1 (Month 5 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_19_B1.1.md`
+
 ### Next Task
 
-🎯 **CREATE WEEK 14 CURRICULUM (A2.2 - Conditionnel Présent)**
+🎯 **CREATE WEEK 20 CURRICULUM (B1.1 - Advanced Indirect Speech & Month 5 Exam)**
 
-**User command:** "Bir sonraki haftaya başla" OR "week 14"
+**User command:** "Week 20" or "Next week"
 
-When user says this, automatically:
-
-1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md` for general overview (ONCE per session only)
-2. Create Week 14 (A2.2 - Days 66-70) curriculum file
-3. Follow the same detailed format as Weeks 1-13
-4. Grammar topics for Week 14:
-
-- Day 66: Conditionnel présent formation
-- Day 67: Conditionnel présent usage (polite requests)
-- Day 68: Conditionnel présent (hypotheticals)
-- Day 69: Si-clauses (present + futur / imparfait + conditionnel)
-- Day 70: Week 14 Review & Assessment
-
-1. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 350 words)
-2. **CEFR Level:** A2.2 (Month 4 continues)
-3. **Speaking Tier:** 3 (freer conversation with minimal scaffolding)
-4. **WAIT** for user to request commit/push at end of session
-5. Update NEXT_SESSION.md for Week 15
+1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md`
+2. Create Week 20 (B1.1 - Days 96-100) curriculum file
+3. Grammar topics:
+   - Day 96: Discours Rapporté au Passé (Concordance des temps - Présent -> Imparfait)
+   - Day 97: Discours Rapporté au Passé (PC -> PQP, Futur -> Cond)
+   - Day 98: Discours Rapporté (Time markers changes: Demain -> Le lendemain)
+   - Day 99: Month 5 Comprehensive Review
+   - Day 100: Month 5 Exam & Assessment (B1.1 Complete!)
+4. Update NEXT_SESSION.md
 
 ---
 
@@ -248,13 +296,21 @@ When user says this, automatically:
 - ✅ Week 12: Relative Pronouns + Month 3 Exam
 - **Vocabulary:** 100 words (Total: 300) ✅
 
-**Month 4 (Weeks 13-16) - A2.2:** 🔄 IN PROGRESS
+**Month 4 (Weeks 13-16) - A2.2:** ✅ COMPLETE
 
 - ✅ Week 13: Futur simple (formation, irregular verbs, usage, vs. futur proche)
 - ✅ Week 14: Conditionnel présent (formation, polite requests, hypotheticals, si-clauses)
 - ✅ Week 15: Pronouns Y & EN (location & quantity replacement)
 - ✅ Week 16: Reflexive verbs, indirect speech + Month 4 Exam
 - **Vocabulary:** 100 words (Total: 400) **MONTH 4 COMPLETE!** 🎉
+
+**Month 5 (Weeks 17-20) - B1.1:** 🔄 IN PROGRESS
+
+- ✅ Week 17: Passé Simple (Receptive) & Plus-que-parfait
+- ✅ Week 18: Subjonctif (Introduction & Usage)
+- ✅ Week 19: Relative Pronouns (Advanced) & Demonstratives
+- [ ] Week 20: Indirect Speech (Advanced) + Month 5 Exam
+- **Vocabulary:** 100 words (Total: 500)
 
 ---
 
@@ -515,8 +571,6 @@ When user says this, automatically:
 
 - **Implementation_Plan.md** - Global 36-week project roadmap
 - **French_Tutor_SRS.md** - Software requirements specification
-- **DYNAMIC_LESSON_GENERATION.md** - Architecture documentation
-- **test_dynamic_lesson_gen.py** - Automated test suite
 
 ---
 
@@ -626,48 +680,10 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 - Add content identifier badges to quiz UI
 - Implement database schema for content_weaknesses tracking
 
-### Session 4 (2026-02-09)
-
-**Date:** 2026-02-09  
-**Focus:** Fix grammar explanation display, implement base verb validation, debug Gemini API issues  
-**Completed:**
-
-- Fixed grammar explanations (was showing "Tableau clair..." from curriculum)
-- Added Gemini API key config to lesson_generator.py
-- Increased token budget 3000→4000
-- Implemented base verb validation for fill-in-the-blank questions
-- Improved fallback lesson with structured 5-part grammar explanation
-- Committed all changes to git
-
-**Blocked by:**
-
-- Gemini returning invalid/malformed JSON on complex prompts (~60% of requests)
-- Need to simplify prompt or implement JSON repair logic
-
-**Next steps:**
-
-- Debug Gemini JSON issues (simplify vocab section or add JSON validation)
-- Test accuracy of generated grammar explanations (quality vs detail)
-- Consider migrating away from deprecated google.generativeai library
-
 ### Session 6 (2026-02-12) - Part 1: Week 13 Curriculum Generation
 
 **Date:** 2026-02-12  
 **Focus:** Generate Week 13 curriculum (A2.2 - Futur Simple)
-
-**Completed:**
-
-- ✅ Created Week 13 curriculum (Days 61-65)
-  - Day 61: Futur simple formation (regular verbs)
-  - Day 62: Futur simple irregular verbs (être, avoir, aller, faire, pouvoir, vouloir, voir, venir, savoir, devoir)
-  - Day 63: Futur simple usage (predictions, promises, formal plans, si-clauses)
-  - Day 64: Futur simple vs. futur proche (time markers, contrast)
-  - Day 65: Week 13 Review & Assessment (20-question quiz)
-- ✅ 25 new vocabulary words (301-325)
-- ✅ Cumulative total: 325 words
-- ✅ Speaking tier: 2→3 transition
-- ✅ File location: Research/NEW_CURRICULUM_REDESIGNED/Week_13_A2.2.md
-- ✅ Updated NEXT_SESSION.md
 
 ### Session 6 (2026-02-12) - Part 2: SDK Migration (google-generativeai → google-genai) ✅ COMPLETE
 
