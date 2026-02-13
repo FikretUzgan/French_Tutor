@@ -279,14 +279,52 @@ async function setupLessonGeneration() {
 
 function displayGeneratedLesson(lesson) {
     // NEW CURRICULUM SYSTEM - Use redesigned format
-    // lesson.grammar_explanation: HTML string (already formatted)
-    // lesson.vocabulary: array of {word, type, english, pronunciation, example}
-    // lesson.quiz_questions: array of questions with content_identifiers
+    // lesson.content.grammar: object with explanation property
+    // lesson.content.vocabulary: array of {word, type, english, pronunciation, example}
+    // lesson.content.quiz: object with questions property
     
-    // Check if this is the NEW curriculum format
-    const isNewFormat = lesson.grammar_explanation && typeof lesson.grammar_explanation === 'string';
+    // Check if this is the NEW modular API format
+    const isModularFormat = lesson.content && lesson.content.grammar && typeof lesson.content.grammar === 'object';
     
-    if (isNewFormat) {
+    if (isModularFormat) {
+        // MODULAR FORMAT (from refactored API with curriculum parser)
+        const grammarData = lesson.content.grammar || {};
+        const vocabItems = (lesson.content.vocabulary || []).map(item => ({
+            front: item.word || '',
+            back: item.english || '',
+            pronunciation: item.pronunciation || '',
+            example: item.example || '',
+            type: item.type || ''
+        }));
+        
+        const speakingData = lesson.content.speaking || {};
+        const quizData = lesson.content.quiz || {};
+
+        const interactiveLesson = {
+            title: lesson.title || 'Lesson',
+            level: lesson.level || 'A1.1',
+            content: {
+                grammar: {
+                    explanation: grammarData.explanation || '',
+                    full_section: grammarData.full_section || '',
+                    examples: grammarData.examples || []
+                },
+                vocabulary: vocabItems,
+                speaking: {
+                    prompt: speakingData.prompt || '',
+                    targets: speakingData.scenario ? [speakingData.scenario] : [],
+                    scenario: speakingData.scenario || ''
+                },
+                quiz: quizData
+            }
+        };
+        
+        // Create and display interactive modal
+        const modal = createLessonModal(interactiveLesson);
+        document.body.appendChild(modal);
+        
+    } else if (lesson.grammar_explanation && typeof lesson.grammar_explanation === 'string') {
+        // OLD NEW FORMAT (grammar_explanation as string)
         // NEW FORMAT (Research/NEW_CURRICULUM_REDESIGNED/)
         const vocabItems = (lesson.vocabulary || []).map(item => ({
             front: item.word || '',
@@ -538,7 +576,7 @@ function playLessonTTS(text) {
     if (!text) {
         return;
     }
-    fetch(`${API_BASE}/api/tts`, {
+    fetch(`${API_BASE}/api/audio/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: text, lang: 'fr' })
@@ -900,14 +938,14 @@ function setupSpeaking() {
         try {
             // Transcribe audio with target phrases as hints
             const formData = new FormData();
-            formData.append('audio_file', audioBlob, 'recording.wav');
-            formData.append('target_phrases', AppState.currentTargets.join(','));  // Send hints for better accuracy
+            formData.append('file', audioBlob, 'recording.wav');
+            formData.append('targets', JSON.stringify(AppState.currentTargets));  // Send hints for better accuracy
             
             const transcribeResponse = await fetch(`${API_BASE}/api/audio/transcribe`, {
                 method: 'POST',
                 body: formData
             });
-            const { transcription } = await transcribeResponse.json();
+            const { text: transcription } = await transcribeResponse.json();
             
             // Get AI's response (as conversation partner)
             const feedbackResponse = await fetch(`${API_BASE}/api/speaking/feedback`, {
@@ -960,7 +998,7 @@ function setupTTSPlayback(text) {
             // Check if we have cached audio for this text
             if (!AppState.lastAudioBlob || AppState.lastAudioText !== text) {
                 // Fetch fresh audio
-                const response = await fetch(`${API_BASE}/api/tts`, {
+                const response = await fetch(`${API_BASE}/api/audio/tts`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ text: text, lang: 'fr' })
@@ -1255,7 +1293,7 @@ async function playVocabTTS() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/api/tts`, {
+        const response = await fetch(`${API_BASE}/api/audio/tts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: text, lang: 'fr' })
@@ -1781,17 +1819,18 @@ function createInteractiveVocabulary(vocabContent) {
             if (typeof item === 'string') {
                 return { front: item, back: '', pronunciation: '' };
             } else if (typeof item === 'object' && item.word) {
+                // Handle curriculum parser format: word, english, example
                 return {
                     front: item.word,
-                    back: item.definition || item.context_example || '',
-                    pronunciation: item.pronunciation_tip || ''
+                    back: item.english || item.definition || item.context_example || '',
+                    pronunciation: item.pronunciation_tip || item.pronunciation || ''
                 };
             } else if (typeof item === 'object' && item.front) {
                 return item;
             } else if (typeof item === 'object') {
                 // Try to find a property that might be the word/text
                 const text = item.word || item.front || item.french || item.text || item.phrase || item.example || Object.values(item).find(v => typeof v === 'string') || '';
-                const back = item.definition || item.english || item.translation || '';
+                const back = item.definition || item.english || item.translation || item.example || '';
                 return { front: text || back, back: back, pronunciation: item.pronunciation_tip || item.pronunciation || '' };
             }
             return { front: String(item), back: '', pronunciation: '' };
@@ -1983,14 +2022,14 @@ function setupEmbeddedSpeaking(container, speakingContent) {
     const processAudio = async (audioBlob) => {
         try {
             const formData = new FormData();
-            formData.append('audio_file', audioBlob, 'recording.wav');
-            formData.append('target_phrases', targets.join(','));  // Send hints for better accuracy
+            formData.append('file', audioBlob, 'recording.wav');
+            formData.append('targets', JSON.stringify(targets));  // Send hints for better accuracy
 
             const transcribeResponse = await fetch(`${API_BASE}/api/audio/transcribe`, {
                 method: 'POST',
                 body: formData
             });
-            const { transcription } = await transcribeResponse.json();
+            const { text: transcription } = await transcribeResponse.json();
 
             const feedbackResponse = await fetch(`${API_BASE}/api/speaking/feedback`, {
                 method: 'POST',
@@ -2019,7 +2058,7 @@ function setupEmbeddedSpeaking(container, speakingContent) {
             return;
         }
         try {
-            const response = await fetch(`${API_BASE}/api/tts`, {
+            const response = await fetch(`${API_BASE}/api/audio/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: lastFeedback, lang: 'fr' })

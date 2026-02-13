@@ -6,107 +6,93 @@ Weakness tracking, student profile, generation history, and app settings
 from typing import Optional, Dict, Any, List
 import json
 from datetime import datetime, timedelta
-from db_core import get_connection, get_app_setting, set_app_setting
+from core.database import get_db_cursor
+from db_core import get_app_setting, set_app_setting
 
 
 # ===== Weakness Tracking =====
 
 def track_weakness(user_id: int, topic: str, is_error: bool = True) -> None:
     """Track a student weakness/error in a topic."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    if is_error:
-        cursor.execute("""
-            INSERT INTO weakness_tracking (user_id, topic, error_count, success_count)
-            VALUES (?, ?, 1, 0)
-            ON CONFLICT(user_id, topic) DO UPDATE SET
-                error_count = error_count + 1,
-                last_error = CURRENT_TIMESTAMP
-        """, (user_id, topic))
-    else:
-        cursor.execute("""
-            INSERT INTO weakness_tracking (user_id, topic, success_count, error_count)
-            VALUES (?, ?, 1, 0)
-            ON CONFLICT(user_id, topic) DO UPDATE SET
-                success_count = success_count + 1
-        """, (user_id, topic))
-    
-    conn.commit()
-    conn.close()
+    with get_db_cursor() as cursor:
+        if is_error:
+            cursor.execute("""
+                INSERT INTO weakness_tracking (user_id, topic, error_count, success_count)
+                VALUES (?, ?, 1, 0)
+                ON CONFLICT(user_id, topic) DO UPDATE SET
+                    error_count = error_count + 1,
+                    last_error = CURRENT_TIMESTAMP
+            """, (user_id, topic))
+        else:
+            cursor.execute("""
+                INSERT INTO weakness_tracking (user_id, topic, success_count, error_count)
+                VALUES (?, ?, 1, 0)
+                ON CONFLICT(user_id, topic) DO UPDATE SET
+                    success_count = success_count + 1
+            """, (user_id, topic))
 
 
 def get_user_weaknesses(user_id: int, limit: int = 5) -> List[Dict[str, Any]]:
     """Get user's weakest topics by error frequency."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT weakness_id, topic, error_count, success_count,
-               ROUND(100.0 * success_count / (success_count + error_count), 1) as accuracy_percentage,
-               last_error
-        FROM weakness_tracking
-        WHERE user_id = ?
-        ORDER BY error_count DESC, last_error DESC
-        LIMIT ?
-    """, (user_id, limit))
-    
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT weakness_id, topic, error_count, success_count,
+                   ROUND(100.0 * success_count / (success_count + error_count), 1) as accuracy_percentage,
+                   last_error
+            FROM weakness_tracking
+            WHERE user_id = ?
+            ORDER BY error_count DESC, last_error DESC
+            LIMIT ?
+        """, (user_id, limit))
+        
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
 
 
 def get_weakness_report(user_id: int) -> Dict[str, Any]:
     """Get comprehensive weakness report for a user."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT COUNT(*) as total_tracked FROM weakness_tracking WHERE user_id = ?
-    """, (user_id,))
-    total = cursor.fetchone()["total_tracked"]
-    
-    cursor.execute("""
-        SELECT SUM(error_count) as total_errors FROM weakness_tracking WHERE user_id = ?
-    """, (user_id,))
-    errors = cursor.fetchone()["total_errors"] or 0
-    
-    weaknesses = get_user_weaknesses(user_id)
-    conn.close()
-    
-    return {
-        "total_topics_tracked": total,
-        "total_errors": errors,
-        "weakest_topics": weaknesses[:3]
-    }
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) as total_tracked FROM weakness_tracking WHERE user_id = ?
+        """, (user_id,))
+        total = cursor.fetchone()["total_tracked"]
+        
+        cursor.execute("""
+            SELECT SUM(error_count) as total_errors FROM weakness_tracking WHERE user_id = ?
+        """, (user_id,))
+        errors = cursor.fetchone()["total_errors"] or 0
+        
+        weaknesses = get_user_weaknesses(user_id)
+        
+        return {
+            "total_topics_tracked": total,
+            "total_errors": errors,
+            "weakest_topics": weaknesses[:3]
+        }
 
 
 # ===== Student Profile =====
 
 def get_student_profile(user_id: int) -> Optional[Dict[str, Any]]:
     """Get student profile."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT user_id, current_level, completed_weeks, started_at, last_updated
-        FROM student_profile
-        WHERE user_id = ?
-    """, (user_id,))
-    
-    row = cursor.fetchone()
-    conn.close()
-    
-    if row:
-        row_dict = dict(row)
-        try:
-            row_dict['completed_weeks'] = json.loads(row_dict.get('completed_weeks', '[]'))
-        except json.JSONDecodeError:
-            row_dict['completed_weeks'] = []
-        return row_dict
-    
-    return None
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT user_id, current_level, completed_weeks, started_at, last_updated
+            FROM student_profile
+            WHERE user_id = ?
+        """, (user_id,))
+        
+        row = cursor.fetchone()
+        
+        if row:
+            row_dict = dict(row)
+            try:
+                row_dict['completed_weeks'] = json.loads(row_dict.get('completed_weeks', '[]'))
+            except json.JSONDecodeError:
+                row_dict['completed_weeks'] = []
+            return row_dict
+        
+        return None
 
 
 def get_student_level(user_id: int = 1) -> str:
@@ -121,16 +107,11 @@ def get_student_level(user_id: int = 1) -> str:
 
 def update_student_level(user_id: int, new_level: str) -> None:
     """Update student's current level."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        INSERT OR REPLACE INTO student_profile (user_id, current_level)
-        VALUES (?, ?)
-    """, (user_id, new_level))
-    
-    conn.commit()
-    conn.close()
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            INSERT OR REPLACE INTO student_profile (user_id, current_level)
+            VALUES (?, ?)
+        """, (user_id, new_level))
 
 
 def get_completed_weeks(user_id: int = 1) -> List[int]:
@@ -143,34 +124,29 @@ def get_completed_weeks(user_id: int = 1) -> List[int]:
 
 def add_completed_week(user_id: int, week_number: int) -> None:
     """Mark a week as completed."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    # Get current completed weeks
-    cursor.execute("""
-        SELECT completed_weeks FROM student_profile WHERE user_id = ?
-    """, (user_id,))
-    
-    row = cursor.fetchone()
-    completed = []
-    if row and row["completed_weeks"]:
-        try:
-            completed = json.loads(row["completed_weeks"])
-        except json.JSONDecodeError:
-            completed = []
-    
-    if week_number not in completed:
-        completed.append(week_number)
-        completed.sort()
-    
-    cursor.execute("""
-        INSERT OR REPLACE INTO student_profile
-        (user_id, completed_weeks, last_updated)
-        VALUES (?, ?, CURRENT_TIMESTAMP)
-    """, (user_id, json.dumps(completed)))
-    
-    conn.commit()
-    conn.close()
+    with get_db_cursor() as cursor:
+        # Get current completed weeks
+        cursor.execute("""
+            SELECT completed_weeks FROM student_profile WHERE user_id = ?
+        """, (user_id,))
+        
+        row = cursor.fetchone()
+        completed = []
+        if row and row["completed_weeks"]:
+            try:
+                completed = json.loads(row["completed_weeks"])
+            except json.JSONDecodeError:
+                completed = []
+        
+        if week_number not in completed:
+            completed.append(week_number)
+            completed.sort()
+        
+        cursor.execute("""
+            INSERT OR REPLACE INTO student_profile
+            (user_id, completed_weeks, last_updated)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+        """, (user_id, json.dumps(completed)))
 
 
 # ===== Lesson Generation History =====
@@ -186,39 +162,30 @@ def store_generated_lesson(
     api_duration_seconds: Optional[float] = None
 ) -> int:
     """Store a lesson generation record."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        INSERT INTO lesson_generation_history
-        (user_id, lesson_id, week, day, curriculum_file, status, error_message, api_duration_seconds)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (user_id, lesson_id, week, day, curriculum_file, status, error_message, api_duration_seconds))
-    
-    record_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    
-    return record_id
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO lesson_generation_history
+            (user_id, lesson_id, week, day, curriculum_file, status, error_message, api_duration_seconds)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (user_id, lesson_id, week, day, curriculum_file, status, error_message, api_duration_seconds))
+        
+        record_id = cursor.lastrowid
+        return record_id
 
 
 def get_lesson_generation_history(user_id: int = 1, limit: int = 20) -> List[Dict[str, Any]]:
     """Get lesson generation history."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT id, lesson_id, week, day, timestamp, status, error_message, api_duration_seconds
-        FROM lesson_generation_history
-        WHERE user_id = ?
-        ORDER BY timestamp DESC
-        LIMIT ?
-    """, (user_id, limit))
-    
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT id, lesson_id, week, day, timestamp, status, error_message, api_duration_seconds
+            FROM lesson_generation_history
+            WHERE user_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """, (user_id, limit))
+        
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
 
 
 def get_student_weaknesses(user_id: int = 1, limit: int = 5) -> List[Dict[str, Any]]:
@@ -289,17 +256,14 @@ def get_app_settings(keys: List[str]) -> Dict[str, Optional[str]]:
     if not keys:
         return {}
     
-    placeholders = ",".join("?" for _ in keys)
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute(
-        f"SELECT key, value FROM app_settings WHERE key IN ({placeholders})",
-        keys,
-    )
-    rows = cursor.fetchall()
-    conn.close()
-    
+    with get_db_cursor() as cursor:
+        placeholders = ",".join("?" for _ in keys)
+        cursor.execute(
+            f"SELECT key, value FROM app_settings WHERE key IN ({placeholders})",
+            keys,
+        )
+        rows = cursor.fetchall()
+        
     data = {key: None for key in keys}
     for row in rows:
         data[row["key"]] = row["value"]

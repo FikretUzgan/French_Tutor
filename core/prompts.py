@@ -1,20 +1,14 @@
 """
-AI Prompts Module (ENHANCED)
+Core Prompts Module
+Contains all prompt templates and prompt building logic.
+Centralizes AI interaction patterns.
 
-Contains all prompt templates for lesson generation, grading, feedback, etc.
-Each prompt is documented with its purpose, expected inputs, outputs, and token estimates.
-
-Key Improvements (2026-02-08):
-- Explicit grammar depth requirements with 5-paragraph structural mandate
-- Dynamic content variation rules to prevent repetition (attempt_number system)
-- Detailed conjugation table specifications with example sentences per form
-- Progressive example requirements (8+ examples per grammar target)
-- Question type rotation for quiz variety per attempt
-- Random variation seeds to ensure Gemini produces different content each time
+Migrated from ai_prompts.py and main.py
 """
 
 import random
 from datetime import datetime, timezone
+from typing import List, Dict, Any, Optional
 
 # ============================================================================
 # SYSTEM PROMPT - Sets overall context and role for the AI
@@ -238,34 +232,7 @@ CRITICAL QUIZ REQUIREMENTS:
   }}
 }}
 ```
-
-## GRAMMAR EXPLANATION QUALITY CHECK — Your explanation MUST satisfy ALL:
-✅ Contains 5 distinct paragraphs (Definition, English Comparison, Form Breakdown, Usage Context, Common Pitfalls)
-✅ Total word count >= 400 words
-✅ Each paragraph has minimum required sentences (3/3/6/3/3 = 18 minimum)
-✅ Includes at least 2 real-world usage scenarios in paragraph 4
-✅ Includes at least 2 common mistakes with corrections in paragraph 5
-✅ English comparisons are explicit and helpful for English-speaking learners
-
-## EXAMPLES REQUIREMENTS:
-- 8 examples minimum, each using a DIFFERENT pronoun or sentence structure
-- Include at least: 2 statements, 2 questions, 1 negative form, 1 formal context
-- Progressive complexity (simple → complex)
-- Use vocabulary from the curriculum in examples
-
-## CONJUGATION TABLE: Include ALL pronoun forms with a UNIQUE contextual example sentence per row
-
-## QUIZ: 5 questions, mix types (NOT all the same), do NOT show answer in question text
-## LISTENING QUESTIONS: include an "audio_text" field with the exact French text for TTS playback (text only, no audio links/files)
-
-## VOCABULARY: Include ALL words from curriculum with pronunciation tips, example sentences, and usage notes
-
-CRITICAL — DO NOT:
-- Invent curriculum content not provided above
-- Make grammar mistakes (all French must be correct)
-- Use the SAME examples as any previous attempt (check variation seed)
-- Skip vocabulary words from the curriculum
-- Make examples too complex for {student_level} level"""
+"""
 
 # Token estimate: ~1200 tokens
 
@@ -554,6 +521,24 @@ Be fair but honest. A correct answer is correct. A near-miss is still incorrect 
 
 
 # ============================================================================
+# NEW: SPEAKING ROLEPLAY PROMPT (from main.py)
+# ============================================================================
+
+SPEAKING_ROLEPLAY_PROMPT = """You are role-playing a real person in a French conversation scenario.
+
+Scenario: {scenario}
+
+The student just said to you: "{transcribed_text}"
+
+Your job: Respond naturally as the other person in the conversation (waiter, shop owner, hotel staff, etc.).
+Respond in French ONLY. Keep your response SHORT (1-2 sentences maximum).
+Use simple, beginner-appropriate vocabulary (A1-A2 level).
+React realistically to what they said and move the conversation forward.
+
+IMPORTANT: Return ONLY the French dialogue line, nothing else. No explanations. Just the natural response."""
+
+
+# ============================================================================
 # PUBLIC API FUNCTIONS
 # ============================================================================
 
@@ -798,9 +783,9 @@ def _format_scenario_details(scenario_details: dict) -> str:
         interactions = scenario_details['example_interaction']
         if isinstance(interactions, list):
             for line in interactions[:5]:
-                parts.append(f"  {line}")
+                parts.append(f"- {line[:60]}...")
         else:
-            parts.append(f"  {interactions}")
+            parts.append(f"- {str(interactions)[:100]}...")
     
     return '\n'.join(parts)
 
@@ -810,11 +795,12 @@ def get_quiz_evaluation_prompt(
     day_number: int,
     student_level: str,
     grammar_target: str,
-    quiz_questions: list,
-    student_answers: dict,
+    quiz_questions: List[Dict[str, Any]],
+    student_answers: Dict[str, str],
     quiz_id: str
 ) -> str:
     """Build quiz evaluation prompt."""
+    # Format questions and answers for prompt
     questions_str = _format_quiz_questions(quiz_questions)
     answers_str = _format_student_answers(student_answers)
     
@@ -835,20 +821,38 @@ def _format_quiz_questions(questions: list) -> str:
     """Format quiz questions for prompt."""
     parts = []
     for i, q in enumerate(questions, 1):
-        if isinstance(q, dict):
-            parts.append(f"{i}. {q.get('question', 'N/A')}")
-            if q.get('options'):
-                for opt in q['options']:
-                    parts.append(f"   - {opt}")
-        else:
-            parts.append(f"{i}. {q}")
+        q_text = q.get('question', q.get('text', 'N/A'))
+        parts.append(f"Q{i} ({q.get('type', 'N/A')}): {q_text}")
+        if q.get('options'):
+            parts.append(f"   Options: {', '.join(q['options'])}")
+        
+        # Don't show correct answer to AI if we want it to evaluate purely, 
+        # but showing it helps AI know what WAS expected.
+        parts.append(f"   Expected: {q.get('correct_answer', 'N/A')}")
+        
     return '\n'.join(parts)
 
 
 def _format_student_answers(answers: dict) -> str:
-    """Format student answers for prompt."""
+    """Format student answers dict."""
     parts = []
-    for qid in sorted(answers.keys()):
-        answer = answers[qid]
-        parts.append(f"Q{qid}: {answer}")
+    for q_id, ans in answers.items():
+        parts.append(f"{q_id}: {ans}")
     return '\n'.join(parts)
+
+
+def get_speaking_roleplay_prompt(scenario: str, transcribed_text: str) -> str:
+    """
+    Build prompt for role-playing conversation partner.
+    
+    Args:
+        scenario: The scenario description
+        transcribed_text: What the student said
+    
+    Returns:
+        Formatted prompt string
+    """
+    return SPEAKING_ROLEPLAY_PROMPT.format(
+        scenario=scenario,
+        transcribed_text=transcribed_text
+    )

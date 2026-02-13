@@ -1,7 +1,7 @@
 # Next Session To-Do List
 
 **Last Updated:** 2026-02-13  
-**Current Status:** Week 20 Curriculum Created ✅ | **Month 5 COMPLETE (B1.1)** ✅ | New Curriculum System Live ✅ | **API Refactoring Complete (Phase 3)** ✅
+**Current Status:** Week 21 Curriculum Created ✅ | **Month 6 Started (B1.2)** ✅ | New Curriculum System Live ✅ | **API Refactoring Complete (Phase 3)** ✅
 
 ---
 
@@ -292,11 +292,21 @@ The monolithic `main.py` has been successfully refactored into modular routers:
 
 ### Next Task
 
-🎯 **MONTH 6 (B1.2) - Week 21 Prep**
+🎯 **MONTH 6 (B1.2) - Week 22 Prep**
 
-1. Continue curriculum generation with Week 21 (Month 6 / B1.2 begins)
-2. Topics TBD based on B1.2 progression plan
-3. **DO NOT commit/push** until user explicitly requests it at end of session
+1. Continue curriculum generation with Week 22
+2. **DO NOT commit/push** until user explicitly requests it at end of session
+
+✅ **Week 21 (B1.2 - Days 101-105)** - Created (NOT YET COMMITTED) **MONTH 6 BEGINS!** 🎉
+
+- Day 101: La Voix Passive (Formation)
+- Day 102: La Voix Passive (Alternatives: ON, se faire, reflexive)
+- Day 103: Le Participe Présent
+- Day 104: Le Gérondif (En + Participe Présent)
+- Day 105: Week 21 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **525 words total**) 🎉
+- **CEFR:** B1.2 (Month 6 begins)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_21_B1.2.md`
 
 ---
 
@@ -352,9 +362,9 @@ The monolithic `main.py` has been successfully refactored into modular routers:
 - ✅ Week 20: Dont, Advanced Indirect Speech + Month 5 Exam
 - **Vocabulary:** 100 words (Total: 500) **MONTH 5 COMPLETE!** 🎉
 
-**Month 6 (Weeks 21-24) - B1.2:** ⬜ NOT STARTED
+**Month 6 (Weeks 21-24) - B1.2:** 🔄 IN PROGRESS
 
-- [ ] Week 21: TBD
+- ✅ Week 21: Passive Voice, Participe Présent, Gérondif
 - [ ] Week 22: TBD
 - [ ] Week 23: TBD
 - [ ] Week 24: TBD + Month 6 Exam

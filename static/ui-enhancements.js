@@ -109,7 +109,7 @@ const UIEnhancements = {
      * Play audio for text (French)
      */
     playAudio(text, lang = 'fr') {
-        fetch(`${API_BASE}/api/tts`, {
+        fetch(`${API_BASE}/api/audio/tts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, lang })

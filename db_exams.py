@@ -5,7 +5,7 @@ Handles exam creation, submission, and grading
 
 from typing import Optional, Dict, Any, List
 import json
-from db_core import get_connection
+from core.database import get_db_cursor
 
 
 def save_exam(exam_id: str, level: str, week_number: int, questions: str, user_id: int = 1) -> str:
@@ -21,18 +21,13 @@ def save_exam(exam_id: str, level: str, week_number: int, questions: str, user_i
     Returns:
         exam_id
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        INSERT OR REPLACE INTO exams (exam_id, level, week_number, questions)
-        VALUES (?, ?, ?, ?)
-    """, (exam_id, level, week_number, questions))
-    
-    conn.commit()
-    conn.close()
-    
-    return exam_id
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            INSERT OR REPLACE INTO exams (exam_id, level, week_number, questions)
+            VALUES (?, ?, ?, ?)
+        """, (exam_id, level, week_number, questions))
+        
+        return exam_id
 
 
 def get_exam(exam_id: str) -> Optional[Dict[str, Any]]:
@@ -44,37 +39,29 @@ def get_exam(exam_id: str) -> Optional[Dict[str, Any]]:
     Returns:
         dict with exam data or None if not found
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT exam_id, level, week_number, questions, created_at
-        FROM exams
-        WHERE exam_id = ?
-    """, (exam_id,))
-    
-    row = cursor.fetchone()
-    conn.close()
-    
-    return dict(row) if row else None
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT exam_id, level, week_number, questions, created_at
+            FROM exams
+            WHERE exam_id = ?
+        """, (exam_id,))
+        
+        row = cursor.fetchone()
+        return dict(row) if row else None
 
 
 def get_exams_by_level_and_week(level: str, week_number: int) -> List[Dict[str, Any]]:
     """Get all exams for a specific level and week."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT exam_id, level, week_number, created_at
-        FROM exams
-        WHERE level = ? AND week_number = ?
-        ORDER BY created_at DESC
-    """, (level, week_number))
-    
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT exam_id, level, week_number, created_at
+            FROM exams
+            WHERE level = ? AND week_number = ?
+            ORDER BY created_at DESC
+        """, (level, week_number))
+        
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
 
 
 def save_exam_result(
@@ -98,74 +85,57 @@ def save_exam_result(
     Returns:
         submission_id
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        INSERT INTO exam_submissions
-        (exam_id, score, passed, answers, feedback)
-        VALUES (?, ?, ?, ?, ?)
-    """, (exam_id, overall_score, passed, answers, feedback))
-    
-    submission_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    
-    return submission_id
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO exam_submissions
+            (exam_id, score, passed, answers, feedback)
+            VALUES (?, ?, ?, ?, ?)
+        """, (exam_id, overall_score, passed, answers, feedback))
+        
+        submission_id = cursor.lastrowid
+        return submission_id
 
 
 def get_exam_results(exam_id: str) -> List[Dict[str, Any]]:
     """Get all submitted results for an exam."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT exam_submission_id, exam_id, score, passed, submitted_at, feedback
-        FROM exam_submissions
-        WHERE exam_id = ?
-        ORDER BY submitted_at DESC
-    """, (exam_id,))
-    
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT exam_submission_id, exam_id, score, passed, submitted_at, feedback
+            FROM exam_submissions
+            WHERE exam_id = ?
+            ORDER BY submitted_at DESC
+        """, (exam_id,))
+        
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
 
 
 def get_user_exam_results(user_id: int, limit: int = 10) -> List[Dict[str, Any]]:
     """Get user's exam submission history."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT es.exam_submission_id, es.exam_id, es.score, es.passed,
-               es.submitted_at, e.level, e.week_number
-        FROM exam_submissions es
-        JOIN exams e ON es.exam_id = e.exam_id
-        ORDER BY es.submitted_at DESC
-        LIMIT ?
-    """, (limit,))
-    
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return [dict(row) for row in rows]
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT es.exam_submission_id, es.exam_id, es.score, es.passed,
+                   es.submitted_at, e.level, e.week_number
+            FROM exam_submissions es
+            JOIN exams e ON es.exam_id = e.exam_id
+            ORDER BY es.submitted_at DESC
+            LIMIT ?
+        """, (limit,))
+        
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
 
 
 def get_latest_exam_for_level_week(level: str, week_number: int) -> Optional[Dict[str, Any]]:
     """Get the most recent exam for a level/week combination."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT exam_id, level, week_number, questions, created_at
-        FROM exams
-        WHERE level = ? AND week_number = ?
-        ORDER BY created_at DESC
-        LIMIT 1
-    """, (level, week_number))
-    
-    row = cursor.fetchone()
-    conn.close()
-    
-    return dict(row) if row else None
+    with get_db_cursor() as cursor:
+        cursor.execute("""
+            SELECT exam_id, level, week_number, questions, created_at
+            FROM exams
+            WHERE level = ? AND week_number = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (level, week_number))
+        
+        row = cursor.fetchone()
+        return dict(row) if row else None
