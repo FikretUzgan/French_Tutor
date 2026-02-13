@@ -1,131 +1,71 @@
-# Code Refactoring Plan - Breaking Down Large Files
+# Refactoring Plan: Modularization & Optimization
 
-## Overview
-Refactoring large files into logical, focused modules for better maintainability and performance.
+## 1. Goal
 
-## Files to Refactor
+Refactor the monolithic `main.py` and optimize core architectural components (DB, AI prompts) to improve maintainability, testing, and scalability. This plan is based on the recent code review.
 
-### 1. main.py (1850 lines) → 4 files
+## 2. Architecture Overview
 
-**Structure:**
-```
-main.py (core app + imports)
-├── api_models.py (all Pydantic models)
-├── api_helpers.py (helper functions)
-├── api_routes/
-│   ├── __init__.py
-│   ├── lessons.py (lesson endpoints)
-│   ├── vocabulary.py (vocabulary endpoints)
-│   ├── homework.py (homework endpoints)
-│   ├── speaking.py (speaking endpoints)
-│   ├── exams.py (exam endpoints)
-│   ├── audio.py (audio/TTS endpoints)
-│   └── settings.py (settings/mode endpoints)
-```
+### Current State
 
-**Benefits:**
-- Easier to locate and modify specific endpoints
-- Clearer separation of concerns
-- Faster IDE indexing
-- Easier testing of specific features
+- **Monolithic**: `main.py` (>2000 lines) handles everything.
+- **Scattered Prompts**: AI prompts embedded in string literals.
+- **Inefficient DB**: New connection per query.
 
-### 2. db.py (1456 lines) → 6 files
+### Target State
 
-**Structure:**
-```
-db_core.py (connection management, schema)
-├── db_lessons.py (lesson and progress operations)
-├── db_homework.py (homework submissions and feedback)
-├── db_exams.py (exam management)
-├── db_srs.py (SRS scheduling and vocabulary)
-└── db_utils.py (shared utilities, settings)
+```text
+app/
+├── main.py                 # App entry point (minimal)
+├── routers/                # API Routes
+│   ├── lessons.py
+│   ├── vocabulary.py
+│   └── ...
+├── services/               # Business Logic
+│   ├── ai_service.py       # Logic from lesson_generator.py
+│   └── audio_service.py
+└── core/                   # Infrastructure
+    ├── database.py         # Connection pooling/context manager
+    ├── config.py
+    └── prompts.py          # Centralized prompts
 ```
 
-**Benefits:**
-- Each domain has one focused file
-- Easier to understand data relationships
-- Faster to implement new features per domain
-- Clearer API boundaries
+## 3. Implementation Steps
 
-### 3. app.js (1680 lines) → 6 files
+### Phase 1: Foundation (Infrastructure)
 
-**Structure:**
-```
-app.js (core initialization + tab management)
-├── app-core.js (utilities, mode checking, setup)
-├── app-lessons.js (lesson generation and display)
-├── app-vocab.js (vocabulary practice)
-├── app-speaking.js (speaking practice)
-├── app-homework.js (homework submission)
-└── app-exams.js (quiz/exam display and submission)
-```
+1. **Create Directory Structure**: `routers/`, `services/`, `core/`.
+2. **Centralize Config**: Move `load_dotenv` and env var loading to `core/config.py`.
+3. **Database Layer**:
+    - Create `core/database.py`.
+    - Implement a context manager for DB connections to fix the "new connection per call" inefficiency.
+    - Refactor `db_*.py` files to use this new context manager.
 
-**Benefits:**
-- Features are self-contained
-- Easier to test individual features
-- Clear dependencies between modules
-- Faster page load (can lazy-load modules)
+### Phase 2: Core Logic Extraction
 
-### 4. style.css (1408 lines) → 3 files
+4. **Prompts**: Extract all prompt strings from `main.py` and `lesson_generator.py` into `core/prompts.py`.
+2. **Schemas**: Move Pydantic models from `main.py` to `core/schemas.py` (or `api_models.py` moved to `core/`).
+3. **AI Service**:
+    - Refactor `lesson_generator.py` into `services/ai_service.py`.
+    - Create `services/audio_service.py` for Whisper/TTS logic.
 
-**Structure:**
-```
-style.css (imports all others)
-├── style-layout.css (grid, flexbox, container layouts)
-├── style-components.css (buttons, cards, forms)
-├── style-responsive.css (media queries, mobile)
-└── style-animations.css (transitions, keyframes)
-```
+### Phase 3: API Refactoring (The Split)
 
-**Benefits:**
-- Easy to locate styling for specific components
-- Responsive styles in one place
-- Animations grouped together
-- Faster CSS parsing (smaller files)
+7. **Routers**: Break down `main.py` endpoints into:
+    - `routers/lessons.py`
+    - `routers/vocabulary.py`
+    - `routers/homework.py`
+    - `routers/speaking.py`
+    - `routers/system.py` (health, mode, settings)
+2. **Main Entry**: Clean up `main.py` to only import and include these routers.
 
-## Implementation Order
+### Phase 4: Modernization (Optional but Recommended)
 
-1. ✅ **api_models.py** - Extract all Pydantic models from main.py
-2. ✅ **api_helpers.py** - Extract all helper functions from main.py
-3. ✅ **db_core.py** - Extract connection and init from db.py
-4. ✅ **Other db_*.py files** - Split db.py by domain
-5. ✅ **style-*.css files** - Split style.css by feature
-6. ✅ **app-*.js files** - Split app.js by feature
-7. ✅ **api_routes/** - Move endpoints to separate files
-8. Update **main.py** - Import from new modules
+9. **Dependency Injection**: Use FastAPI `Depends` for getting DB sessions and Services.
+2. **Error Handling**: Implement global exception handlers in `main.py`.
 
-## Migration Checklist
+## 4. Verification
 
-- [ ] Create new files with content
-- [ ] Update imports in main files
-- [ ] Test all endpoints work correctly
-- [ ] Verify no circular imports
-- [ ] Check browser console for JS errors
-- [ ] Validate CSS still loads correctly
-- [ ] Update IDE project structure
-- [ ] Commit changes to version control
-
-## Expected Outcome
-
-**Before:**
-- 4 large files (5,794 total lines)
-- Hard to navigate
-- IDE sluggish
-- Difficult to test individual features
-- High merge conflict risk
-
-**After:**
-- 20 focused files (5,794 total lines, but organized)
-- Easy navigation (Ctrl+F over small file)
-- IDE responsive
-- Individual feature testing possible
-- Lower merge conflict risk
-- Clearer code ownership
-
-## Notes
-
-- Maintain exact same functionality - only reorganizing code
-- Keep all external APIs unchanged  
-- Update import statements in consuming files
-- Consider creating __init__.py files for packages
-- May add utility functions during reorganization
+- **Test Routes**: Verify critical paths (`/api/lessons`, `/api/health`) work after each router migration.
+- **Check Database**: Ensure connections are correctly closed (no file lock errors).
+- **AI Generation**: Confirm lesson generation still works with the moved logic.

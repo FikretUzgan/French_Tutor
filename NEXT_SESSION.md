@@ -1,7 +1,41 @@
 # Next Session To-Do List
 
-**Last Updated:** 2026-02-12  
-**Current Status:** Week 13 Curriculum Created ✅ | Month 4 Started (A2.2) ✅ | New Curriculum System Live ✅
+**Last Updated:** 2026-02-13  
+**Current Status:** Week 20 Curriculum Created ✅ | **Month 5 COMPLETE (B1.1)** ✅ | New Curriculum System Live ✅ | **API Refactoring Complete (Phase 3)** ✅
+
+---
+
+## 🎉 REFACTORING STATUS - Session 7 (2026-02-13)
+
+### ✅ Phase 3: API Refactoring - COMPLETE
+
+The monolithic `main.py` has been successfully refactored into modular routers:
+
+**Routers Created:**
+
+- `routers/system.py` - Health checks, settings, first-time setup
+- `routers/lessons.py` - Lesson generation, retrieval, listing
+- `routers/speaking.py` - Audio transcription, speech feedback, TTS
+- `routers/homework.py` - Homework submission and grading
+- `routers/vocabulary.py` - Vocabulary management (placeholder for future)
+
+**Changes Made:**
+
+- ✅ Extracted all endpoint logic from `main.py` into respective routers
+- ✅ Created helper functions in each router (e.g., `get_current_level()`, `build_lesson_response()`)
+- ✅ All imports and dependencies verified working
+- ✅ 16 API routes successfully registered with FastAPI
+- ✅ `main.py` reduced from 323 lines to 65 lines (cleaner entry point)
+- ✅ Fixed Unicode encoding issues in verification script
+
+**Verification Results:**
+
+```
+[OK] All routers import successfully
+[OK] FastAPI app created with all routes
+[OK] Total routes registered: 16
+[OK] Phase 2 & 3 verification tests PASSED
+```
 
 ---
 
@@ -245,21 +279,26 @@
 - **CEFR:** B1.1 (Month 5 continues)
 - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_19_B1.1.md`
 
+✅ **Week 20 (B1.1 - Days 96-100)** - Created (NOT YET COMMITTED) **MONTH 5 COMPLETE!** 🎉🎊
+
+- Day 96: Pronom Relatif DONT (verbs with de, possession)
+- Day 97: Discours Indirect au Passé (Concordance des Temps)
+- Day 98: Discours Indirect Complet (All types combined)
+- Day 99: Month 5 Comprehensive Review
+- Day 100: Month 5 Exam & Assessment (B1.1 Complete!)
+- **NEW:** 25 vocabulary words (cumulative: **500 words total**) 🎉🎊 **MILESTONE!**
+- **CEFR:** B1.1 (Month 5 ends)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_20_B1.1.md`
+
 ### Next Task
 
-🎯 **CREATE WEEK 20 CURRICULUM (B1.1 - Advanced Indirect Speech & Month 5 Exam)**
+🎯 **MONTH 6 (B1.2) - Week 21 Prep**
 
-**User command:** "Week 20" or "Next week"
+1. Continue curriculum generation with Week 21 (Month 6 / B1.2 begins)
+2. Topics TBD based on B1.2 progression plan
+3. **DO NOT commit/push** until user explicitly requests it at end of session
 
-1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md`
-2. Create Week 20 (B1.1 - Days 96-100) curriculum file
-3. Grammar topics:
-   - Day 96: Discours Rapporté au Passé (Concordance des temps - Présent -> Imparfait)
-   - Day 97: Discours Rapporté au Passé (PC -> PQP, Futur -> Cond)
-   - Day 98: Discours Rapporté (Time markers changes: Demain -> Le lendemain)
-   - Day 99: Month 5 Comprehensive Review
-   - Day 100: Month 5 Exam & Assessment (B1.1 Complete!)
-4. Update NEXT_SESSION.md
+---
 
 ---
 
@@ -305,13 +344,21 @@
 - ✅ Week 16: Reflexive verbs, indirect speech + Month 4 Exam
 - **Vocabulary:** 100 words (Total: 400) **MONTH 4 COMPLETE!** 🎉
 
-**Month 5 (Weeks 17-20) - B1.1:** 🔄 IN PROGRESS
+**Month 5 (Weeks 17-20) - B1.1:** ✅ COMPLETE
 
 - ✅ Week 17: Passé Simple (Receptive) & Plus-que-parfait
 - ✅ Week 18: Subjonctif (Introduction & Usage)
 - ✅ Week 19: Relative Pronouns (Advanced) & Demonstratives
-- [ ] Week 20: Indirect Speech (Advanced) + Month 5 Exam
-- **Vocabulary:** 100 words (Total: 500)
+- ✅ Week 20: Dont, Advanced Indirect Speech + Month 5 Exam
+- **Vocabulary:** 100 words (Total: 500) **MONTH 5 COMPLETE!** 🎉
+
+**Month 6 (Weeks 21-24) - B1.2:** ⬜ NOT STARTED
+
+- [ ] Week 21: TBD
+- [ ] Week 22: TBD
+- [ ] Week 23: TBD
+- [ ] Week 24: TBD + Month 6 Exam
+- **Vocabulary:** 100 words (Total: 600)
 
 ---
 
