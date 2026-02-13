@@ -1,5 +1,6 @@
 // French Tutor - Frontend JavaScript
-const API_BASE = 'http://localhost:8000';
+// Use current page origin so API works on any port (8000, 8001, etc.)
+const API_BASE = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : 'http://localhost:8000';
 
 // App State
 const AppState = {
@@ -58,6 +59,17 @@ function toDateKey(date) {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('French Tutor loaded');
+    // Delegated click for TTS buttons using data-tts-text (avoids onclick with quotes that can truncate content)
+    document.body.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-tts-inline, .btn-listen-inline');
+        if (!btn) return;
+        const text = btn.getAttribute('data-tts-text');
+        if (text != null) {
+            e.preventDefault();
+            e.stopPropagation();
+            playLessonTTS(text);
+        }
+    });
     try {
         (async () => {
             try { await initializeAppMode(); } catch (e) { console.error('initializeAppMode error:', e); }
@@ -523,53 +535,134 @@ function applyLessonScenarioToSpeakingTab() {
     });
 }
 
+// Escape HTML so user content cannot break the DOM or truncate at </p>, etc.
+function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Escape for HTML attribute value (avoids truncation when " or ' in text closes attribute).
+function escapeAttr(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// Build a paragraph element from text, with TTS buttons for "French" (English) — uses DOM so quotes never break HTML.
+function buildGrammarParagraphElement(paragraphText) {
+    const p = document.createElement('p');
+    const parenGroup = '([^)\\n]+)';
+    const quotedPattern = new RegExp(`"([^"]+)"\\s*\\(${parenGroup}\\)`, 'g');
+    let lastIndex = 0;
+    let match;
+    let matchCount = 0;
+    while ((match = quotedPattern.exec(paragraphText)) !== null) {
+        matchCount++;
+        const [full, frenchText, englishTranslation] = match;
+        const before = paragraphText.slice(lastIndex, match.index);
+        if (before) p.appendChild(document.createTextNode(before));
+        const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
+        p.appendChild(document.createTextNode('"'));
+        const strong = document.createElement('strong');
+        strong.textContent = frenchText;
+        p.appendChild(strong);
+        p.appendChild(document.createTextNode('" '));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-tts-inline';
+        btn.setAttribute('data-tts-text', ttsText);
+        btn.title = 'Listen to pronunciation';
+        btn.textContent = '🔊';
+        p.appendChild(btn);
+        p.appendChild(document.createTextNode(' '));
+        const span = document.createElement('span');
+        span.className = 'muted';
+        span.textContent = `(${englishTranslation.trim()})`;
+        p.appendChild(span);
+        lastIndex = quotedPattern.lastIndex;
+    }
+    // #region agent log
+    if (paragraphText.indexOf('Cultural Note') !== -1) {
+        fetch('http://127.0.0.1:7242/ingest/913ece5b-52f2-4152-8429-45481256fffe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:buildGrammarParagraphElement',message:'Cultural Note paragraph',data:{paraLen:paragraphText.length,matchCount,last120:paragraphText.slice(-120)},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+    }
+    // #endregion
+    if (lastIndex < paragraphText.length) {
+        p.appendChild(document.createTextNode(paragraphText.slice(lastIndex)));
+    }
+    return p;
+}
+
 function addTTSButtonsToExamples(text) {
-    // Track which parts have already been processed to avoid duplicate buttons
-    let processedText = text;
-    
-    // Pattern 1: Dialogue format - A: "French" (English) or - A: "French" (English)
-    // Example: A: "C'est un stylo bleu." (It's a blue pen. - M)
-    const dialoguePattern = /(-?\s*[A-Z]:\s*)"([^"]+)"\s*\(([^)]+)\)/g;
-    processedText = processedText.replace(dialoguePattern, (match, prefix, frenchText, englishTranslation) => {
-        const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
-        const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-        return `${prefix}"<strong>${frenchText}</strong>" <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button> <span class="muted">(${englishTranslation.trim()})</span>`;
-    });
-    
-    // Pattern 2: Arrow format - text → French sentence (English translation)
-    // Example: "Parler (to speak) → J'ai parlé français. (I spoke French.)"
-    const arrowPattern = /([^→\n]+)→\s*([^(]+)\s*\(([^)]+)\)/g;
-    processedText = processedText.replace(arrowPattern, (match, before, frenchSentence, englishTranslation) => {
-        const french = frenchSentence.trim();
-        const ttsText = french.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
-        const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-        return `${before.trim()} → <strong>${french}</strong> <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button> <span class="muted">(${englishTranslation.trim()})</span>`;
-    });
-    
-    // Pattern 3: Quoted French text without dialogue label - "French text" (English translation)
-    // Example: "Je suis français." (I am French.)
-    const quotedPattern = /(?<![A-Z]:\s*)"([^"]+)"\s*\(([^)]+)\)(?!\s*<button)/g;
-    processedText = processedText.replace(quotedPattern, (match, frenchText, englishTranslation) => {
-        const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
-        const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-        return `"<strong>${frenchText}</strong>" <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button> <span class="muted">(${englishTranslation.trim()})</span>`;
-    });
-    
-    // Pattern 4: Dialogue without parenthetical translation - A: French sentence (just capture French lines)
-    // Match lines like: "A: Je m'appelle Marie." or "B: Pourquoi pas?"
-    // But NOT if they already have a button
-    const simpleDialoguePattern = /(-?\s*[A-Z]:\s*)([A-Z][^?\n.!]*[?.!])(?!\s*<button)/g;
-    processedText = processedText.replace(simpleDialoguePattern, (match, prefix, frenchSentence) => {
-        const ttsText = frenchSentence.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
-        // Only add button if it looks like French (contains French letters or patterns)
-        if (/[àâäçéèêëïîôöûüœæ]|[aeiouy]'|que|pas|pas\?|ne |je |vous |tu /i.test(ttsText)) {
-            const escapedText = ttsText.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-            return `${prefix}<strong>${frenchSentence}</strong> <button class="btn-tts-inline" onclick="playLessonTTS('${escapedText}')" title="Listen to pronunciation">🔊</button>`;
-        }
-        return match;
-    });
-    
-    return processedText;
+    try {
+        // Track which parts have already been processed to avoid duplicate buttons
+        let processedText = text;
+        
+        // Parenthetical capture must NOT match newlines, or we eat content up to a later )
+        const parenGroup = '([^)\\n]+)';
+        
+        // Pattern 1: Dialogue format - A: "French" (English) or - A: "French" (English)
+        // Example: A: "C'est un stylo bleu." (It's a blue pen. - M)
+        const dialoguePattern = new RegExp(`(-?\\s*[A-Z]:\\s*)"([^"]+)"\\s*\\(${parenGroup}\\)`, 'g');
+        processedText = processedText.replace(dialoguePattern, (match, prefix, frenchText, englishTranslation) => {
+            const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
+            const safeFrench = escapeHtml(frenchText);
+            const safeEnglish = escapeHtml(englishTranslation.trim());
+            return `${prefix}"<strong>${safeFrench}</strong>" <button type="button" class="btn-tts-inline" data-tts-text="${escapeAttr(ttsText)}" title="Listen to pronunciation">🔊</button> <span class="muted">(${safeEnglish})</span>`;
+        });
+        
+        // Pattern 2: Arrow format - text → French sentence (English translation)
+        // Example: "Parler (to speak) → J'ai parlé français. (I spoke French.)"
+        const arrowPattern = new RegExp(`([^→\\n]+)→\\s*([^(]+)\\s*\\(${parenGroup}\\)`, 'g');
+        processedText = processedText.replace(arrowPattern, (match, before, frenchSentence, englishTranslation) => {
+            const french = frenchSentence.trim();
+            const ttsText = french.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
+            const safeFrench = escapeHtml(french);
+            const safeEnglish = escapeHtml(englishTranslation.trim());
+            return `${before.trim()} → <strong>${safeFrench}</strong> <button type="button" class="btn-tts-inline" data-tts-text="${escapeAttr(ttsText)}" title="Listen to pronunciation">🔊</button> <span class="muted">(${safeEnglish})</span>`;
+        });
+        
+        // Pattern 3: Quoted French text - "French text" (English translation)
+        // But only if not already processed by dialogue pattern
+        const quotedPattern = new RegExp(`"([^"]+)"\\s*\\(${parenGroup}\\)`, 'g');
+        const alreadyProcessed = new Set();
+        processedText = processedText.replace(quotedPattern, (match, frenchText, englishTranslation) => {
+            // Skip if already has a button next to it
+            if (match.includes('<button') || alreadyProcessed.has(match)) {
+                return match;
+            }
+            alreadyProcessed.add(match);
+            const ttsText = frenchText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
+            const safeFrench = escapeHtml(frenchText);
+            const safeEnglish = escapeHtml(englishTranslation.trim());
+            return `"<strong>${safeFrench}</strong>" <button type="button" class="btn-tts-inline" data-tts-text="${escapeAttr(ttsText)}" title="Listen to pronunciation">🔊</button> <span class="muted">(${safeEnglish})</span>`;
+        });
+        
+        // Pattern 4: Dialogue without parenthetical translation
+        // Match lines like: "A: Je m'appelle Marie." or "B: Pourquoi pas?"
+        const simpleDialoguePattern = /(-?\s*[A-Z]:\s*)([A-Z][^?\n.!]*[?.!])(?!\s*<button)/g;
+        processedText = processedText.replace(simpleDialoguePattern, (match, prefix, frenchSentence) => {
+            const ttsText = frenchSentence.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').trim();
+            // Only add button if it looks like French
+            if (/[àâäçéèêëïîôöûüœæ]|[aeiouy]'|que|pas|pas\?|ne |je |vous |tu /i.test(ttsText)) {
+                return `${prefix}<strong>${frenchSentence}</strong> <button type="button" class="btn-tts-inline" data-tts-text="${escapeAttr(ttsText)}" title="Listen to pronunciation">🔊</button>`;
+            }
+            return match;
+        });
+        
+        return processedText;
+    } catch (error) {
+        console.error('Error in addTTSButtonsToExamples:', error, 'Input text:', text);
+        // Return original text if processing fails
+        return text;
+    }
 }
 
 function playLessonTTS(text) {
@@ -1735,27 +1828,29 @@ function createInteractiveGrammar(grammarContent) {
     let hasContent = false;
     
     // Handle string content
-    if (typeof grammarContent === 'string' && grammarContent.trim()) {
-        const paragraphs = grammarContent.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
-        html += '<div class="grammar-explanation">';
-        paragraphs.forEach(p => {
-            // Add TTS buttons to example sentences
-            const processedParagraph = addTTSButtonsToExamples(p);
-            html += `<p>${processedParagraph}</p>`;
+    const renderExplanationParagraphs = (explanationText) => {
+        const paragraphs = explanationText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/913ece5b-52f2-4152-8429-45481256fffe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:renderExplanationParagraphs',message:'explanation received',data:{len:explanationText.length,tail:explanationText.slice(-200),paraCount:paragraphs.length},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        const wrapper = document.createElement('div');
+        wrapper.className = 'grammar-explanation';
+        paragraphs.forEach(para => {
+            wrapper.appendChild(buildGrammarParagraphElement(para));
         });
-        html += '</div>';
+        const out = wrapper.innerHTML;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/913ece5b-52f2-4152-8429-45481256fffe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:renderExplanationParagraphs',message:'after innerHTML',data:{serializedLen:out.length,tail:out.slice(-200)},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        return out;
+    };
+    if (typeof grammarContent === 'string' && grammarContent.trim()) {
+        html += renderExplanationParagraphs(grammarContent);
         hasContent = true;
     } else if (typeof grammarContent === 'object' && grammarContent !== null) {
-        // Handle object with explanation
+        // Handle object with explanation — use DOM-built paragraphs so quotes never truncate content
         if (grammarContent.explanation && grammarContent.explanation.trim()) {
-            const paragraphs = grammarContent.explanation.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
-            html += '<div class="grammar-explanation">';
-            paragraphs.forEach(p => {
-                // Add TTS buttons to example sentences
-                const processedParagraph = addTTSButtonsToExamples(p);
-                html += `<p>${processedParagraph}</p>`;
-            });
-            html += '</div>';
+            html += renderExplanationParagraphs(grammarContent.explanation);
             hasContent = true;
         }
         
@@ -1783,12 +1878,12 @@ function createInteractiveGrammar(grammarContent) {
                     return;
                 }
                 if (typeof ex === 'string') {
-                    const ttsText = ex.replace(/\([^)]*\)/g, '').trim();
+                    const ttsText = ex.replace(/\([^)]*\)/g, '').replace(/\*\*/g, '').trim();
                     html += `<li><strong>${ex}</strong> <button class="btn-listen-inline" onclick="playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">🔊 Listen</button></li>`;
                 } else if (typeof ex === 'object') {
                     const french = ex.french || ex.text || ex.example || '';
                     const english = ex.english || ex.translation || '';
-                    const ttsText = french.replace(/\([^)]*\)/g, '').trim();
+                    const ttsText = french.replace(/\([^)]*\)/g, '').replace(/\*\*/g, '').trim();
                     if (french) {
                         html += `<li><strong>${french}</strong>${english ? ` <span class="muted">(${english})</span>` : ''} <button class="btn-listen-inline" onclick="playLessonTTS('${ttsText.replace(/'/g, "&#39;")}')">🔊 Listen</button></li>`;
                     }
@@ -1870,7 +1965,8 @@ function createInteractiveVocabulary(vocabContent) {
         const backText = item.back || '';
         const pronunciation = item.pronunciation || '';
         // Handle gender notation like "étudiant(e)" - remove the parentheses for TTS
-        const ttsText = frontText.replace(/\([^)]*\)/g, '').trim();
+        // Also remove bold markdown markers
+        const ttsText = frontText.replace(/\([^)]*\)/g, '').replace(/\*\*/g, '').trim();
         
         // Always create Listen button if we have text
         if (frontText.trim()) {
@@ -2118,7 +2214,7 @@ function createInteractiveQuiz(quizContent) {
         const questionId = `quiz-q${idx}`;
         const questionText = typeof question === 'string' ? question : (question.question || question.question_text || '');
         const options = question.options || [];
-        const questionTts = getQuizAudioText(questionText, question).replace(/\([^)]*\)/g, '').trim();
+        const questionTts = getQuizAudioText(questionText, question).replace(/\([^)]*\)/g, '').replace(/\*\*/g, '').trim();
         const listenButton = questionTts
             ? ` <button class="btn-listen-inline" onclick="playLessonTTS('${questionTts.replace(/'/g, "&#39;")}')">🔊 Listen</button>`
             : '';
@@ -2132,7 +2228,7 @@ function createInteractiveQuiz(quizContent) {
             html += '<div class="quiz-options-interactive">';
             options.forEach((option, optIdx) => {
                 const optionId = `${questionId}-opt${optIdx}`;
-                const optionTts = String(option).replace(/\([^)]*\)/g, '').trim();
+                const optionTts = String(option).replace(/\([^)]*\)/g, '').replace(/\*\*/g, '').trim();
                 const optionListen = optionTts
                     ? `<button class="btn-listen-inline" onclick="event.preventDefault(); event.stopPropagation(); playLessonTTS('${optionTts.replace(/'/g, "&#39;")}')">🔊</button>`
                     : '';

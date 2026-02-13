@@ -54,6 +54,19 @@ def build_lesson_response(lesson: dict) -> LessonResponse:
             "homework": lesson.get("homework", {}),
             "quiz": lesson.get("quiz", {}),
         }
+        # #region agent log
+        try:
+            from pathlib import Path as _Path
+            _gram = content.get("grammar") or {}
+            _exp = _gram.get("explanation") or ""
+            _log = {"id": "lessons_build", "timestamp": __import__("time").time() * 1000, "location": "routers.lessons.build_lesson_response", "message": "grammar explanation in response", "data": {"len": len(_exp), "tail": _exp[-200:] if len(_exp) > 200 else _exp}, "hypothesisId": "A"}
+            _logpath = _Path(__file__).resolve().parent.parent / ".cursor" / "debug.log"
+            _logpath.parent.mkdir(parents=True, exist_ok=True)
+            with open(_logpath, "a", encoding="utf-8") as _f:
+                _f.write(__import__("json").dumps(_log, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+        # #endregion
     else:
         # Handle database format
         content = {

@@ -187,8 +187,7 @@ The verb **être** means "to be" in English. It is THE most important verb in Fr
 
 **Stage 1: AI Provides Script (2 min)**
 ```
-AI (friendly, slow, clear): "Bonjour! Je suis Marie. Et toi?"
-(Hello! I am Marie. And you?)
+AI (friendly, slow, clear): "Bonjour! Je suis Marie. Et toi?" (Hello! I am Marie. And you?)
 
 Student repeats after AI: "Bonjour! Je suis Marie. Et toi?"
 ```
@@ -449,8 +448,7 @@ Yesterday we learned je suis, tu es, il/elle est. Today we complete the conjugat
 
 **Stage 1: AI Models (2 min)**
 ```
-AI: "Bonjour! Je suis Marie et voici Pierre. Nous sommes français."
-(Hello! I am Marie and this is Pierre. We are French.)
+AI: "Bonjour! Je suis Marie et voici Pierre. Nous sommes français." (Hello! I am Marie and this is Pierre. We are French.)
 
 Student repeats.
 ```

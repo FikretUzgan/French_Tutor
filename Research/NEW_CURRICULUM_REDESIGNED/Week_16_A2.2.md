@@ -559,20 +559,15 @@ When reporting an order/imperative, use **DE** + **Infinitive**.
 **Conversation Prompts:**
 
 ```
-1. Ton ami demande: "Est-ce que tu aimes le film?" -> Reporte la question.
-   (Report: Il demande si j'aime le film.)
+1. Ton ami demande: "Est-ce que tu aimes le film?" (Report: Il demande si j'aime le film.) -> Reporte la question.
 
-2. Ton père dit: "Range ta chambre!" -> Reporte l'ordre.
-   (Report: Il me dit de ranger ma chambre.)
+2. Ton père dit: "Range ta chambre!" (Report: Il me dit de ranger ma chambre.) -> Reporte l'ordre.
 
-3. Elle demande: "Qu'est-ce que tu fais?" -> Reporte la question.
-   (Report: Elle demande ce que je fais.)
+3. Elle demande: "Qu'est-ce que tu fais?" (Report: Elle demande ce que je fais.) -> Reporte la question.
 
-4. Le patron dit: "Ne sois pas en retard." -> Reporte l'ordre.
-   (Report: Il me dit de ne pas être en retard.)
+4. Le patron dit: "Ne sois pas en retard." (Report: Il me dit de ne pas être en retard.) -> Reporte l'ordre.
 
-5. Tu demandes: "Est-ce qu'il y a du pain?"
-   (Report: Je demande s'il y a du pain.)
+5. Tu demandes: "Est-ce qu'il y a du pain?" (Report: Je demande s'il y a du pain.)
 ```
 
 **Student Task:**

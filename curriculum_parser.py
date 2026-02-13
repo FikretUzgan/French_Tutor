@@ -15,7 +15,10 @@ REDESIGNED_CURRICULUM_DIR = Path(__file__).parent / "Research" / "NEW_CURRICULUM
 # CEFR levels for each week
 WEEK_LEVELS = {
     1: "A1.1", 2: "A1.1", 3: "A1.1", 4: "A1.1", 5: "A1.2",
-    6: "A1.2", 7: "A1.2", 8: "A1.2", 9: "A2.1", 10: "A2.1"
+    6: "A1.2", 7: "A1.2", 8: "A1.2", 9: "A2.1", 10: "A2.1",
+    11: "A2.1", 12: "A2.1", 13: "A2.2", 14: "A2.2", 15: "A2.2",
+    16: "A2.2", 17: "B1.1", 18: "B1.1", 19: "B1.1", 20: "B1.1",
+    21: "B1.2", 22: "B1.2"
 }
 
 def get_level_for_week(week: int) -> str:
@@ -98,17 +101,32 @@ def parse_grammar_section(day_content: str) -> Dict[str, Any]:
     
     section = match.group(0)
     
-    # Extract explanation paragraphs
-    explanation_pattern = r"#### Explanation(.*?)(?=---|\Z)"
+    # Extract explanation paragraphs (everything from "#### Explanation" to the next ### section or end)
+    explanation_pattern = r"#### Explanation(.*?)(?=\n###|\Z)"
     exp_match = re.search(explanation_pattern, section, re.DOTALL)
     
     explanation = ""
     if exp_match:
         # Get ALL content from Explanation section (full curriculum content)
         text = exp_match.group(1).strip()
+        # Remove markdown separators (---, ***, ___) that might appear at the end
+        text = re.sub(r'\n+\s*(?:---|___|\*\*\*)\s*\n*$', '', text)
         # Don't limit paragraphs - return everything in the explanation
         explanation = text
-    
+
+    # #region agent log
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+        _logpath = _Path(__file__).resolve().parent / ".cursor" / "debug.log"
+        _logpath.parent.mkdir(parents=True, exist_ok=True)
+        _log = {"id": "grammar_parser", "timestamp": __import__("time").time() * 1000, "location": "curriculum_parser.parse_grammar_section", "message": "explanation after parse", "data": {"len": len(explanation), "tail": explanation[-250:] if len(explanation) > 250 else explanation, "has_leaving": "I'm leaving" in explanation or "leaving" in explanation[-100:]}, "hypothesisId": "A"}
+        with open(_logpath, "a", encoding="utf-8") as _f:
+            _f.write(_json.dumps(_log, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+    # #endregion
+
     return {
         'explanation': explanation,
         'full_section': section  # Store full section (no truncation)
@@ -117,7 +135,7 @@ def parse_grammar_section(day_content: str) -> Dict[str, Any]:
 
 def parse_vocabulary_section(day_content: str) -> List[Dict[str, str]]:
     """Extract vocabulary words from DAY section."""
-    pattern = r"### VOCABULARY SECTION.*?(?=### EXAMPLES|---|\Z)"
+    pattern = r"### VOCABULARY.*?(?=### EXAMPLES|---|\Z)"
     match = re.search(pattern, day_content, re.DOTALL | re.IGNORECASE)
     
     if not match:
@@ -156,7 +174,7 @@ def parse_vocabulary_section(day_content: str) -> List[Dict[str, str]]:
 
 def parse_examples_section(day_content: str) -> List[Dict[str, str]]:
     """Extract example sentences and exercises."""
-    pattern = r"### EXAMPLES SECTION.*?(?=---|\Z)"
+    pattern = r"### EXAMPLES.*?(?=\n###|---|\Z)"
     match = re.search(pattern, day_content, re.DOTALL | re.IGNORECASE)
     
     if not match:
@@ -164,23 +182,19 @@ def parse_examples_section(day_content: str) -> List[Dict[str, str]]:
     
     section = match.group(0)
     
-    # Extract numbered examples
-    example_pattern = r"^\s*\d+\.\s*\*\*\[([^\]]+)\]\*\*(.*?)(?=^\s*\d+\.|\Z)"
+    # Extract numbered examples (format: "1. French sentence (English translation)")
+    example_pattern = r"^\s*\d+\.\s+(.+?)(?=^\s*\d+\.|\n---|\Z)"
     examples = []
     
     for ex_match in re.finditer(example_pattern, section, re.MULTILINE | re.DOTALL):
-        tags = ex_match.group(1).split(',')
-        content = ex_match.group(2).strip()
-        
-        # Parse the example content
-        lines = content.split('\n')
-        example_data = {
-            'tags': [tag.strip() for tag in tags],
-            'content': content[:200]  # Truncate for display
-        }
-        examples.append(example_data)
+        content = ex_match.group(1).strip()
+        if content:
+            examples.append({
+                'content': content,
+                'text': content
+            })
     
-    return examples[:50]  # Limit to 50 examples
+    return examples
 
 
 def parse_speaking_prompt(day_content: str, vocabulary: List[Dict]) -> Dict[str, Any]:

@@ -1145,8 +1145,7 @@ B: Oui, c'est très joli! (Yes, it's very pretty!)
 
 **Complete Example Combining All Concepts:**
 
-"J'ai **une petite table blanche** et **des grandes chaises vertes**."
-(I have a small white table and big green chairs.)
+"J'ai **une petite table blanche** et **des grandes chaises vertes**." (I have a small white table and big green chairs.)
 
 **Analysis:**
 - **une** (F, S indefinite) + **petite** (F, S, BANGS-BEFORE) + **table** (F, S) + **blanche** (F, S, color-AFTER)

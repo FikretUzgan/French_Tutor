@@ -204,8 +204,7 @@ The second family of regular verbs in French ends in **-IR** in their infinitive
 
 **Stage 1: AI Models Restaurant Scene (2 min)**
 ```
-AI (waiter, polite): "Bonjour! Vous choisissez le menu?"
-(Hello! Are you choosing the menu?)
+AI (waiter, polite): "Bonjour! Vous choisissez le menu?" (Hello! Are you choosing the menu?)
 
 Student repeats phrase for practice.
 ```

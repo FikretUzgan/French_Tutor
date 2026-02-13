@@ -1,7 +1,7 @@
 # Next Session To-Do List
 
 **Last Updated:** 2026-02-13  
-**Current Status:** Week 21 Curriculum Created ✅ | **Month 6 Started (B1.2)** ✅ | New Curriculum System Live ✅ | **API Refactoring Complete (Phase 3)** ✅
+**Current Status:** Week 22 Curriculum Created ✅ | **Month 6 In Progress (B1.2)** ✅ | New Curriculum System Live ✅ | **API Refactoring Complete (Phase 3)** ✅
 
 ---
 
@@ -44,13 +44,43 @@ The monolithic `main.py` has been successfully refactored into modular routers:
 **IMPORTANT:** At the start of EVERY new session:
 
 1. **Read Phase_2_Detailed_12Month_Plan.md FIRST** (general overview - only once per session)
-2. Then create the requested week curriculum
+2. When creating the requested week curriculum, **follow the "CURRICULUM CONTENT SYNTAX RULES"** below (quoted French on one line, no raw HTML in text) so the web app does not truncate or break content.
 3. **DO NOT commit/push** until user explicitly requests it at end of session
 4. Update NEXT_SESSION.md when week is complete
 
 **User will say:** "commit ve push işini seans sonunda söyleyeyim" (I'll tell you about commit/push at end of session)
 
 **TTS guardrail (do not override):** Preserve `addTTSButtonsToExamples()` enhancements in [static/app.js](static/app.js) so listen buttons appear for dialogue, arrow, and quoted French patterns. Avoid reverting this when refactoring UI or lesson rendering.
+
+---
+
+## 📐 CURRICULUM CONTENT SYNTAX RULES (NEW_CURRICULUM_REDESIGNED)
+
+**When writing or generating week/day content in `Research/NEW_CURRICULUM_REDESIGNED/Week_*_*.md`, follow these rules so the web app renders content correctly (no truncation, no broken HTML).**
+
+### 1. Quoted French + parenthetical English (one line only)
+
+- **Pattern the app detects:** `"French text" (English translation)` — it adds a 🔊 listen button and must match the **whole** phrase on **one line**.
+- **Rule:** Keep each `"French" (English)` pair on a **single line**. Do **not** put the opening `"` on one line and the closing `")` or the `(English...)` on the next, and do **not** put extra `)` on the same line after the translation (e.g. avoid `(Since you're not listening, I'm leaving!)` followed by more text and another `)` on the same line).
+- **Good:** `"Puisque tu ne m'écoutes pas, je m'en vais!" (Since you're not listening, I'm leaving!)`  
+- **Risky:** Long paragraphs where the same line contains a later `)` (e.g. from another example); prefer starting a new line/paragraph for the next example so the app’s regex doesn’t over-match.
+
+### 2. No raw HTML or angle brackets in lesson text
+
+- **Rule:** Do **not** put raw HTML tags or angle brackets in grammar explanations, cultural notes, or vocabulary (e.g. no `<script>`, `</p>`, or `x < y` as plain text). The app injects content into the DOM; stray `<` or `>` can break the page or cause truncation.
+- Use markdown only (e.g. **bold**, lists, tables). Avoid `<>` in prose; if needed, write “less than” / “greater than” or use code-style backticks.
+
+### 3. Double quotes inside sentences
+
+- **Rule:** It’s fine to use `"word"` or `"phrase"` in the middle of a sentence. For **listenable** examples, use the exact pattern `"French" (English)` on one line so the TTS button is added. Avoid unescaped `"` inside attribute-like contexts in hand-written HTML.
+
+### 4. Section boundaries (for parser)
+
+- Keep **#### Explanation** through to the next **###** (e.g. **### VOCABULARY**) as the grammar block; use `---` or `###` to separate sections so the parser doesn’t merge blocks.
+
+**Summary for AI agents:** When generating Week_*_*.md files, keep each `"French" (English)` on one line, avoid raw `<`/`>` and HTML in text, and use clear section headings so the app does not truncate or break the lesson content.
+
+---
 
 **Git Method:** Use SSH for all git operations.
 **Git Branch:** Use `master` (not `main`).
@@ -292,10 +322,21 @@ The monolithic `main.py` has been successfully refactored into modular routers:
 
 ### Next Task
 
-🎯 **MONTH 6 (B1.2) - Week 22 Prep**
+🎯 **MONTH 6 (B1.2) - Week 23 Prep**
 
-1. Continue curriculum generation with Week 22
+1. Continue curriculum generation with Week 23
 2. **DO NOT commit/push** until user explicitly requests it at end of session
+
+✅ **Week 22 (B1.2 - Days 106-110)** - Created (NOT YET COMMITTED)
+
+- Day 106: Exprimer la Cause (parce que, car, puisque, comme, grâce à, à cause de)
+- Day 107: Exprimer la Conséquence (donc, alors, c'est pourquoi, du coup, tellement...que)
+- Day 108: Exprimer l'Opposition (mais, cependant, pourtant, en revanche, tandis que)
+- Day 109: Exprimer la Concession (bien que + subjonctif, malgré, quand même, avoir beau)
+- Day 110: Week 22 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **550 words total**) 🎉
+- **CEFR:** B1.2 (Month 6 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_22_B1.2.md`
 
 ✅ **Week 21 (B1.2 - Days 101-105)** - Created (NOT YET COMMITTED) **MONTH 6 BEGINS!** 🎉
 
@@ -365,7 +406,7 @@ The monolithic `main.py` has been successfully refactored into modular routers:
 **Month 6 (Weeks 21-24) - B1.2:** 🔄 IN PROGRESS
 
 - ✅ Week 21: Passive Voice, Participe Présent, Gérondif
-- [ ] Week 22: TBD
+- ✅ Week 22: Cause, Consequence, Opposition, Concession
 - [ ] Week 23: TBD
 - [ ] Week 24: TBD + Month 6 Exam
 - **Vocabulary:** 100 words (Total: 600)

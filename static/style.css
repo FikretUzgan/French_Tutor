@@ -1160,7 +1160,16 @@ h2 {
 
 /* Interactive Lesson Flow Styles */
 .lesson-flow-modal {
-    max-height: 98vh;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#lesson-flow-content {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .lessonflow-header {
@@ -1168,6 +1177,7 @@ h2 {
     color: white;
     padding: 20px 24px;
     border-bottom: 2px solid #ddd;
+    flex-shrink: 0;
 }
 
 .lessonflow-header h3 {
@@ -1190,9 +1200,9 @@ h2 {
 
 .lesson-section-interactive {
     padding: 20px 40px;
-    min-height: 400px;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .lesson-section-interactive h3 {
@@ -1463,7 +1473,8 @@ h2 {
     gap: 12px;
     padding: 20px 24px;
     border-top: 1px solid #e0e0e0;
-    background: #f9f9f9;
+    background: white;
+    flex-shrink: 0;
 }
 
 .lessonflow-nav button {
