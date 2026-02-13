@@ -11,7 +11,7 @@ import random
 import re
 from typing import Dict, Optional, Any, Tuple
 from datetime import datetime, timezone
-import google.generativeai as genai
+import google.genai as genai
 from pathlib import Path
 import os
 
@@ -22,20 +22,21 @@ import db
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Configure Gemini API key
-_API_KEY_CONFIGURED = False
+# Configure Gemini API client
+_GENAI_CLIENT = None
 
-def _ensure_api_configured():
-    """Ensure Gemini API key is configured before making API calls."""
-    global _API_KEY_CONFIGURED
-    if not _API_KEY_CONFIGURED:
+def _get_genai_client():
+    """Get or create Gemini API client."""
+    global _GENAI_CLIENT
+    if _GENAI_CLIENT is None:
         api_key = os.getenv('GEMINI_API_KEY')
         if api_key:
-            genai.configure(api_key=api_key)
-            _API_KEY_CONFIGURED = True
-            logger.info("Gemini API key configured from GEMINI_API_KEY environment variable")
+            _GENAI_CLIENT = genai.Client(api_key=api_key)
+            logger.info("Gemini API client created from GEMINI_API_KEY environment variable")
         else:
             logger.warning("GEMINI_API_KEY environment variable not set")
+            raise ValueError("GEMINI_API_KEY environment variable not set")
+    return _GENAI_CLIENT
 
 
 class LessonGenerationError(Exception):
@@ -248,26 +249,25 @@ def _call_gemini_for_lesson(
     import time
     
     try:
-        # Ensure API is configured
-        _ensure_api_configured()
+        # Get API client
+        client = _get_genai_client()
         
         for attempt in range(max_retries + 1):
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            
             # Combine prompts
             full_prompt = f"{system_prompt}\n\n{lesson_prompt}"
             
             start_time = time.time()
             
-            # Make the API call
-            response = model.generate_content(
-                full_prompt,
-                generation_config={
-                    'temperature': temperature,
-                    'max_output_tokens': max_tokens,
-                    'top_p': 0.95,
-                    'top_k': 64,
-                }
+            # Make the API call with new SDK
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=full_prompt,
+                config=types.GenerateContentConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens,
+                    top_p=0.95,
+                    top_k=64,
+                )
             )
             
             duration = time.time() - start_time

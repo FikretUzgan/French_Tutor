@@ -6,6 +6,6 @@ soundfile==0.13.1
 numpy==2.4.2
 pydantic==2.12.5
 python-dotenv==1.0.1
-google-generativeai
+google-genai  # Official Google Generative AI SDK
 openai-whisper
 gTTS

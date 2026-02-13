@@ -9,9 +9,21 @@
 
 ---
 
+## PEDAGOGICAL DIRECTIVES (From User Feedback)
+
+### 1. Communication Over Complexity (The "No Grammatical Puzzles" Rule)
+
+- **Directive:** Prioritize high-frequency, natural communication tools over rare or clunky grammatical structures.
+- **Example:** In A2.2 Week 15, we prioritized **Abstract Y/EN** (*J'en ai besoin*, *J'y pense*) over **Double Pronouns** (*J'y en achète*).
+- **Reasoning:** Native speakers avoid "puzzle-like" grammar (e.g., "J'y en achète") in favor of clearer restructuring ("J'achète des pommes là-bas").
+- **Application:** When generating future weeks (especially B1/B2), if a grammatical structure is technically correct but rarely used, **SKIP IT** or mark it as "passive knowledge only" in favor of natural alternatives.
+
+---
+
 ## VOCABULARY SYSTEM CHANGES (From User Feedback)
 
-### New Requirements:
+### New Requirements
+
 1. ✅ **Context Example:** Every vocabulary word shown in example sentence
    - Format: `Le café` → "Je vais **au café** à 9h." (I go to the café at 9 AM)
 2. ✅ **5 words/day** (not 10) → 100 words/month
@@ -28,13 +40,15 @@
 
 ## PROGRAM REQUIREMENTS (From User Feedback)
 
-### Database Changes:
+### Database Changes
+
 - [ ] Create `learned_vocabulary` table
   - Fields: word_id, french_word, english_translation, cefr_level, day_introduced, word_type (noun/verb/adj/adv), example_sentence
 - [ ] Extend existing vocabulary practice to pull from `learned_vocabulary`
 - [ ] Track conjugation forms per verb (tenses learned to date)
 
-### Vocabulary Practice Feature Updates:
+### Vocabulary Practice Feature Updates
+
 - [ ] Bidirectional display (FR↔EN option toggling)
 - [ ] STT: Student listens to native speaker pronunciation
 - [ ] TTS: Student records & gets feedback
@@ -44,7 +58,8 @@
 - [ ] Multiple choice display (4 options)
 - [ ] Visual recognition mode (match word to image)
 
-### Application Integration:
+### Application Integration
+
 - [ ] `vocabulary_loader.py`: Load 5 words/day from curriculum (not 10)
 - [ ] `db_vocabulary.py`: Add `learned_vocabulary` table + functions
 - [ ] `api_helpers.py`: New endpoint `/api/vocabulary/conjugate` for verb conjugation mode
@@ -55,7 +70,9 @@
 ## MONTH-BY-MONTH BREAKDOWN (High-Level)
 
 ### MONTH 1: A1.1 - Foundation (Days 1-20)
+
 **Grammar Topics (One per day, 4 days/week + 1 review day):**
+
 - Week 1: être, avoir, -ER verbs, articles
 - Week 2: -IR/-RE verbs, gender/number, noun agreement
 - Week 3: Basic adjectives, adjective placement, questions
@@ -69,7 +86,9 @@
 ---
 
 ### MONTH 2: A1.2 - Past & Near Future (Days 21-40)
+
 **Grammar Topics:**
+
 - Week 1: Passé composé (avoir), past participles, irregular forms
 - Week 2: Passé composé (être), agreement rules, negation in PC
 - Week 3: Futur proche (aller + infinitive), imperatives, polite requests
@@ -83,7 +102,9 @@
 ---
 
 ### MONTH 3: A2.1 - Imperfect & Comparisons (Days 41-60)
+
 **Grammar Topics:**
+
 - Week 1: Imparfait (all regular verbs), common irregulars (être, avoir, faire)
 - Week 2: Passé composé vs. Imparfait (contrast), narrative building
 - Week 3: Comparatives, superlatives, equality expressions
@@ -98,7 +119,9 @@
 ---
 
 ### MONTH 4: A2.2 - Conditionals & Complex Pronouns (Days 61-80)
+
 **Grammar Topics:**
+
 - Week 1: Futur simple (regular + irregular), predictions vs. immediate future
 - Week 2: Conditionnel présent, polite requests, hypotheticals, si-clauses
 - Week 3: Pronouns Y & EN (location & quantity replacement)
@@ -112,7 +135,9 @@
 ---
 
 ### MONTH 5: B1.1 - Subjunctive Introduction & Perfect Tenses (Days 81-100)
+
 **Grammar Topics:**
+
 - Week 1: Passé simple (reading comprehension intro), present perfect (avoir+been doing)
 - Week 2: Subjonctif présent (formation + common uses: il faut que, vouloir que, croire que)
 - Week 3: Complex relative pronouns (dont, lequel, duquel), demonstrative pronouns (celui, celle)
@@ -126,7 +151,9 @@
 ---
 
 ### MONTH 6: B1.2 - Passive Voice & Complex Structures (Days 101-120)
+
 **Grammar Topics:**
+
 - Week 1: Passive voice (présent, passé composé, futur simple)
 - Week 2: Participle phrases, gerunds (en + participe), absolute clauses
 - Week 3: Advanced si-clauses, conditionals with past tenses
@@ -140,7 +167,9 @@
 ---
 
 ### MONTH 7: B2.1 - Stylistic Variation & Nuance (Days 121-140)
+
 **Grammar Topics:**
+
 - Week 1: Conditionnel passé (past hypothetical), mixed conditionals
 - Week 2: Subjunctive beyond basic uses, subjunctive after expressions of doubt
 - Week 3: Register shifts (formal/informal), stylistic pronouns (on vs. nous)
@@ -155,7 +184,9 @@
 ---
 
 ### MONTH 8: B2.2 - Advanced Fluency & Specialization (Days 141-160)
+
 **Grammar Topics:**
+
 - Week 1: Coordination & subordination mastery, complex sentence structure
 - Week 2: Metaphor, metonymy, stylistic devices in French literature
 - Week 3: Register variation in professional contexts, specialized vocabulary fields
@@ -170,7 +201,9 @@
 ---
 
 ### MONTHS 9-12: Advanced Consolidation & Specialization (Days 161-240)
+
 **Pattern:** User selects 1 specialization path:
+
 - **Path A:** Business French (commerce, negotiation, professional communication)
 - **Path B:** Literary French (classic literature, poetry analysis)
 - **Path C:** Cultural French (cinema, history, philosophy, social studies)
@@ -182,9 +215,10 @@ Each path deepens grammar already learned, focusing on specialization vocabulary
 
 ## DAILY LESSON STRUCTURE (Revised Format)
 
-### FORMAT (Same as Week 15, with vocabulary updates):
+### FORMAT (Same as Week 15, with vocabulary updates)
 
 **Day Structure (30 mins total):**
+
 1. **GRAMMAR (10 min):** New topic or reinforcement
 2. **VOCABULARY (5 min):** 5 words with example sentences
 3. **EXAMPLES (Curriculum):** 50 pre-written sentences (10 shown as samples)
@@ -253,6 +287,7 @@ Each path deepens grammar already learned, focusing on specialization vocabulary
 ## VOCABULARY PRACTICE APP FEATURE (Details)
 
 ### Mode 1: Bidirectional Translation
+
 ```
 Prompt (French→English randomized):
 "Translate to English: Café"
@@ -262,6 +297,7 @@ Answer: "The café" or "café" or "coffee shop" → ✅ Accept all
 ```
 
 ### Mode 2: Bidirectional with STT/TTS
+
 ```
 Prompt: "Listen to pronunciation and repeat:"
 [Audio plays] "Café"
@@ -270,6 +306,7 @@ Feedback: "Good! Your pronunciation matches."
 ```
 
 ### Mode 3: Verb Conjugation (NEW)
+
 ```
 Day 21+ (Passé Composé introduced):
 Verb: "Aller"
@@ -287,6 +324,7 @@ Correction: "Actually, Futur Simple: 'Nous irons'"
 ```
 
 ### Mode 4: Multiple Choice Context
+
 ```
 Prompt: "Choose correct: Je ____ au café."
 Options: a) suis b) vais c) ai d) veux
@@ -295,6 +333,7 @@ Feedback: "Excellent! Aller (to go) is the correct verb here."
 ```
 
 ### Mode 5: Visual Recognition (If image available)
+
 ```
 Display: Image of café
 Prompt: "What is this place?"
@@ -306,19 +345,22 @@ Answer: b) Café
 
 ## ASSESSMENT FRAMEWORK (Revised for Monthly Format)
 
-### Daily Assessment:
+### Daily Assessment
+
 - **5-8 random questions** from 50-question bank
 - Mix of types: conjugation, fill_blank, listening, multiple_choice, translation
 - Pass threshold: 70%
 - Time: 5 minutes
 
-### Weekly Assessment (Days 5, 10, 15, 20):
+### Weekly Assessment (Days 5, 10, 15, 20)
+
 - **20-30 questions** covering all content from that week
 - All 4 skills: La compréhension orale, compréhension écrite, production orale, production écrite
 - Pass threshold: 70%
 - Time: 20-30 minutes
 
-### Monthly Exam (Day 20 of each month):
+### Monthly Exam (Day 20 of each month)
+
 - **Comprehensive DELF-aligned mock exam**
 - Component 1 (Listening): 25-30 min
 - Component 2 (Reading): 30-45 min
@@ -329,7 +371,8 @@ Answer: b) Café
 - Pass recommendation: Move to next month
 - Fail: Remedial option (optional retake)
 
-### Vocabulary Tracking:
+### Vocabulary Tracking
+
 - Each learned word marked with introduction day
 - Spaced repetition: Reappear every 7, 14, 30 days
 - Vocabulary mastery % calculated per month
@@ -349,6 +392,7 @@ Answer: b) Café
 | 4 | Communication | Basic questions, negation (ne...pas), imperatives, greetings |
 
 **Cumulative vocabulary by week end:**
+
 - Week 1: 25 words (greetings, personal pronouns, identity)
 - Week 2: 50 words (+ daily activities, family)
 - Week 3: 75 words (+ colors, adjectives, objects)
@@ -398,6 +442,7 @@ Answer: b) Café
 ### MONTHS 5-8: B1.1 → B2.2 (Days 81-160)
 
 **Progressive complexity:**
+
 - Month 5: Subjunctive intro, past perfect, advanced pronouns
 - Month 6: Passive voice, participle clauses, literary structures
 - Month 7: Stylistic variation, register shifts, argumentative language
@@ -410,6 +455,7 @@ Answer: b) Café
 ### MONTHS 9-12: Specialization (Days 161-240)
 
 **User selects 1 path:**
+
 - **Business French:** Professional vocabulary, negotiation, formal correspondence
 - **Literary French:** Classic texts, poetry, literary analysis
 - **Cultural French:** Cinema, history, philosophy, contemporary France
@@ -444,7 +490,8 @@ NEW_CURRICULUM_REDESIGNED/
 
 ## NEXT SESSION PLAN
 
-### Deliverable per Session:
+### Deliverable per Session
+
 - **Session 1 (Current):** Overall plan (DONE ✅)
 - **Session 2:** Month 1 complete (Days 1-20, 100 words, all details, 4 weeks)
 - **Session 3:** Month 2 complete (Days 21-40)
@@ -461,6 +508,7 @@ NEW_CURRICULUM_REDESIGNED/
 ## DATABASE STRUCTURE (Program Requirements)
 
 ### New Table: `learned_vocabulary`
+
 ```sql
 CREATE TABLE learned_vocabulary (
   word_id INT PRIMARY KEY,
@@ -481,7 +529,8 @@ CREATE TABLE learned_vocabulary (
 );
 ```
 
-### Verb Conjugation Tracking:
+### Verb Conjugation Tracking
+
 ```sql
 CREATE TABLE verb_conjugations (
   conjugation_id INT PRIMARY KEY,
@@ -518,4 +567,3 @@ CREATE TABLE verb_conjugations (
 | Month-based not week-based | Plan reorganized by 12 months × 20 days | ✅ Implemented |
 | Monthly delivery format | 1 month per session (Days 1-20, 4 weeks) | ✅ Structured |
 | Program requirements doc | All feature requests documented | ✅ Captured |
-

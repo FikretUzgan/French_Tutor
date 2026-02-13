@@ -1,4 +1,5 @@
 # Next Session To-Do List
+
 **Last Updated:** 2026-02-12  
 **Current Status:** Week 13 Curriculum Created ✅ | Month 4 Started (A2.2) ✅ | New Curriculum System Live ✅
 
@@ -7,6 +8,7 @@
 ## 🔄 WORKFLOW FOR EACH SESSION
 
 **IMPORTANT:** At the start of EVERY new session:
+
 1. **Read Phase_2_Detailed_12Month_Plan.md FIRST** (general overview - only once per session)
 2. Then create the requested week curriculum
 3. **DO NOT commit/push** until user explicitly requests it at end of session
@@ -21,14 +23,15 @@
 ## 📋 PENDING ISSUES (Session 6 - 2026-02-12)
 
 ### 🔴 HIGH PRIORITY - UI/CSS
+
 - [ ] **Modal width not updating in browser** (Cache/CSS conflict issue)
   - **Problem:** ui-enhancements.css override style.css (max-width: 600px vs 1600px)
   - **Status:** CSS files updated but browser still shows old width (600px modal)
-  - **Solution needed:** 
+  - **Solution needed:**
     - Possible: Combine CSS files or add !important to force override
     - Or: Restart server to force CSS reload for all browsers
     - Or: Add CSS version hash to force cache bust (`style.css?v=2`)
-  - **Files affected:** 
+  - **Files affected:**
     - `static/style.css` (updated to 1600px)
     - `static/ui-enhancements.css` (updated to 1600px)
     - `static/app.js` (TTS buttons added to examples)
@@ -38,153 +41,183 @@
 
 ## 📚 CURRICULUM GENERATION PROGRESS
 
-### Completed:
+### Completed
+
 ✅ **Week 1 (A1.1 - Days 1-5)** - Created, committed, and pushed
-  - Day 1: Être (basic)
-  - Day 2: Être (plural)
-  - Day 3: Avoir
-  - Day 4: Regular -ER verbs
-  - Day 5: Articles & gender
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_1_A1.1.md`
+
+- Day 1: Être (basic)
+- Day 2: Être (plural)
+- Day 3: Avoir
+- Day 4: Regular -ER verbs
+- Day 5: Articles & gender
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_1_A1.1.md`
 
 ✅ **Week 2 (A1.1 - Days 6-10)** - Created, committed, and pushed
-  - Day 6: Regular -IR verbs (finir, choisir)
-  - Day 7: Regular -RE verbs (vendre, attendre)
-  - Day 8: Negation (ne...pas)
-  - Day 9: Basic questions (est-ce que, inversion)
-  - Day 10: Numbers 1-20
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_2_A1.1.md`
+
+- Day 6: Regular -IR verbs (finir, choisir)
+- Day 7: Regular -RE verbs (vendre, attendre)
+- Day 8: Negation (ne...pas)
+- Day 9: Basic questions (est-ce que, inversion)
+- Day 10: Numbers 1-20
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_2_A1.1.md`
 
 ✅ **Week 3 (A1.1 - Days 11-15)** - Created (NOT YET COMMITTED)
-  - Day 11: Gender in French (Masculine/Feminine)
-  - Day 12: Number (Singular/Plural)
-  - Day 13: Article Agreement (Gender + Number)
-  - Day 14: Adjective Placement & Agreement
-  - Day 15: Week 3 Review & Assessment
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_3_A1.1.md`
+
+- Day 11: Gender in French (Masculine/Feminine)
+- Day 12: Number (Singular/Plural)
+- Day 13: Article Agreement (Gender + Number)
+- Day 14: Adjective Placement & Agreement
+- Day 15: Week 3 Review & Assessment
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_3_A1.1.md`
 
 ✅ **Week 4 (A1.1 - Days 16-20)** - Created (NOT YET COMMITTED)
-  - Day 16: Question Formation (intonation, est-ce que, inversion)
-  - Day 17: Complex Negation (ne...plus, jamais, rien, personne)
-  - Day 18: Imperatives & Commands
-  - Day 19: Time Expressions & Daily Routines
-  - Day 20: Month 1 Comprehensive Review & Exam
-  - **MONTH 1 COMPLETE!** ✅ 100 vocabulary words achieved
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_4_A1.1.md`
+
+- Day 16: Question Formation (intonation, est-ce que, inversion)
+- Day 17: Complex Negation (ne...plus, jamais, rien, personne)
+- Day 18: Imperatives & Commands
+- Day 19: Time Expressions & Daily Routines
+- Day 20: Month 1 Comprehensive Review & Exam
+- **MONTH 1 COMPLETE!** ✅ 100 vocabulary words achieved
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_4_A1.1.md`
 
 ✅ **Week 5 (A1.2 - Days 21-25)** - Created (NOT YET COMMITTED) **MONTH 2 BEGINS!**
-  - Day 21: Passé Composé with Avoir (introduction)
-  - Day 22: Regular Past Participles (extensive practice)
-  - Day 23: Irregular Past Participles (avoir, être, faire, prendre, voir, boire)
-  - Day 24: More Irregular Past Participles (dire, écrire, lire, mettre, pouvoir, vouloir, savoir, devoir)
-  - Day 25: Week 5 Review & Assessment
-  - **NEW:** 25 vocabulary words (cumulative: 125 words total)
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_5_A1.2.md`
+
+- Day 21: Passé Composé with Avoir (introduction)
+- Day 22: Regular Past Participles (extensive practice)
+- Day 23: Irregular Past Participles (avoir, être, faire, prendre, voir, boire)
+- Day 24: More Irregular Past Participles (dire, écrire, lire, mettre, pouvoir, vouloir, savoir, devoir)
+- Day 25: Week 5 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: 125 words total)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_5_A1.2.md`
 
 ✅ **Week 6 (A1.2 - Days 26-30)** - Created (NOT YET COMMITTED)
-  - Day 26: Passé Composé with ÊTRE (introduction, movement verbs)
-  - Day 27: Complete DR MRS VANDERTRAMP list (17 verbs)
-  - Day 28: Agreement rules with ÊTRE (4 forms: -é, -ée, -és, -ées)
-  - Day 29: Reflexive verbs in Passé Composé (all use ÊTRE)
-  - Day 30: Week 6 Review & Mixed Practice (AVOIR vs. ÊTRE)
-  - **NEW:** 25 vocabulary words (cumulative: 150 words total) 🎉
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_6_A1.2.md`
+
+- Day 26: Passé Composé with ÊTRE (introduction, movement verbs)
+- Day 27: Complete DR MRS VANDERTRAMP list (17 verbs)
+- Day 28: Agreement rules with ÊTRE (4 forms: -é, -ée, -és, -ées)
+- Day 29: Reflexive verbs in Passé Composé (all use ÊTRE)
+- Day 30: Week 6 Review & Mixed Practice (AVOIR vs. ÊTRE)
+- **NEW:** 25 vocabulary words (cumulative: 150 words total) 🎉
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_6_A1.2.md`
 
 ✅ **Week 7 (A1.2 - Days 31-35)** - Created (NOT YET COMMITTED)
-  - Day 31: Futur Proche (aller + infinitive) - Introduction
-  - Day 32: Futur Proche practice (plans, intentions, predictions)
-  - Day 33: Time expressions for future (demain, la semaine prochaine, bientôt, dans X temps)
-  - Day 34: Futur Proche vs. Present (near future vs. habitual actions)
-  - Day 35: Week 7 Review & Assessment
-  - **NEW:** 25 vocabulary words (cumulative: 175 words total) 🎉
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_7_A1.2.md`
+
+- Day 31: Futur Proche (aller + infinitive) - Introduction
+- Day 32: Futur Proche practice (plans, intentions, predictions)
+- Day 33: Time expressions for future (demain, la semaine prochaine, bientôt, dans X temps)
+- Day 34: Futur Proche vs. Present (near future vs. habitual actions)
+- Day 35: Week 7 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: 175 words total) 🎉
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_7_A1.2.md`
 
 ✅ **Week 8 (A1.2 - Days 36-40)** - Created (NOT YET COMMITTED) **MONTH 2 COMPLETE!** 🎉
-  - Day 36: Possessive Adjectives (mon, ma, mes, ton, ta, tes, son, sa, ses, notre, votre, leur)
-  - Day 37: Demonstrative Adjectives (ce, cet, cette, ces) + -ci/-là
-  - Day 38: Complex Negation Review (ne...plus, ne...jamais, ne...rien, ne...personne)
-  - Day 39: Month 2 Grammar Review (All A1.2 grammar - PC, Futur Proche, Possessives, Demonstratives, Negation)
-  - Day 40: Month 2 Comprehensive Exam & Assessment (A1.2 Complete!)
-  - **NEW:** 25 vocabulary words (cumulative: **200 words total - MONTH 2 COMPLETE!**) 🎉🎊
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_8_A1.2.md`
+
+- Day 36: Possessive Adjectives (mon, ma, mes, ton, ta, tes, son, sa, ses, notre, votre, leur)
+- Day 37: Demonstrative Adjectives (ce, cet, cette, ces) + -ci/-là
+- Day 38: Complex Negation Review (ne...plus, ne...jamais, ne...rien, ne...personne)
+- Day 39: Month 2 Grammar Review (All A1.2 grammar - PC, Futur Proche, Possessives, Demonstratives, Negation)
+- Day 40: Month 2 Comprehensive Exam & Assessment (A1.2 Complete!)
+- **NEW:** 25 vocabulary words (cumulative: **200 words total - MONTH 2 COMPLETE!**) 🎉🎊
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_8_A1.2.md`
 
 ✅ **Week 9 (A2.1 - Days 41-45)** - Created (NOT YET COMMITTED) **MONTH 3 BEGINS!** 🎉
-  - Day 41: Imparfait Formation (Regular -ER, -IR, -RE verbs)
-  - Day 42: Imparfait Irregular Verbs (être, avoir, faire + common irregulars)
-  - Day 43: Imparfait Usage (Descriptions, habits, ongoing actions)
-  - Day 44: Imparfait Practice (Weather, age, time, il y avait)
-  - Day 45: Week 9 Review & Assessment
-  - **NEW:** 25 vocabulary words (cumulative: **225 words total**) 🎉
-  - **CEFR:** A2.1 level begins
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_9_A2.1.md`
+
+- Day 41: Imparfait Formation (Regular -ER, -IR, -RE verbs)
+- Day 42: Imparfait Irregular Verbs (être, avoir, faire + common irregulars)
+- Day 43: Imparfait Usage (Descriptions, habits, ongoing actions)
+- Day 44: Imparfait Practice (Weather, age, time, il y avait)
+- Day 45: Week 9 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **225 words total**) 🎉
+- **CEFR:** A2.1 level begins
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_9_A2.1.md`
 
 ✅ **Week 10 (A2.1 - Days 46-50)** - Created (NOT YET COMMITTED)
-  - Day 46: PC vs. Imparfait (Introduction - When to use each tense)
-  - Day 47: PC vs. Imparfait (Completed actions vs. ongoing/background)
-  - Day 48: PC vs. Imparfait (Interruptions - one action interrupts another)
-  - Day 49: PC vs. Imparfait (Narrative building - telling complete stories)
-  - Day 50: Week 10 Review & Assessment
-  - **NEW:** 25 vocabulary words (cumulative: **250 words total**) 🎉
-  - **CEFR:** A2.1 (Month 3 continues)
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_10_A2.1.md`
+
+- Day 46: PC vs. Imparfait (Introduction - When to use each tense)
+- Day 47: PC vs. Imparfait (Completed actions vs. ongoing/background)
+- Day 48: PC vs. Imparfait (Interruptions - one action interrupts another)
+- Day 49: PC vs. Imparfait (Narrative building - telling complete stories)
+- Day 50: Week 10 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **250 words total**) 🎉
+- **CEFR:** A2.1 (Month 3 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_10_A2.1.md`
 
 ✅ **Week 11 (A2.1 - Days 51-55)** - Created (NOT YET COMMITTED)
-  - Day 51: Comparatives (plus/moins/aussi + adjectives)
-  - Day 52: Comparatives (plus/moins/autant + nouns + verbs)
-  - Day 53: Superlatives (le/la/les plus, le/la/les moins)
-  - Day 54: Equality & Irregular Comparatives (meilleur/pire/mieux)
-  - Day 55: Week 11 Review & Assessment
-  - **NEW:** 25 vocabulary words (cumulative: **275 words total**) 🎉
-  - **CEFR:** A2.1 (Month 3 continues)
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_11_A2.1.md`
+
+- Day 51: Comparatives (plus/moins/aussi + adjectives)
+- Day 52: Comparatives (plus/moins/autant + nouns + verbs)
+- Day 53: Superlatives (le/la/les plus, le/la/les moins)
+- Day 54: Equality & Irregular Comparatives (meilleur/pire/mieux)
+- Day 55: Week 11 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **275 words total**) 🎉
+- **CEFR:** A2.1 (Month 3 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_11_A2.1.md`
 
 ✅ **Week 12 (A2.1 - Days 56-60)** - Created (NOT YET COMMITTED)
-  - Day 56: Relative Pronouns (qui/que) - basics
-  - Day 57: Relative Pronoun "où" - place/time
-  - Day 58: Relative Pronouns review + complex sentences
-  - Day 59: Month 3 Comprehensive Review (Weeks 9-12)
-  - Day 60: Month 3 Exam & Assessment (A2.1 complete)
-  - **NEW:** 25 vocabulary words (cumulative: **300 words total**) 🎉
-  - **CEFR:** A2.1 (Month 3 ends)
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_12_A2.1.md`
+
+- Day 56: Relative Pronouns (qui/que) - basics
+- Day 57: Relative Pronoun "où" - place/time
+- Day 58: Relative Pronouns review + complex sentences
+- Day 59: Month 3 Comprehensive Review (Weeks 9-12)
+- Day 60: Month 3 Exam & Assessment (A2.1 complete)
+- **NEW:** 25 vocabulary words (cumulative: **300 words total**) 🎉
+- **CEFR:** A2.1 (Month 3 ends)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_12_A2.1.md`
 
 ✅ **Week 13 (A2.2 - Days 61-65)** - Created (NOT YET COMMITTED) **MONTH 4 BEGINS!** 🎉
-  - Day 61: Futur simple formation (regular verbs)
-  - Day 62: Futur simple irregular verbs
-  - Day 63: Futur simple usage (predictions, plans)
-  - Day 64: Futur simple practice (time markers, contrast with futur proche)
-  - Day 65: Week 13 Review & Assessment
-  - **NEW:** 25 vocabulary words (cumulative: **325 words total**) 🎉
-  - **CEFR:** A2.2 (Month 4 begins)
-  - **Speaking Tier:** 2→3 transition (guided to freer conversation)
-  - Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_13_A2.2.md`
 
-### Next Task:
+- Day 61: Futur simple formation (regular verbs)
+- Day 62: Futur simple irregular verbs
+- Day 63: Futur simple usage (predictions, plans)
+- Day 64: Futur simple practice (time markers, contrast with futur proche)
+- Day 65: Week 13 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **325 words total**) 🎉
+- **CEFR:** A2.2 (Month 4 begins)
+- **Speaking Tier:** 2→3 transition (guided to freer conversation)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_13_A2.2.md`
+
+✅ **Week 14 (A2.2 - Days 66-70)** - Created (NOT YET COMMITTED)
+
+- Day 66: Conditionnel présent formation
+- Day 67: Conditionnel présent usage (polite requests)
+- Day 68: Conditionnel présent (hypotheticals)
+- Day 69: Si-clauses (present + futur / imparfait + conditionnel)
+- Day 70: Week 14 Review & Assessment
+- **NEW:** 25 vocabulary words (cumulative: **350 words total**) 🎉
+- **CEFR:** A2.2 (Month 4 continues)
+- Location: `Research/NEW_CURRICULUM_REDESIGNED/Week_14_A2.2.md`
+
+### Next Task
+
 🎯 **CREATE WEEK 14 CURRICULUM (A2.2 - Conditionnel Présent)**
 
 **User command:** "Bir sonraki haftaya başla" OR "week 14"
 
 When user says this, automatically:
+
 1. **FIRST:** Read `Research/Phase_2_Detailed_12Month_Plan.md` for general overview (ONCE per session only)
 2. Create Week 14 (A2.2 - Days 66-70) curriculum file
 3. Follow the same detailed format as Weeks 1-13
 4. Grammar topics for Week 14:
-  - Day 66: Conditionnel présent formation
-  - Day 67: Conditionnel présent usage (polite requests)
-  - Day 68: Conditionnel présent (hypotheticals)
-  - Day 69: Si-clauses (present + futur / imparfait + conditionnel)
-  - Day 70: Week 14 Review & Assessment
-5. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 350 words)
-6. **CEFR Level:** A2.2 (Month 4 continues)
-7. **Speaking Tier:** 3 (freer conversation with minimal scaffolding)
-8. **WAIT** for user to request commit/push at end of session
-9. Update NEXT_SESSION.md for Week 15
+
+- Day 66: Conditionnel présent formation
+- Day 67: Conditionnel présent usage (polite requests)
+- Day 68: Conditionnel présent (hypotheticals)
+- Day 69: Si-clauses (present + futur / imparfait + conditionnel)
+- Day 70: Week 14 Review & Assessment
+
+1. Vocabulary: 5 words/day × 5 days = 25 words (cumulative: 350 words)
+2. **CEFR Level:** A2.2 (Month 4 continues)
+3. **Speaking Tier:** 3 (freer conversation with minimal scaffolding)
+4. **WAIT** for user to request commit/push at end of session
+5. Update NEXT_SESSION.md for Week 15
 
 ---
 
 ## 🗓️ 52-WEEK CURRICULUM PLAN
 
 **Structure:**
+
 - 52 weeks total (1 year)
 - Each week = 5 days of lessons
 - Each week file = detailed format (like Phase_1_Example_Week_15.md)
@@ -192,6 +225,7 @@ When user says this, automatically:
 - Speaking Tier progression: 1 → 2 → 3
 
 **Month 1 (Weeks 1-4) - A1.1:** ✅ COMPLETE
+
 - ✅ Week 1: être, avoir, -ER verbs, articles
 - ✅ Week 2: -IR/-RE verbs, negation, questions, numbers
 - ✅ Week 3: Adjectives, agreement, possessives, colors
@@ -199,6 +233,7 @@ When user says this, automatically:
 - **Vocabulary:** 100 words
 
 **Month 2 (Weeks 5-8) - A1.2:** ✅ COMPLETE
+
 - ✅ Week 5: Passé composé (avoir)
 - ✅ Week 6: Passé composé (être)
 - ✅ Week 7: Futur proche
@@ -206,6 +241,7 @@ When user says this, automatically:
 - **Vocabulary:** 100 words (Total: 200)
 
 **Month 3 (Weeks 9-12) - A2.1:** ✅ COMPLETE
+
 - ✅ Week 9: Imparfait (introduction, irregular verbs, usage)
 - ✅ Week 10: Passé Composé vs. Imparfait
 - ✅ Week 11: Comparatives & Superlatives
@@ -213,17 +249,19 @@ When user says this, automatically:
 - **Vocabulary:** 100 words (Total: 300) ✅
 
 **Month 4 (Weeks 13-16) - A2.2:** 🔄 IN PROGRESS
+
 - ✅ Week 13: Futur simple (formation, irregular verbs, usage, vs. futur proche)
-- ⏳ Week 14: Conditionnel présent (formation, polite requests, hypotheticals, si-clauses)
-- ⏳ Week 15: Pronouns Y & EN (location & quantity replacement)
-- ⏳ Week 16: Reflexive verbs, indirect speech + Month 4 Exam
-- **Vocabulary:** 100 words (Total: 400)
+- ✅ Week 14: Conditionnel présent (formation, polite requests, hypotheticals, si-clauses)
+- ✅ Week 15: Pronouns Y & EN (location & quantity replacement)
+- ✅ Week 16: Reflexive verbs, indirect speech + Month 4 Exam
+- **Vocabulary:** 100 words (Total: 400) **MONTH 4 COMPLETE!** 🎉
 
 ---
 
 ## 🎨 TEACHING STYLE PREFERENCES (User Specified)
 
 ### ✅ FAVOR: Babbel Style
+
 - **Scene/dialogue-first approach:** Start with realistic conversations, then extract grammar
 - **Detailed explicit grammar:** Use 5-paragraph teacher format with tables, examples
 - **Cultural context notes:** Include "Cultural Note" sections explaining French customs/usage
@@ -233,6 +271,7 @@ When user says this, automatically:
 - **Practical scenarios:** Real-world contexts (restaurant, travel, work, etc.)
 
 ### ✅ ALSO LIKE: Busuu Elements
+
 - **Visual aids:** Use tables, color-coded conjugations, infographics
 - **Context-based explanations:** "You'll use this when ordering at a café"
 - **Structured vocabulary:** Images/audio presentation before grammar
@@ -240,6 +279,7 @@ When user says this, automatically:
 - **Social/speaking practice:** Community-style peer review concepts
 
 ### ❌ AVOID: Duolingo Style
+
 - **No micro-lessons:** Keep 30-min structured format (not 2-5 min quick games)
 - **No heavy gamification:** Avoid streaks, XP points, leagues, competition elements
 - **No implicit learning:** Always provide explicit grammar rules upfront
@@ -247,6 +287,7 @@ When user says this, automatically:
 - **No image-matching games:** Focus on practical conversation over matching exercises
 
 ### Applied to Week 1 ✅
+
 - ✅ Explicit 5-paragraph grammar explanations (Babbel style)
 - ✅ Cultural notes included each day
 - ✅ Real-world dialogue examples (Scene-based)
@@ -254,7 +295,8 @@ When user says this, automatically:
 - ✅ 30-min structured lessons with clear sections
 - ✅ Practical scenarios (meeting people, introductions, etc.)
 
-### For Future Weeks:
+### For Future Weeks
+
 - Continue Babbel/Busuu structured approach
 - Emphasize dialogue-first scenarios
 - Include more cultural context specific to each grammar topic
@@ -274,7 +316,8 @@ When user says this, automatically:
 ### **Phase 2B: NEW CURRICULUM SYSTEM Integration** (Current Sprint) 🔴
 
 #### CRITICAL - Curriculum System Refactor
-0. **NEW_CURRICULUM_REDESIGNED Integration** (quiz_parser.py + curriculum_loader.py)
+
+1. **NEW_CURRICULUM_REDESIGNED Integration** (quiz_parser.py + curriculum_loader.py)
    - [ ] Update curriculum_loader.py to parse NEW_CURRICULUM_REDESIGNED/Week_X_A1.X.md format
    - [ ] Parse DAY sections with metadata (CEFR, Grammar Topic, Content Identifiers, Speaking Tier)
    - [ ] Extract 5-paragraph grammar explanations (pre-written, no AI generation needed)
@@ -285,6 +328,7 @@ When user says this, automatically:
    - Function: `parse_quiz_examples(week, day) → List[ExampleQuestion]` (50 total, select 8-10 randomly)
 
 #### HIGH PRIORITY - Core Functionality
+
 1. **Quiz Question Parser** (quiz_parser.py)
    - [ ] Parse 50 pre-written quiz questions per day from curriculum markdown files
    - [ ] Extract question metadata: type, answer key, content_identifier
@@ -312,21 +356,23 @@ When user says this, automatically:
    - [ ] Validate response format (JSON with scores + feedback)
 
 #### MEDIUM PRIORITY - Quality & Performance
-5. **Fix Gemini JSON Parsing Issues** (~60% fallback rate)
+
+1. **Fix Gemini JSON Parsing Issues** (~60% fallback rate)
    - [ ] Log raw Gemini responses to identify malformed fields
    - [ ] Simplify vocabulary section (top 10 words instead of all 21)
    - [ ] Implement JSON repair logic for common formatting errors
    - [ ] Add structured prompting hints for valid JSON escaping
    - Goal: Reduce fallback rate to <10%
 
-6. **Prompt Optimization**
+2. **Prompt Optimization**
    - [ ] Reduce token usage (simplify curriculum formatting in prompts)
    - [ ] Add JSON schema validation before passing to users
    - [ ] Test prompt variations with different token budgets
    - [ ] Profile which sections are most token-hungry
 
 #### LOW PRIORITY - Documentation
-7. **Testing & Validation**
+
+1. **Testing & Validation**
    - [ ] Document grammar explanation quality expectations
    - [ ] Test generated lessons across all 52 weeks for consistency
    - [ ] Create test suite for fallback lesson generation
@@ -361,6 +407,7 @@ When user says this, automatically:
 ### **Backlog: Future Enhancements** (Post Phase 2) 🟢
 
 #### Interactive Lesson Features
+
 - [ ] "More Explanation" and "More Examples" buttons in grammar section
   - Generate ADDITIONAL explanation on demand (supplements fixed content)
   - Create `POST /api/lessons/{lesson_id}/expand-grammar` endpoint
@@ -371,6 +418,7 @@ When user says this, automatically:
   - Reliable fallback when AI output insufficient
 
 #### Quiz & Speaking Improvements
+
 - [ ] Quiz question bank pooling (avoid immediate repeats)
   - Store quiz questions separately in DB
   - Track question usage per user
@@ -382,11 +430,12 @@ When user says this, automatically:
   - Ensure fresh conversation starters
 
 #### Technical Debt
+
 - [x] **COMPLETED & VERIFIED (Session 6 - 2026-02-12)**: Migrated from deprecated `google.generativeai` to `google-genai`
   - ✅ All files updated (lesson_generator.py, main.py, api_helpers.py)
   - ✅ Old SDK removed from requirements.txt
   - ✅ Tested and confirmed working
-  - See: https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  - See: <https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md>
   
 - [ ] Database version control strategy
   - Decide: .gitignore, schema-only commits, or migrations (alembic)
@@ -399,7 +448,8 @@ When user says this, automatically:
 
 ## ⚠️ Known Issues & Status (Updated 2026-02-12)
 
-### ✅ RESOLVEDSee: https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md (Session 4 - 2026-02-09)
+### ✅ RESOLVEDSee: <https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md> (Session 4 - 2026-02-09)
+
 1. **Quiz scoring shows 0/5 even when answers are correct**
    - Fixed via multi-part normalization, answer extraction, fuzzy matching
 
@@ -417,21 +467,22 @@ When user says this, automatically:
    - Fixed: Validates base verb included in parentheses format
 
 ### 🔄 ACTIVE ISSUES
-6. **Gemini returning invalid/malformed JSON (~60% fallback rate)**
+
+1. **Gemini returning invalid/malformed JSON (~60% fallback rate)**
    - Root cause: Prompt exceeds effective context window
    - Workaround: Improved fallback provides quality explanations
    - Solution: See Phase 2B Item #5 (Simplify vocab section + JSON repair)
 
-7. **Quiz question parsing not yet implemented**
+2. **Quiz question parsing not yet implemented**
    - Status: Planned for Phase 2B
    - Current: No quiz questions loaded from curriculum files
    - Target: Parse 50 questions/day from markdown files
 
-8. **Content identifier distribution not tracked**
+3. **Content identifier distribution not tracked**
    - Status: Database schema update pending (Phase 2B)
    - Impact: Cannot analyze exercise type variety or effectiveness
 
-9. **Speaking tier evaluation prompts need refinement**
+4. **Speaking tier evaluation prompts need refinement**
    - Status: Planned for Phase 2B
    - Current: AI evaluation exists but not tier-specific
    - Target: 3 distinct scoring rubrics (Tier 1/2/3)
@@ -441,16 +492,19 @@ When user says this, automatically:
 ## 📊 Current Development Phase: Phase 2A → 2B Transition
 
 ### ✅ Phase 2A: Fixed Curriculum Loading (COMPLETE)
+
 - curriculum_loader.py operational
 - Week/day selector UI functional
 - Month 1 (Weeks 1-4) curriculum files complete
 - Grammar/vocabulary/examples display working
 
 ### 🔄 Phase 2B: Quiz Display & AI Evaluation (IN PROGRESS - Weeks 7-9)
+
 - See "Program Implementation Tasks" section above for detailed sprint plan
 - Current focus: Quiz parser, content identifiers, AI evaluation prompts
 
 ### 🕒 Phase 2C: Homework & Monthly Exams (UPCOMING - Weeks 10-12)
+
 - Homework blocking system
 - DELF-aligned monthly comprehensive exams
 - Weakness tracking by content type
@@ -469,9 +523,11 @@ When user says this, automatically:
 ## 📝 Session Notes
 
 ### Session 5 (2026-02-12) - Part 1
+
 **Date:** 2026-02-12  
 **Focus:** Review Implementation Plan and SRS, consolidate program to-do list  
 **Completed:**
+
 - Read full Implementation_Plan.md (550 lines) - Phase 2A complete, Phase 2B in progress
 - Read French_Tutor_SRS.md (Software Requirements Specification) - Fixed curriculum + AI evaluation approach
 - Updated NEXT_SESSION.md with consolidated, prioritized program tasks
@@ -479,16 +535,19 @@ When user says this, automatically:
 - Clarified current development phase: Phase 2A → 2B transition
 
 **Key Findings:**
+
 - Phase 2B critical path: Quiz parser, content identifiers, AI evaluation prompts, DB schema updates
 - Phase 2C upcoming: Homework blocking, monthly exams (DELF-aligned), weakness tracking
 - Active issue: Gemini JSON parsing ~60% fallback rate (needs simplification + JSON repair)
 - Architecture clarity: Fixed curriculum files (no AI content generation) + AI evaluation only
 
 ### Session 5 (2026-02-12) - Part 2: NEW CURRICULUM SYSTEM Implementation ✅
+
 **Date:** 2026-02-12  
 **Focus:** Implement new curriculum system using Research/NEW_CURRICULUM_REDESIGNED/ format
 
 **Completed:**
+
 - ✅ **curriculum_loader.py** - Added functions for redesigned curriculum:
   - `load_redesigned_curriculum_day(week, day)` - Parse NEW_CURRICULUM_REDESIGNED format
   - `_parse_day_metadata()` - Extract CEFR level, grammar topic, content identifiers, speaking tier
@@ -524,6 +583,7 @@ When user says this, automatically:
 - ✅ **TEST_NEW_CURRICULUM.md** - Created comprehensive test guide
 
 **System Architecture (NEW):**
+
 ```
 User clicks "Load Lesson"
     ↓
@@ -544,6 +604,7 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 ```
 
 **Key Benefits:**
+
 1. **No AI for content** → Grammar explanations are FIXED (pre-written)
 2. **Content identifiers** → Every question tagged: [listening], [conjugation], etc.
 3. **Diversity guaranteed** → 50 questions/day, show 8-10 randomly selected
@@ -551,12 +612,14 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 5. **Reliable quality** → Hand-written grammar explanations (5-paragraph format)
 
 **Testing Status:**
+
 - Ready to test: Weeks 1-7 (35 lessons available)
 - Each day: Grammar + 5 vocab + 50 quiz questions
 - Content identifiers working
 - See TEST_NEW_CURRICULUM.md for detailed test instructions
 
 **Next steps:**
+
 - Test the program (uvicorn main:app --reload)
 - Verify content identifiers display in UI
 - Continue Week 8-52 curriculum creation
@@ -564,9 +627,11 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 - Implement database schema for content_weaknesses tracking
 
 ### Session 4 (2026-02-09)
+
 **Date:** 2026-02-09  
 **Focus:** Fix grammar explanation display, implement base verb validation, debug Gemini API issues  
 **Completed:**
+
 - Fixed grammar explanations (was showing "Tableau clair..." from curriculum)
 - Added Gemini API key config to lesson_generator.py
 - Increased token budget 3000→4000
@@ -575,19 +640,23 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 - Committed all changes to git
 
 **Blocked by:**
+
 - Gemini returning invalid/malformed JSON on complex prompts (~60% of requests)
 - Need to simplify prompt or implement JSON repair logic
 
 **Next steps:**
+
 - Debug Gemini JSON issues (simplify vocab section or add JSON validation)
 - Test accuracy of generated grammar explanations (quality vs detail)
 - Consider migrating away from deprecated google.generativeai library
 
 ### Session 6 (2026-02-12) - Part 1: Week 13 Curriculum Generation
+
 **Date:** 2026-02-12  
 **Focus:** Generate Week 13 curriculum (A2.2 - Futur Simple)
 
 **Completed:**
+
 - ✅ Created Week 13 curriculum (Days 61-65)
   - Day 61: Futur simple formation (regular verbs)
   - Day 62: Futur simple irregular verbs (être, avoir, aller, faire, pouvoir, vouloir, voir, venir, savoir, devoir)
@@ -601,10 +670,12 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 - ✅ Updated NEXT_SESSION.md
 
 ### Session 6 (2026-02-12) - Part 2: SDK Migration (google-generativeai → google-genai) ✅ COMPLETE
+
 **Date:** 2026-02-12  
 **Focus:** Migrate from deprecated `google-generativeai` to official `google-genai` SDK
 
 **Completed:**
+
 - ✅ **requirements.txt** - Migrated to google-genai only (old SDK removed after testing)
 - ✅ **lesson_generator.py** - Full migration:
   - Changed `import google.generativeai as genai` → `from google import genai` + `from google.genai import types`
@@ -624,11 +695,13 @@ Display: Grammar + Vocab + Quiz (with content identifier badges)
 - ✅ **Cleanup** - Old SDK removed from requirements.txt
 
 **Migration Result:**
+
 - Migration successful, all features tested and working
 - Old SDK completely removed after verification
 - Application now using official googleapis SDK exclusively
 
 **Key API Changes Implemented:**
+
 ```python
 # OLD SDK (deprecated) - REMOVED
 import google.generativeai as genai

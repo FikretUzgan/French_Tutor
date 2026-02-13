@@ -18,7 +18,7 @@ load_dotenv()
 
 # Audio and AI imports (lazy loaded)
 WHISPER_MODEL = None
-genai = None
+genai_client = None
 
 
 def load_whisper_model():
@@ -192,32 +192,32 @@ def generate_vocab_question(vocab_item: dict, lesson_id: str, vocab_pool: list[d
 
 # ===== AI Functions (Gemini) =====
 
-def get_gemini_model(model_name: str = "gemini-2.5-flash"):
-    """Get or initialize Gemini model"""
-    global genai
-    if genai is None:
+def get_gemini_client():
+    """Get or initialize Gemini API client"""
+    global genai_client
+    if genai_client is None:
         try:
-            import google.generativeai as genai_module
+            import google.genai as genai
             api_key = os.getenv("GEMINI_API_KEY")
             if api_key:
-                genai_module.configure(api_key=api_key)
-                genai = genai_module
+                genai_client = genai.Client(api_key=api_key)
         except ImportError:
-            print("[ERROR] google-generativeai not installed")
+            print("[ERROR] google-genai not installed")
             return None
-    if genai is None:
-        return None
-    return genai.GenerativeModel(model_name)
+    return genai_client
 
 
 def call_gemini_json(prompt: str, model: str = "gemini-2.5-flash") -> Optional[Dict[str, Any]]:
     """Call Gemini API and parse JSON response safely"""
     try:
-        model = get_gemini_model(model)
-        if not model:
+        client = get_gemini_client()
+        if not client:
             return None
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt
+        )
         text = response.text.strip()
         return json.loads(text)
     except json.JSONDecodeError:

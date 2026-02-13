@@ -304,6 +304,53 @@ h2 {
     margin-bottom: 12px;
 }
 
+.scenario-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.scenario-controls button {
+    flex: 1;
+    min-width: 150px;
+}
+
+.scenario-display {
+    background: #f0f7ff;
+    border-left: 4px solid #667eea;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.scenario-location {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.scenario-location span {
+    display: inline-block;
+    background: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 500;
+}
+
+.scenario-content {
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    line-height: 1.5;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.scenario-content p {
+    margin: 0;
+}
+
 .recording-box {
     text-align: center;
 }
@@ -327,8 +374,43 @@ h2 {
 #feedback-content {
     margin-bottom: 8px;
     line-height: 1.4;
-    white-space: pre-wrap;
     font-size: 0.9rem;
+}
+
+.dialogue-exchange {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dialogue-student {
+    background: #f0f7ff;
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+    margin: 0;
+}
+
+.dialogue-student strong {
+    color: #667eea;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+}
+
+.dialogue-ai {
+    background: #fff9e6;
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid #ffa500;
+    margin: 0;
+}
+
+.dialogue-ai strong {
+    color: #ff8c00;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
 }
 
 /* Progress */

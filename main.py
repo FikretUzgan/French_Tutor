@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 import json
 import re
 import unicodedata
+import random
 
 # Import our existing modules
 import db_core
@@ -24,7 +25,7 @@ import db_homework
 import db_exams
 import db_srs
 import db_utils
-import google.generativeai as genai
+import google.genai as genai
 import whisper
 from gtts import gTTS
 try:
@@ -135,8 +136,57 @@ def load_whisper_model():
     if WHISPER_MODEL is None:
         # This should not happen if startup event ran, but as a fallback:
         print("[WARNING] Whisper model not pre-loaded. Loading now (this will be slow)...")
-        WHISPER_MODEL = whisper.load_model("tiny")  # Use tiny model as fallback
+        WHISPER_MODEL = whisper.load_model("base")  # Use base model for better French accuracy
     return WHISPER_MODEL
+
+# Common French STT correction dictionary
+FRENCH_STT_CORRECTIONS = {
+    # Common greetings/polite phrases
+    "si vous plair": "s'il vous plaît",
+    "si vous plait": "s'il vous plaît",
+    "si vous plez": "s'il vous plaît",
+    "si vous play": "s'il vous plaît",
+    "sil vous plait": "s'il vous plaît",
+    "l addition si vous": "l'addition s'il vous",
+    "la dition si vous": "l'addition s'il vous",
+    "l addition": "l'addition",
+    "la dition": "l'addition",
+    # Common contractions
+    "je mappelle": "je m'appelle",
+    "je mapelle": "je m'appelle",
+    "je mapel": "je m'appelle",
+    "c est": "c'est",
+    "d accord": "d'accord",
+    "qu est ce que": "qu'est-ce que",
+    "est ce que": "est-ce que",
+    # Common words
+    "merci beaucoup": "merci beaucoup",  # Keep correct
+    "au revoir": "au revoir",  # Keep correct
+    "bien sur": "bien sûr",
+    "ca va": "ça va",
+    "a bientot": "à bientôt",
+    "a demain": "à demain",
+}
+
+def correct_french_transcription(text: str, target_phrases: List[str] = None) -> str:
+    """Post-process French transcription to fix common STT errors"""
+    corrected = text.lower().strip()
+    
+    # Apply correction dictionary
+    for mistake, correction in FRENCH_STT_CORRECTIONS.items():
+        corrected = corrected.replace(mistake, correction)
+    
+    # If we have target phrases, use fuzzy matching to correct towards them
+    if target_phrases:
+        from difflib import SequenceMatcher
+        for target in target_phrases:
+            target_lower = target.lower().strip()
+            # If transcription is very similar to a target phrase (>70% match), use the target
+            similarity = SequenceMatcher(None, corrected, target_lower).ratio()
+            if similarity > 0.7:
+                return target  # Return the correctly formatted target phrase
+    
+    return corrected
 
 def normalize_audio_peak(audio: np.ndarray, target_dbfs: float = -3.0) -> np.ndarray:
     """Normalize audio to target peak level"""
@@ -195,43 +245,62 @@ def build_lesson_response(lesson: dict) -> LessonResponse:
         content=content,
     )
 
-def transcribe_audio(audio_path: str) -> str:
-    """Transcribe audio file using Whisper"""
+def transcribe_audio(audio_path: str, target_phrases: List[str] = None) -> str:
+    """Transcribe audio file using Whisper with optional context hints"""
     model = load_whisper_model()
-    result = model.transcribe(str(audio_path), language="fr")
-    return result["text"].strip()
+    
+    # Build initial prompt with target phrases to guide Whisper
+    initial_prompt = "Transcription en français. "
+    if target_phrases:
+        # Add target phrases as hints (max 3-4 to avoid over-prompting)
+        hints = ", ".join(target_phrases[:4])
+        initial_prompt += f"Phrases courantes: {hints}."
+    
+    # Transcribe with language and prompt hints
+    result = model.transcribe(
+        str(audio_path),
+        language="fr",
+        initial_prompt=initial_prompt,
+        temperature=0.0  # More deterministic results
+    )
+    
+    raw_text = result["text"].strip()
+    
+    # Apply post-processing corrections
+    corrected_text = correct_french_transcription(raw_text, target_phrases)
+    
+    return corrected_text
 
 def get_ai_speaking_feedback(transcribed_text: str, scenario: str, targets: List[str]) -> str:
-    """Generate AI feedback for speaking practice using Gemini"""
+    """Generate AI's response as a conversation partner (role-play dialogue)"""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return "⚠️ No API key configured. Please set GEMINI_API_KEY in .env file."
     
     try:
-        targets_list = "\n".join(f"- {t}" for t in targets)
-        prompt = f"""You are a French language tutor. Evaluate this student's response in a conversation scenario.
+        prompt = f"""You are role-playing a real person in a French conversation scenario.
 
 Scenario: {scenario}
-Conversation goals:
-{targets_list}
 
-Student said: "{transcribed_text}"
+The student just said to you: "{transcribed_text}"
 
-    Provide concise, encouraging feedback in French only, in this format:
-    ✅ Points positifs (grammaire, vocabulaire, pertinence)
-    ⚠️ Ce qui peut etre ameliore
-    💡 Proposition pour la prochaine reponse
+Your job: Respond naturally as the other person in the conversation (waiter, shop owner, hotel staff, etc.).
+Respond in French ONLY. Keep your response SHORT (1-2 sentences maximum).
+Use simple, beginner-appropriate vocabulary (A1-A2 level).
+React realistically to what they said and move the conversation forward.
 
-    Keep it under 100 words, be supportive. Do not use any English words."""
+IMPORTANT: Return ONLY the French dialogue line, nothing else. No explanations. Just the natural response."""
         
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(prompt)
-        feedback_text = response.text.strip()
-        return f"📝 Ta reponse: {transcribed_text}\n\n🤖 Retour du tuteur:\n{feedback_text}"
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+        ai_response = response.text.strip()
+        return ai_response
     
     except Exception as e:
-        return f"❌ Error getting AI feedback: {str(e)}"
+        return f"❌ Error generating response: {str(e)}"
 
 
 def evaluate_homework_ai(homework_text: str, audio_path: Optional[str] = None) -> Dict[str, Any]:
@@ -259,8 +328,7 @@ def evaluate_homework_ai(homework_text: str, audio_path: Optional[str] = None) -
         }
     
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        client = genai.Client(api_key=api_key)
         
         # STEP 1: Evaluate text submission
         text_eval_prompt = f"""You are a strict French language teacher evaluating homework.
@@ -470,7 +538,10 @@ Make sure:
 - Speaking scenario is realistic and engaging
 - Homework requires both writing and audio recording"""
         
-        response = model.generate_content(lesson_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=lesson_prompt
+        )
         
         try:
             lesson_data = json.loads(response.text.strip())
@@ -521,8 +592,7 @@ def generate_exam_ai(level: str, week_number: int) -> Dict[str, Any]:
         }
     
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        client = genai.Client(api_key=api_key)
         
         exam_prompt = f"""You are creating a French language exam for level {level}, week {week_number}.
 
@@ -554,7 +624,10 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
 
 Make questions realistic and fair."""
         
-        response = model.generate_content(exam_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=exam_prompt
+        )
         
         try:
             exam_data = json.loads(response.text.strip())
@@ -602,8 +675,7 @@ def grade_exam_ai(questions: List[Dict[str, Any]], student_answers: Dict[str, st
         }
     
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        client = genai.Client(api_key=api_key)
         
         # Format questions and answers for grading
         grading_data = []
@@ -644,7 +716,10 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
 
 Pass if overall >= 70% AND all critical topics >= 70%."""
         
-        response = model.generate_content(grade_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=grade_prompt
+        )
         
         try:
             grading_result = json.loads(response.text.strip())
@@ -1429,9 +1504,84 @@ async def speaking_feedback(request: SpeakingRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate feedback: {str(e)}")
 
+@app.get("/api/speaking/random-scenario")
+async def generate_random_scenario():
+    """Generate a detailed random speaking scenario using AI"""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {"error": "API key not configured"}
+    
+    try:
+        locations = [
+            "Ticket office",
+            "Restaurant", 
+            "Café",
+            "Shopping center",
+            "Kitchen (cooking class)",
+            "Education (classroom)",
+            "Travel agency",
+            "Hotel",
+            "Train station",
+            "Airport",
+            "Pharmacy",
+            "Bank"
+        ]
+        location = random.choice(locations)
+        
+        prompt = f"""Create a French conversation role-play scenario at a {location}.
+
+Language Level: A1-A2 (Beginner)
+
+The student will have a CONVERSATION with an AI character. You are NOT creating teacher feedback - you are setting up a real dialogue.
+
+Structure your response exactly like this:
+
+**Scenario Title** (2-3 words)
+[Name of the roleplay]
+
+**Your Role** 
+[Who the student is: customer, tourist, patient, guest, traveler, etc.]
+
+**AI's Role**
+[Who the AI plays: waiter, shop owner, hotel clerk, pharmacist, ticket agent, etc.]
+
+**Your Conversation Goals** (3-4 numbered items)
+[Specific things the student should try to say or accomplish in the conversation]
+
+**Key Phrases** (3-4 useful phrases)
+[Important French phrases to help the student]
+
+**How AI Starts the Conversation**
+[Write the AI's opening line in French - something natural this person would say first]
+
+IMPORTANT:
+- Use SIMPLE French and clear vocabulary (A1-A2 level only)
+- The AI opening line should invite response from the student
+- Student will respond verbally to the AI's opening line
+- Keep everything beginner-friendly and natural"""
+        
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+        scenario_text = response.text.strip()
+        
+        return {
+            "location": location,
+            "scenario": scenario_text
+        }
+    
+    except Exception as e:
+        return {"error": f"Failed to generate scenario: {str(e)}"}
+
+
 @app.post("/api/audio/transcribe")
-async def transcribe_audio_file(audio_file: UploadFile = File(...)):
-    """Transcribe uploaded audio file"""
+async def transcribe_audio_file(
+    audio_file: UploadFile = File(...),
+    target_phrases: str = Form(default="")  # Optional comma-separated target phrases
+):
+    """Transcribe uploaded audio file with optional context hints"""
     try:
         # Save temporary file
         temp_path = Path(tempfile.gettempdir()) / audio_file.filename
@@ -1439,8 +1589,11 @@ async def transcribe_audio_file(audio_file: UploadFile = File(...)):
             content = await audio_file.read()
             f.write(content)
         
-        # Transcribe
-        transcription = transcribe_audio(str(temp_path))
+        # Parse target phrases if provided
+        targets = [p.strip() for p in target_phrases.split(",") if p.strip()] if target_phrases else None
+        
+        # Transcribe with context hints
+        transcription = transcribe_audio(str(temp_path), target_phrases=targets)
         
         # Cleanup
         temp_path.unlink()

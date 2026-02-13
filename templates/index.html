@@ -147,32 +147,36 @@
                 <h2>Speaking Practice</h2>
                 <div class="speaking-container">
                     <div class="scenario-box">
-                        <label>Scenario:</label>
-                        <select id="scenario-select">
-                            <option value="cafe">☕ At a Café</option>
-                            <option value="shop">🛍️ At a Shop</option>
-                            <option value="restaurant">🍽️ At a Restaurant</option>
-                            <option value="hotel">🏨 At a Hotel</option>
-                        </select>
+                        <div class="scenario-controls">
+                            <button id="generate-scenario-btn" class="btn-primary">🎲 Generate Random Scenario</button>
+                            <button id="try-another-btn" class="btn-secondary" style="display: none;">↻ Try Another Scenario</button>
+                        </div>
                     </div>
                     
-                    <div class="targets-box">
+                    <div class="scenario-display" id="scenario-display" style="display: none;">
+                        <div class="scenario-location">
+                            <strong>Location:</strong>
+                            <span id="scenario-location-text"></span>
+                        </div>
+                        <div class="scenario-content">
+                            <p id="scenario-text"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="targets-box" id="targets-box" style="display: none;">
                         <strong>Conversation Goals:</strong>
-                        <ul id="targets-list">
-                            <li>Order a coffee</li>
-                            <li>Ask for the bill</li>
-                        </ul>
+                        <ul id="targets-list"></ul>
                     </div>
 
-                    <div class="recording-box">
+                    <div class="recording-box" id="recording-box" style="display: none;">
                         <button id="ptt-btn" class="btn-ptt">🎤 Push to Talk</button>
                         <p id="recording-status" class="recording-hint">Hold button or press SPACE to record</p>
                     </div>
 
                     <div class="feedback-box" id="feedback-box" style="display: none;">
-                        <h3>AI Feedback</h3>
+                        <h3>💬 Conversation</h3>
                         <div id="feedback-content"></div>
-                        <button id="play-tts-btn" class="btn-secondary">🔊 Play Feedback</button>
+                        <button id="play-tts-btn" class="btn-secondary">🔊 Play AI Response</button>
                     </div>
                 </div>
             </div>
